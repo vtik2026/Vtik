@@ -3,113 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik - عالم الفيديوهات</title>
+    <title>Vtik - عالمك الملون</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --gold: #D4AF37; --white: #FFFFFF; --light-gray: #f8f9fa; --text: #212529; --accent: #ff0050; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--white); color: var(--text); overflow-x: hidden; }
-        
-        /* الهيدر العلوي */
-        header { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.9); padding: 12px 0; z-index: 1000; border-bottom: 1px solid #eee; backdrop-filter: blur(8px); }
+        /* التنسيق اللوني الجديد: أوف بينك + ذهبي */
+        :root { 
+            --gold: #D4AF37; 
+            --off-pink: #FFF0F5; /* لون بينك فاتح جداً وراقي */
+            --white: #FFFFFF; 
+            --text: #4A4A4A; 
+            --accent: #FF1493; 
+        }
+
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--off-pink); 
+            color: var(--text); 
+            overflow-x: hidden; 
+        }
+
+        /* شريط الرفع العلوي (زي تيك توك) */
+        #top-progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            z-index: 9999;
+            display: none;
+        }
+        #top-progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), var(--gold));
+            box-shadow: 0 0 10px var(--accent);
+            transition: width 0.4s ease;
+        }
+
+        /* الهيدر مع الشعار */
+        header { 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            background: rgba(255, 255, 255, 0.8); 
+            padding: 10px 0; 
+            z-index: 1000; 
+            border-bottom: 1px solid rgba(255,182,193,0.3);
+            backdrop-filter: blur(10px); 
+        }
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-        .logo-text { font-size: 24px; font-weight: bold; color: var(--gold); letter-spacing: 1px; }
+        .logo-text { font-size: 26px; font-weight: 900; color: var(--gold); text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
 
         /* شاشة الدخول */
-        #auth-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px; background: var(--light-gray); }
-        .auth-card { background: var(--white); padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 350px; border: 1px solid #eee; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; background: #fff; color: var(--text); box-sizing: border-box; text-align: center; font-size: 16px; }
-        .btn-main { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(45deg, #D4AF37, #FFD700); color: white; font-size: 18px; margin-top: 10px; transition: 0.3s; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
-        
-        /* العرض السينمائي (Feed) */
-        #main-app { display: none; padding-top: 80px; padding-bottom: 90px; }
-        .video-card { width: 100%; max-width: 450px; margin: 0 auto 25px auto; background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
-        video { width: 100%; display: block; background: #000; max-height: 75vh; object-fit: contain; }
-        .video-info { padding: 15px; border-top: 1px solid #f9f9f9; }
-        .video-info h4 { margin: 0; color: var(--text); font-size: 16px; }
-        .video-info p { margin: 5px 0 0; color: #666; font-size: 14px; }
-        
-        /* شريط التنقل السفلي */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
-        .nav-item { color: #adb5bd; font-size: 22px; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: var(--gold); }
-        .nav-item.upload-btn { color: white; background: var(--text); width: 45px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border-left: 3px solid #25d366; border-right: 3px solid var(--accent); }
+        #auth-section { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+        .auth-card { 
+            background: var(--white); 
+            padding: 40px; 
+            border-radius: 30px; 
+            box-shadow: 0 15px 35px rgba(255,182,193,0.2); 
+            width: 100%; 
+            max-width: 350px; 
+            text-align: center;
+        }
+        input { 
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; 
+            border: 1px solid #FFE4E1; background: #FFF9FA; color: var(--text); 
+            box-sizing: border-box; text-align: center; font-size: 16px; 
+        }
+        .btn-main { 
+            width: 100%; padding: 15px; border-radius: 15px; border: none; 
+            font-weight: bold; cursor: pointer; 
+            background: linear-gradient(45deg, var(--gold), #FFD700); 
+            color: white; font-size: 18px; margin-top: 10px; transition: 0.3s; 
+        }
 
-        /* نافذة الرفع (Modal) */
-        #upload-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--white); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        #progress-container { width: 100%; background: #eee; height: 8px; border-radius: 4px; margin: 20px 0; display: none; }
-        #progress-bar { width: 0%; height: 100%; background: var(--gold); border-radius: 4px; transition: 0.3s; }
+        /* العرض السينمائي للفيديوهات */
+        #main-app { display: none; padding-top: 70px; padding-bottom: 80px; }
+        .video-card { 
+            width: 100%; max-width: 450px; margin: 0 auto 20px auto; 
+            background: var(--white); border-radius: 25px; overflow: hidden; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative;
+        }
+        video { width: 100%; display: block; background: #000; max-height: 80vh; object-fit: contain; }
+        .video-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white;
+        }
+
+        /* الشريط السفلي */
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; background: var(--white); 
+            display: flex; justify-content: space-around; padding: 15px 0; 
+            border-top: 1px solid #FFE4E1; z-index: 1000; 
+        }
+        .nav-item { color: #DB7093; font-size: 24px; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item.upload-btn { 
+            background: var(--text); color: white; width: 50px; height: 35px; 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            border-left: 3px solid #00f2ea; border-right: 3px solid #ff0050;
+        }
+
+        /* نافذة الرفع */
+        #upload-modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255, 240, 245, 0.98); z-index: 2000; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: var(--white); padding: 30px; border-radius: 30px; 
+            width: 90%; max-width: 400px; text-align: center; border: 1px solid #FFE4E1; 
+        }
     </style>
 </head>
 <body>
 
+    <div id="top-progress-container"><div id="top-progress-bar"></div></div>
+
     <header id="app-header" style="display: none;">
         <div class="nav-container">
-            <i class="fas fa-sign-out-alt nav-item" style="font-size: 18px;" onclick="logout()"></i>
+            <i class="fas fa-sign-out-alt nav-item" style="font-size: 20px;" onclick="logout()"></i>
             <div class="logo-text">Vtik</div>
-            <i class="fas fa-user-circle nav-item" style="color: #666;"></i>
+            <i class="fas fa-bell nav-item" style="font-size: 20px;"></i>
         </div>
     </header>
 
     <div id="auth-section">
         <div class="auth-card">
-            <div class="logo-text" style="font-size: 40px; margin-bottom: 10px;">Vtik</div>
-            <p style="color: #888; margin-bottom: 25px;">أهلاً بك في سنتك البيضاء</p>
+            <div class="logo-text" style="font-size: 45px; margin-bottom: 5px;">Vtik</div>
+            <p style="color: #DB7093; margin-bottom: 25px; font-weight: bold;">سنة بيضاء وحياة بينك! ✨</p>
             <input type="tel" id="user-phone" placeholder="رقم الموبايل">
             <input type="password" id="user-pass" placeholder="كلمة السر">
-            <button class="btn-main" onclick="handleAuth()">دخول آمن</button>
+            <button class="btn-main" onclick="handleAuth()">ابدأ الاستمتاع</button>
         </div>
     </div>
 
     <div id="main-app">
-        <div id="video-feed-container">
-            </div>
+        <div id="video-feed-container"></div>
     </div>
 
     <div id="upload-modal">
         <div class="modal-content">
-            <h3 style="color: var(--text);">شارك لحظاتك السعيدة 🎬</h3>
-            <input type="file" id="video-input" accept="video/*" onchange="previewSelectedVideo()" style="font-size: 12px;">
-            <video id="preview-tag" style="width: 100%; display: none; border-radius: 12px; margin-top: 15px; border: 1px solid #eee;" controls></video>
-            <div id="progress-container"><div id="progress-bar"></div></div>
-            <button class="btn-main" id="upload-confirm-btn" style="display: none;" onclick="startActualUpload()">ابدأ الرفع الآن 🚀</button>
-            <button onclick="closeUploadModal()" style="background:none; border:none; color:#999; margin-top:20px; cursor:pointer; font-weight: bold;">إلغاء</button>
+            <h3 style="color: var(--gold);">انشر إبداعك 🎬</h3>
+            <input type="file" id="video-input" accept="video/*" onchange="previewVideo()">
+            <video id="p-tag" style="width: 100%; display: none; border-radius: 15px; margin-top: 15px;" controls></video>
+            <button class="btn-main" id="up-btn" style="display: none;" onclick="processUpload()">نشر الآن</button>
+            <p id="status-text" style="font-size: 12px; color: var(--accent); margin-top: 10px; display: none;">جاري الرفع.. بص في أعلى الشاشة 👆</p>
+            <button onclick="closeModal()" style="background:none; border:none; color:#999; margin-top:15px; cursor:pointer;">إلغاء</button>
         </div>
     </div>
 
     <nav class="bottom-nav" id="app-nav" style="display: none;">
         <div class="nav-item active" onclick="loadFeed()"><i class="fas fa-home"></i></div>
-        <div class="nav-item"><i class="fas fa-compass"></i></div>
-        <div class="nav-item upload-btn" onclick="openUploadModal()"><i class="fas fa-plus" style="font-size: 16px;"></i></div>
+        <div class="nav-item"><i class="fas fa-search"></i></div>
+        <div class="nav-item upload-btn" onclick="openModal()"><i class="fas fa-plus"></i></div>
         <div class="nav-item"><i class="fas fa-heart"></i></div>
         <div class="nav-item"><i class="fas fa-user"></i></div>
     </nav>
 
 <script>
-    // إعدادات صبابيز (لا تغيرها)
     const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 1. نظام الدخول/التسجيل
     async function handleAuth() {
         const phone = document.getElementById('user-phone').value;
         const pass = document.getElementById('user-pass').value;
-        if(!phone || pass.length < 6) return alert("الرجاء إدخال بيانات صحيحة (كلمة السر 6 أرقام على الأقل)");
-        const fakeEmail = `${phone}@vtik.com`;
+        if(!phone || pass.length < 6) return alert("دخل بياناتك صح يا بطل");
+        const email = `${phone}@vtik.com`;
 
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email: fakeEmail, password: pass });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
         if (error) {
-            const { error: signUpErr } = await supabaseClient.auth.signUp({ email: fakeEmail, password: pass });
-            if (signUpErr) alert("عذراً: " + signUpErr.message);
-            else alert("تم إنشاء حسابك بنجاح! اضغط دخول مرة أخرى");
-        } else {
-            showDashboard();
-        }
+            await supabaseClient.auth.signUp({ email, password: pass });
+            alert("تم تسجيلك! دوس دخول تاني");
+        } else { showApp(); }
     }
 
-    function showDashboard() {
+    function showApp() {
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
         document.getElementById('app-header').style.display = 'block';
@@ -117,72 +189,66 @@
         loadFeed();
     }
 
-    // 2. جلب الفيديوهات (عرض تيك توك)
     async function loadFeed() {
-        const { data: videos, error } = await supabaseClient.from('videos').select('*').order('created_at', { ascending: false });
-        if (error) return;
-
+        const { data: videos } = await supabaseClient.from('videos').select('*').order('created_at', { ascending: false });
         const container = document.getElementById('video-feed-container');
         container.innerHTML = '';
-        videos.forEach(v => {
+        videos?.forEach(v => {
             container.innerHTML += `
                 <div class="video-card">
-                    <video src="${v.video_url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
-                    <div class="video-info">
-                        <h4>@مستخدم_سعيد</h4>
-                        <p>${v.caption || 'سنة بيضاء مع Vtik 🤍'}</p>
+                    <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                    <div class="video-overlay">
+                        <p style="font-weight:bold; margin:0;">@Vtik_User</p>
+                        <p style="font-size:13px; opacity:0.8;">سنة سعيدة عليكم 🌸</p>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     }
 
-    // 3. نظام الرفع السريع
-    function openUploadModal() { document.getElementById('upload-modal').style.display = 'flex'; }
-    function closeUploadModal() { document.getElementById('upload-modal').style.display = 'none'; }
+    function openModal() { document.getElementById('upload-modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('upload-modal').style.display = 'none'; }
 
-    function previewSelectedVideo() {
+    function previewVideo() {
         const file = document.getElementById('video-input').files[0];
         if(file) {
-            const preview = document.getElementById('preview-tag');
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
-            document.getElementById('upload-confirm-btn').style.display = 'block';
+            const v = document.getElementById('p-tag');
+            v.src = URL.createObjectURL(file);
+            v.style.display = 'block';
+            document.getElementById('up-btn').style.display = 'block';
         }
     }
 
-    async function startActualUpload() {
+    async function processUpload() {
         const file = document.getElementById('video-input').files[0];
         const { data: { user } } = await supabaseClient.auth.getUser();
         
-        const progressCont = document.getElementById('progress-container');
-        const bar = document.getElementById('progress-bar');
+        const topBarCont = document.getElementById('top-progress-container');
+        const topBar = document.getElementById('top-progress-bar');
         
-        progressCont.style.display = 'block';
-        bar.style.width = '30%';
+        topBarCont.style.display = 'block';
+        topBar.style.width = '20%';
+        document.getElementById('status-text').style.display = 'block';
 
-        const fileName = `${Date.now()}_${file.name}`;
-        const { error: stErr } = await supabaseClient.storage.from('vtik-videos').upload(fileName, file);
+        const name = `${Date.now()}_${file.name}`;
+        const { error: err } = await supabaseClient.storage.from('vtik-videos').upload(name, file);
+        
+        if(err) return alert("فشل الرفع");
 
-        if (stErr) return alert("خطأ في الرفع: " + stErr.message);
-        
-        bar.style.width = '70%';
-        const { data: urlData } = supabaseClient.storage.from('vtik-videos').getPublicUrl(fileName);
-        
-        await supabaseClient.from('videos').insert([{ user_id: user.id, video_url: urlData.publicUrl }]);
-        
-        bar.style.width = '100%';
+        topBar.style.width = '80%';
+        const { data } = supabaseClient.storage.from('vtik-videos').getPublicUrl(name);
+        await supabaseClient.from('videos').insert([{ user_id: user.id, video_url: data.publicUrl }]);
+
+        topBar.style.width = '100%';
         setTimeout(() => {
-            alert("تم النشر بنجاح! نهارك أبيض 🤍");
-            closeUploadModal();
+            topBarCont.style.display = 'none';
+            alert("فيديو عالمي! تم النشر 🌸");
+            closeModal();
             loadFeed();
-        }, 500);
+        }, 600);
     }
 
-    function logout() { supabaseClient.auth.signOut().then(() => location.reload()); }
-    
-    // فحص الجلسة عند البداية
-    supabaseClient.auth.getUser().then(({data}) => { if(data.user) showDashboard(); });
+    function logout() { supabaseClient.auth.signOut().then(()=>location.reload()); }
+    supabaseClient.auth.getUser().then(({data}) => { if(data.user) showApp(); });
 </script>
 </body>
-</html>
+    </html>
