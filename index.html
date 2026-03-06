@@ -3,78 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik - استكشف المتعة</title>
+    <title>Vtik - الإمبراطورية النهائية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --gold: #D4AF37; --off-pink: #FFF0F5; --white: #FFFFFF; --text: #4A4A4A; --accent: #FF1493; }
+        :root { --gold: #D4AF37; --off-pink: #FFF0F5; --pink-dark: #FFB6C1; --text: #4A4A4A; --accent: #FF1493; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--off-pink); color: var(--text); overflow-x: hidden; }
         
-        /* علامة مائية كبيرة في الخلفية */
+        /* العلامة المائية الخلفية */
         body::before {
             content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 300px; height: 300px; background: url('logo.png') no-repeat center;
-            background-size: contain; opacity: 0.04; z-index: -1;
+            width: 250px; height: 250px; background: url('logo.png') no-repeat center;
+            background-size: contain; opacity: 0.05; z-index: -1;
         }
 
-        header { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.9); padding: 8px 0; z-index: 1000; border-bottom: 1px solid #FFE4E1; backdrop-filter: blur(10px); }
-        .header-logo { width: 50px; cursor: pointer; }
+        header { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); padding: 10px 0; z-index: 1000; border-bottom: 2px solid var(--pink-dark); backdrop-filter: blur(10px); }
+        .logo-img { width: 55px; cursor: pointer; }
 
-        /* تنسيق الفيديو */
-        #main-app { padding-top: 70px; padding-bottom: 80px; }
-        .video-card { width: 95%; max-width: 450px; margin: 0 auto 20px auto; background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); position: relative; }
-        .v-watermark { position: absolute; top: 15px; right: 15px; width: 35px; opacity: 0.5; pointer-events: none; }
+        /* شاشة الدخول الاحترافية */
+        #auth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.98); z-index: 5000; justify-content: center; align-items: center; }
+        .auth-card { background: white; padding: 30px; border-radius: 35px; box-shadow: 0 15px 40px rgba(255,182,193,0.4); width: 85%; max-width: 340px; text-align: center; border: 2px solid var(--gold); }
+        
+        .social-btn { width: 100%; padding: 12px; margin: 8px 0; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; transition: 0.3s; }
+        .btn-google { background: #DB4437; }
+        .btn-fb { background: #4267B2; }
+        .btn-pink-gold { background: var(--accent); color: white; border: 2px solid var(--gold); padding: 12px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        /* الفيد والبحث */
+        #main-app { padding-top: 80px; padding-bottom: 90px; }
+        .video-card { width: 95%; max-width: 450px; margin: 0 auto 25px auto; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative; }
         video { width: 100%; display: block; background: #000; max-height: 75vh; }
+        .v-actions { display: flex; justify-content: space-around; padding: 15px; background: white; font-size: 22px; color: #ddd; }
+        .liked { color: var(--accent) !important; animation: heartBeat 0.3s ease; }
 
-        /* شاشة التسجيل (Modal) */
-        #auth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.9); z-index: 5000; justify-content: center; align-items: center; }
-        .auth-card { background: var(--white); padding: 30px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--gold); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid #eee; text-align: center; box-sizing: border-box; }
-        
+        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.3);} 100% {transform: scale(1);} }
+
         /* القائمة السفلية */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #FFE4E1; z-index: 1000; }
-        .nav-item { color: #DB7093; font-size: 22px; cursor: pointer; }
-        .upload-btn { background: #000; color: #fff; width: 45px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border-left: 2px solid #00f2ea; border-right: 2px solid #ff0050; }
-        
-        .points-badge { background: var(--gold); color: white; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--pink-dark); z-index: 1000; }
+        .nav-item { color: var(--pink-dark); font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--gold); }
     </style>
 </head>
 <body>
 
     <header>
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 15px;">
-            <div id="user-actions">
-                <button onclick="openAuth()" style="background:var(--gold); color:white; border:none; padding:5px 12px; border-radius:15px; font-size:12px;">دخول</button>
-            </div>
-            <img src="logo.png" class="header-logo" onclick="location.reload()">
-            <div class="points-badge" id="pts-display">⭐ زائر</div>
+            <div id="auth-status"><button class="btn-pink-gold" onclick="openAuth()" style="font-size: 11px;">دخول / سجل</button></div>
+            <img src="logo.png" class="logo-img" onclick="loadFeed()">
+            <div id="user-pts" style="color:var(--gold); font-weight:bold; font-size:12px;">⭐ 0</div>
         </div>
     </header>
 
     <div id="main-app">
-        <div id="feed-container">
-            <p style="text-align:center; margin-top:50px;">جاري تحميل الفيديوهات...</p>
-        </div>
+        <div id="feed-container"></div>
     </div>
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <img src="logo.png" style="width: 80px; margin-bottom: 10px;">
-            <h3 style="color: var(--gold); margin: 0;">انضم لـ Vtik</h3>
-            <p style="font-size: 12px; color: #888;">سجل عشان ترفع فيديوهات وتجمع نقاط</p>
-            <input type="tel" id="phone" placeholder="رقم الموبايل">
-            <input type="password" id="pass" placeholder="كلمة السر">
-            <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--gold); border:none; color:white; border-radius:12px; margin-top:10px; font-weight:bold;">دخول / تسجيل</button>
-            <button onclick="closeAuth()" style="background:none; border:none; color:#999; margin-top:10px; font-size:12px;">إغلاق</button>
+            <img src="logo.png" style="width: 80px; margin-bottom: 15px;">
+            <h3 style="color: var(--accent);">سجل دخولك يا بطل</h3>
+            <button class="social-btn btn-google" onclick="socialLogin('google')"><i class="fab fa-google"></i> بالـ Google</button>
+            <button class="social-btn btn-fb" onclick="socialLogin('facebook')"><i class="fab fa-facebook"></i> بالـ Facebook</button>
+            <hr style="border: 0.5px solid #eee; margin: 15px 0;">
+            <input type="tel" id="p-phone" placeholder="رقم الموبايل" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; text-align:center;">
+            <button class="btn-pink-gold" style="width:100%;" onclick="phoneLogin()">دخول سريع</button>
+            <p onclick="closeAuth()" style="color:#999; font-size:12px; margin-top:15px; cursor:pointer;">تصفح كزائر</p>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="checkAuthAction()"><i class="fas fa-search"></i></div>
-        <div class="nav-item upload-btn" onclick="checkAuthAction()"><i class="fas fa-plus"></i></div>
-        <div class="nav-item" onclick="checkAuthAction()"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" onclick="checkAuthAction()"><i class="fas fa-user"></i></div>
+        <div class="nav-item active" id="home-btn" onclick="loadFeed()"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="alert('جاري البحث..')"><i class="fas fa-search"></i></div>
+        <div class="nav-item" style="background:#000; color:#fff; width:45px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;" onclick="checkUpload()"><i class="fas fa-plus"></i></div>
+        <div class="nav-item"><i class="fas fa-heart"></i></div>
+        <div class="nav-item" id="profile-btn" onclick="showMyVideos()"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
@@ -82,67 +84,82 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentUser = null;
+    let currentUserID = null;
 
-    // 1. تشغيل التطبيق (عرض الفيديوهات فوراً للجميع)
-    async function init() {
+    async function initApp() {
         const { data: { user } } = await client.auth.getUser();
-        currentUser = user;
         if(user) {
+            currentUserID = user.id;
             updateUI(user);
         }
         loadFeed();
     }
 
-    async function loadFeed() {
-        const { data: vids } = await client.from('videos').select('*').order('created_at', { ascending: false });
+    // 1. نظام الدخول بالسوشيال ميديا
+    async function socialLogin(provider) {
+        const { error } = await client.auth.signInWithOAuth({ provider: provider });
+        if (error) alert("عذراً، تأكد من إعدادات الـ Keys في Supabase");
+    }
+
+    async function phoneLogin() {
+        const phone = document.getElementById('p-phone').value;
+        const email = `${phone}@vtik.com`;
+        const { error } = await client.auth.signInWithPassword({ email, password: 'nopasswordneeded' });
+        if(error) await client.auth.signUp({ email, password: 'nopasswordneeded' });
+        location.reload();
+    }
+
+    // 2. عرض الفيديوهات
+    async function loadFeed(onlyMine = false) {
+        let query = client.from('videos').select('*').order('created_at', { ascending: false });
+        if(onlyMine && currentUserID) query = query.eq('user_id', currentUserID);
+        
+        const { data: vids } = await query;
         const container = document.getElementById('feed-container');
         container.innerHTML = '';
+        
         vids?.forEach(v => {
             container.innerHTML += `
                 <div class="video-card">
-                    <img src="logo.png" class="v-watermark">
+                    <img src="logo.png" style="position:absolute; top:15px; right:15px; width:35px; opacity:0.6; z-index:5;">
                     <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div style="padding:15px;"><p style="font-weight:bold; margin:0; font-size:13px;">@مبدع_Vtik</p></div>
+                    <div class="v-actions">
+                        <i class="fas fa-heart" onclick="toggleLike(this)"></i>
+                        <i class="fas fa-comment"></i>
+                        <i class="fas fa-share-alt"></i>
+                    </div>
                 </div>`;
         });
     }
 
-    // 2. التحقق قبل أي "أكشن"
-    function checkAuthAction() {
-        if(!currentUser) {
-            openAuth();
-        } else {
-            // هنا نفتح شاشة الرفع الحقيقية (التي برمجناها سابقاً)
-            alert("أنت مسجل بالفعل! جاري فتح شاشة الرفع...");
-            // يمكنك هنا استدعاء modal الرفع الخاص بك
-        }
+    function showMyVideos() {
+        if(!currentUserID) return openAuth();
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('profile-btn').classList.add('active');
+        loadFeed(true);
+    }
+
+    function toggleLike(el) {
+        if(!currentUserID) return openAuth();
+        el.classList.toggle('liked');
+    }
+
+    function checkUpload() {
+        if(!currentUserID) openAuth();
+        else alert("جاهز للرفع! (سيتم ربط كود الرفع السابق هنا)");
     }
 
     function openAuth() { document.getElementById('auth-overlay').style.display = 'flex'; }
     function closeAuth() { document.getElementById('auth-overlay').style.display = 'none'; }
 
-    async function handleLogin() {
-        const p = document.getElementById('phone').value;
-        const s = document.getElementById('pass').value;
-        const e = `${p}@vtik.com`;
-        const { data, error } = await client.auth.signInWithPassword({ email: e, password: s });
-        if(error) {
-            await client.auth.signUp({ email: e, password: s });
-            alert("تم تسجيلك كعضو جديد! اضغط دخول");
-        } else {
-            location.reload();
-        }
-    }
-
     function updateUI(user) {
-        document.getElementById('user-actions').innerHTML = `<i class="fas fa-sign-out-alt" onclick="logout()" style="color:#DB7093"></i>`;
-        document.getElementById('pts-display').innerText = "⭐ عضو ذهبي";
+        document.getElementById('auth-status').innerHTML = `<i class="fas fa-sign-out-alt" style="color:var(--accent); font-size:20px;" onclick="logout()"></i>`;
+        document.getElementById('user-pts').innerText = "⭐ عضو ملكي";
     }
 
     async function logout() { await client.auth.signOut(); location.reload(); }
 
-    init();
+    initApp();
 </script>
 </body>
 </html>
