@@ -3,123 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Tik | Vtik</title>
+    <title>Vtik | التجربة الكاملة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --main-color: #fe2c55; --bg-black: #010101; }
-        body { margin: 0; background-color: var(--bg-black); color: white; font-family: sans-serif; overflow: hidden; }
-        .container { display: flex; flex-direction: column; height: 100vh; }
-        header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 0.5px solid #333; z-index: 1000; }
-        .logo { font-size: 24px; font-weight: bold; color: var(--main-color); }
-        .video-feed { flex: 1; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-card { height: calc(100vh - 60px); scroll-snap-align: start; display: flex; align-items: center; justify-content: center; position: relative; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-google { background: white; color: black; display: flex; align-items: center; gap: 8px; }
-        .btn-upload { background: var(--main-color); color: white; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); border-radius: 50px; padding: 12px 35px; font-size: 24px; z-index: 1001; display: none; box-shadow: 0 4px 20px rgba(254, 44, 85, 0.5); }
-        .user-profile { display: flex; align-items: center; gap: 10px; }
-        .user-img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--main-color); }
+        :root { 
+            --main-pink: #FF1493; 
+            --bg-color: #050505; 
+            --text-color: #ffffff;
+            --card-bg: #000000;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --card-bg: #f9f9f9;
+            --glass: rgba(0, 0, 0, 0.05);
+        }
+
+        body { 
+            margin: 0; background-color: var(--bg-color); color: var(--text-color); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden; 
+        }
+        
+        /* الهيدر العلوي */
+        header { 
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 15px;
+            background: linear-gradient(to bottom, var(--bg-color), transparent);
+        }
+
+        .logo { 
+            font-size: 32px; font-weight: 900; color: var(--main-pink); 
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.4); 
+            cursor: pointer; user-select: none; transition: 0.3s;
+        }
+        .logo:active { transform: scale(0.9); }
+        
+        .tabs { display: flex; gap: 10px; background: var(--glass); padding: 5px; border-radius: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 20, 147, 0.2); }
+        .tab-btn { 
+            background: transparent; border: none; color: var(--text-color); padding: 8px 20px; 
+            cursor: pointer; font-weight: bold; border-radius: 25px; transition: 0.3s; font-size: 14px;
+        }
+        .tab-btn.active { background: var(--main-pink); color: white; box-shadow: 0 0 15px var(--main-pink); }
+
+        /* منطقة الفيديو */
+        .video-feed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        .video-feed::-webkit-scrollbar { display: none; }
+        
+        .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: var(--card-bg); }
+        video { width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
+
+        /* الأزرار الجانبية (شمال) */
+        .side-info { position: absolute; bottom: 100px; left: 20px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
+        .action-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .icon-btn { 
+            width: 50px; height: 50px; background: var(--glass); 
+            border: 1.5px solid var(--main-pink); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            cursor: pointer; transition: 0.3s; color: var(--main-pink); backdrop-filter: blur(5px);
+        }
+        .icon-btn:hover { background: var(--main-pink); color: white; transform: scale(1.1); }
+        .count-label { font-size: 12px; font-weight: bold; color: var(--text-color); }
+        
+        /* تفاصيل الفيديو (يمين) */
+        .video-details { position: absolute; bottom: 40px; right: 20px; text-align: right; max-width: 70%; pointer-events: none; }
+        .time-tag { font-size: 11px; color: var(--main-pink); font-weight: bold; margin-bottom: 5px; }
+        .caption { font-size: 16px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+
+        /* زر الرفع */
+        .btn-upload { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: var(--main-pink); border: none; width: 60px; height: 60px; 
+            border-radius: 50%; color: white; font-size: 30px; cursor: pointer;
+            box-shadow: 0 0 25px rgba(255, 20, 147, 0.6); z-index: 1001; transition: 0.3s;
+        }
+        .btn-upload:hover { transform: translateX(-50%) scale(1.1); }
+
+        /* تسجيل الدخول بجوجل */
+        .auth-overlay { 
+            position: fixed; inset: 0; background: var(--bg-color); z-index: 2000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn-login { 
+            background: white; color: black; padding: 12px 25px; border-radius: 30px; 
+            border: none; font-weight: bold; display: flex; align-items: center; gap: 10px; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div class="logo">Video Tik</div>
-        <div id="auth-section">
-            <button class="btn btn-google" onclick="login()">
-                <img src="https://www.google.com/favicon.ico" width="16"> دخول بجوجل
-            </button>
-        </div>
-    </header>
-
-    <main class="video-feed" id="feed">
-        <div class="video-card">
-            <div style="text-align:center">
-                <h2>جاهز للتشغيل على GitHub 🚀</h2>
-                <p>سجل دخولك الآن لتجربة النسخة النهائية</p>
-            </div>
-        </div>
-    </main>
-
-    <input type="file" id="video-input" hidden accept="video/*" onchange="handleFile(event)">
-    <button id="upload-btn" class="btn btn-upload" onclick="document.getElementById('video-input').click()">+</button>
+<div id="auth-screen" class="auth-overlay" style="display: none;">
+    <h1 style="color: var(--main-pink); font-size: 40px;">Vtik</h1>
+    <button class="btn-login" onclick="login()">
+        <img src="https://www.google.com/favicon.ico" width="20"> الدخول بحساب جوجل
+    </button>
 </div>
 
+<header id="app-header">
+    <div class="logo" ondblclick="toggleTheme()" title="اضغط مرتين لتغيير المود">Vtik</div>
+    <div class="tabs">
+        <button id="tab-trending" class="tab-btn active" onclick="switchTab('trending')">الأعلى مشاهدة 🔥</button>
+        <button id="tab-newest" class="tab-btn" onclick="switchTab('newest')">وصل حديثاً 🆕</button>
+    </div>
+</header>
+
+<main class="video-feed" id="feed">
+    </main>
+
+<button id="upload-ui" class="btn-upload" onclick="document.getElementById('video-input').click()">+</button>
+<input type="file" id="video-input" hidden accept="video/*" onchange="handleUpload(event)">
+
 <script>
-    // --- بياناتك الحقيقية والمفاتيح ---
+    // 1. الإعدادات
     const SB_URL = "https://adnoxldhqdjdfnghhsog.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0";
-    const GITHUB_URL = "https://vtik2026.github.io/Vtik/"; // الرابط الإجباري للعودة
-
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
+    let currentMode = 'trending';
+
+    // 2. التحكم في المود (أبيض/أسود)
+    function toggleTheme() {
+        document.body.classList.toggle('light-mode');
+        localStorage.setItem('vtik-theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    }
+    if(localStorage.getItem('vtik-theme') === 'light') document.body.classList.add('light-mode');
+
+    // 3. التحقق من المستخدم
     async function checkUser() {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        if (user) {
-            document.getElementById('auth-section').innerHTML = `
-                <div class="user-profile">
-                    <img src="${user.user_metadata.avatar_url}" class="user-img">
-                    <button class="btn" onclick="logout()" style="background:transparent; color:#888;">خروج</button>
-                </div>`;
-            document.getElementById('upload-btn').style.display = 'block';
+        if (!user) {
+            document.getElementById('auth-screen').style.display = 'flex';
+        } else {
+            document.getElementById('auth-screen').style.display = 'none';
             loadVideos();
         }
     }
 
     async function login() {
-        const { error } = await supabaseClient.auth.signInWithOAuth({
+        await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
-            options: { 
-                // هنا التعديل الجوهري: حددنا الرابط يدوياً
-                redirectTo: GITHUB_URL 
-            }
+            options: { redirectTo: 'https://vtik2026.github.io/Vtik/' }
         });
-        if (error) alert("خطأ: " + error.message);
     }
 
-    async function logout() {
-        await supabaseClient.auth.signOut();
-        window.location.reload();
+    // 4. جلب وعرض الفيديوهات
+    async function loadVideos() {
+        const feed = document.getElementById('feed');
+        feed.innerHTML = '<div style="padding:100px; text-align:center;">جاري تحميل المتعة...</div>';
+
+        let query = supabaseClient.from('clips').select('*');
+        if (currentMode === 'trending') query = query.order('views_count', { ascending: false });
+        else query = query.order('created_at', { ascending: false });
+
+        const { data, error } = await query;
+
+        if (data && data.length > 0) {
+            feed.innerHTML = data.map(v => {
+                const date = new Date(v.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' });
+                return `
+                    <div class="video-card">
+                        <video src="${v.video_url}" loop playsinline onclick="togglePlay(this, '${v.id}')"></video>
+                        <div class="video-details">
+                            <div class="time-tag">نُشر في ${date}</div>
+                            <div class="caption">${v.caption || 'فيديو رائع على Vtik'}</div>
+                        </div>
+                        <div class="side-info">
+                            <div class="action-group">
+                                <div class="icon-btn">⭐</div>
+                                <span class="count-label">9.8</span>
+                            </div>
+                            <div class="action-group">
+                                <div class="icon-btn">👁️</div>
+                                <span class="count-label">${v.views_count || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            feed.innerHTML = '<div style="padding:100px; text-align:center;">لا يوجد فيديوهات بعد. كن أول من يرفع!</div>';
+        }
     }
 
-    async function handleFile(event) {
+    function togglePlay(video, id) {
+        if (video.paused) {
+            video.play();
+            // زيادة المشاهدة عند البدء
+            supabaseClient.rpc('increment_views', { video_id: id });
+        } else {
+            video.pause();
+        }
+    }
+
+    function switchTab(mode) {
+        currentMode = mode;
+        document.getElementById('tab-trending').classList.toggle('active', mode === 'trending');
+        document.getElementById('tab-newest').classList.toggle('active', mode === 'newest');
+        loadVideos();
+    }
+
+    // 5. رفع الفيديو
+    async function handleUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
-        const btn = document.getElementById('upload-btn');
-        btn.innerText = "...⏳";
+
+        const btn = document.getElementById('upload-ui');
+        btn.innerText = "⏳";
         btn.disabled = true;
 
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            const filePath = `${user.id}/${Date.now()}_video.mp4`;
-            const { error: upErr } = await supabaseClient.storage.from('videos').upload(filePath, file);
+            const fileName = `${user.id}/${Date.now()}.mp4`;
+            
+            const { error: upErr } = await supabaseClient.storage.from('videos').upload(fileName, file);
             if (upErr) throw upErr;
-            const { data: urlData } = supabaseClient.storage.from('videos').getPublicUrl(filePath);
-            await supabaseClient.from('clips').insert([{ user_id: user.id, video_url: urlData.publicUrl }]);
-            alert("تم الرفع!");
+
+            const { data: urlData } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
+            
+            await supabaseClient.from('clips').insert([{ 
+                user_id: user.id, 
+                video_url: urlData.publicUrl,
+                caption: "فيديو جديد"
+            }]);
+
+            alert("تم الرفع بنجاح! 🎉");
             window.location.reload();
-        } catch (e) {
-            alert("خطأ: " + e.message);
+        } catch (err) {
+            alert("خطأ: " + err.message);
         } finally {
             btn.innerText = "+";
             btn.disabled = false;
         }
     }
 
-    async function loadVideos() {
-        const { data } = await supabaseClient.from('clips').select('*').order('created_at', { ascending: false });
-        if (data && data.length > 0) {
-            document.getElementById('feed').innerHTML = data.map(v => `
-                <div class="video-card">
-                    <video src="${v.video_url}" controls loop playsinline></video>
-                </div>
-            `).join('');
-        }
-    }
-
     checkUser();
 </script>
-
 </body>
 </html>
