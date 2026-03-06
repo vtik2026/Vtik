@@ -10,16 +10,15 @@
     <style>
         :root { --gold: #FFD700; --dark: #000; --gray: #1a1a1a; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; overflow-x: hidden; }
-        .container { max-width: 450px; margin: auto; padding: 20px; }
-        .auth-card { background: var(--gray); padding: 30px; border-radius: 25px; border: 1px solid var(--gold); text-align: center; margin-top: 50px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #050505; color: white; box-sizing: border-box; text-align: center; }
-        .btn-main { width: 100%; padding: 12px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(45deg, #8B0000, #FF0000); color: white; margin-top: 10px; }
+        .container { max-width: 450px; margin: auto; padding: 20px; text-align: center; }
+        .auth-card { background: var(--gray); padding: 30px; border-radius: 25px; border: 1px solid var(--gold); margin-top: 50px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #050505; color: white; box-sizing: border-box; text-align: center; font-size: 16px; }
+        .btn-main { width: 100%; padding: 12px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(45deg, #8B0000, #FF0000); color: white; margin-top: 10px; font-size: 18px; }
         .social-icons { display: flex; justify-content: center; gap: 30px; font-size: 35px; margin-top: 25px; }
-        .social-icons i { cursor: pointer; transition: 0.3s; }
-        #upload-ui { display: none; margin-top: 30px; border: 2px dashed var(--gold); padding: 20px; border-radius: 15px; text-align: center; }
+        #upload-ui { display: none; margin-top: 30px; border: 2px dashed var(--gold); padding: 20px; border-radius: 15px; }
         #progress-container { width: 100%; background: #333; height: 10px; border-radius: 5px; display: none; margin: 15px 0; }
-        #progress-bar { width: 0%; height: 100%; background: var(--gold); border-radius: 5px; transition: 0.3s; }
-        img.logo { width: 140px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        #progress-bar { width: 0%; height: 100%; background: var(--gold); border-radius: 5px; }
+        img.logo { width: 150px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -28,7 +27,7 @@
     <div id="auth-section" class="auth-card">
         <img src="logo.png" alt="Vtik" class="logo">
         <h2 style="color: var(--gold); margin: 0;">Vtik</h2>
-        <p style="font-size: 13px; color: #888;">سجل دخول وابدأ المغامرة</p>
+        <p style="font-size: 14px; color: #888;">سجل دخول وابدأ المغامرة</p>
         
         <input type="tel" id="user-phone" placeholder="رقم الموبايل">
         <input type="password" id="user-pass" placeholder="كلمة السر">
@@ -41,50 +40,48 @@
     </div>
 
     <div id="upload-ui">
-        <h3 style="color: var(--gold);">مرحباً بك في Vtik</h3>
-        <p>اختر فيديو لمشاركته مع العالم</p>
+        <h3 style="color: var(--gold);">ارفع فيديو جديد</h3>
         <input type="file" id="video-input" accept="video/*" onchange="previewVideo(event)">
         <video id="video-preview" controls style="width: 100%; display: none; margin-top: 10px; border-radius: 10px;"></video>
-        
         <div id="progress-container"><div id="progress-bar"></div></div>
-        
         <button class="btn-main" id="start-upload" style="display: none;" onclick="uploadProcess()">نشر الآن 🚀</button>
         <button onclick="logout()" style="background:none; border:none; color:#666; margin-top:20px; cursor:pointer;">تسجيل خروج</button>
     </div>
 </div>
 
 <script>
-    // الإعدادات المسحوبة من مشروعك adnoxldhqdjdfnghhsog
+    // الإعدادات المربوطة بمشروعك adnoxldhqdjdfnghhsog
     const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // الرابط اللي هيرجع عليه بعد دخول جوجل
-    const REDIRECT_URL = 'https://vtik2026.github.io/';
+    
+    // إنشاء العميل مع التحقق من المكتبة
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function handlePhoneAuth() {
         const phone = document.getElementById('user-phone').value;
         const pass = document.getElementById('user-pass').value;
-        if(!phone || !pass) return alert("اكمل البيانات");
+        if(!phone || pass.length < 6) return alert("اكتب الرقم وباسورد لا يقل عن 6 رموز");
+        
         const fakeEmail = `${phone}@vtik.com`;
 
-        let { data, error } = await supabase.auth.signInWithPassword({ email: fakeEmail, password: pass });
+        // محاولة تسجيل الدخول
+        let { data, error } = await supabaseClient.auth.signInWithPassword({ email: fakeEmail, password: pass });
 
         if (error) {
-            const { error: signUpError } = await supabase.auth.signUp({ email: fakeEmail, password: pass });
+            // لو الحساب مش موجود، بنعمل حساب جديد
+            const { error: signUpError } = await supabaseClient.auth.signUp({ email: fakeEmail, password: pass });
             if (signUpError) alert("خطأ: " + signUpError.message);
-            else alert("تم إنشاء الحساب! جرب الدخول الآن");
+            else alert("تم إنشاء حسابك! اضغط دخول مرة أخرى");
         } else {
             showUploadUI();
         }
     }
 
     async function loginSocial(provider) {
-        const { error } = await supabase.auth.signInWithOAuth({ 
+        await supabaseClient.auth.signInWithOAuth({ 
             provider: provider,
-            options: { redirectTo: REDIRECT_URL } // التأكد من العودة لـ GitHub
+            options: { redirectTo: 'https://vtik2026.github.io/' }
         });
-        if (error) alert("خطأ في الاتصال بـ " + provider);
     }
 
     function showUploadUI() {
@@ -104,41 +101,35 @@
 
     async function uploadProcess() {
         const file = document.getElementById('video-input').files[0];
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         
-        if (!user) return alert("سجل دخول أولاً");
-
         document.getElementById('progress-container').style.display = 'block';
         document.getElementById('progress-bar').style.width = '30%';
 
-        const fileName = `${user.id}/${Date.now()}_${file.name}`;
+        const fileName = `${Date.now()}_${file.name}`;
+        const { error: stErr } = await supabaseClient.storage.from('vtik-videos').upload(fileName, file);
         
-        // الرفع لـ Storage
-        const { data: stData, error: stErr } = await supabase.storage.from('vtik-videos').upload(fileName, file);
-        
-        if (stErr) return alert("فشل الرفع: " + stErr.message);
+        if (stErr) return alert("خطأ في الرفع: " + stErr.message);
 
         document.getElementById('progress-bar').style.width = '70%';
-        const { data: urlData } = supabase.storage.from('vtik-videos').getPublicUrl(fileName);
+        const { data: urlData } = supabaseClient.storage.from('vtik-videos').getPublicUrl(fileName);
         
-        // التسجيل في الجدول
-        const { error: dbErr } = await supabase.from('videos').insert([
-            { user_id: user.id, video_url: urlData.publicUrl, caption: "فيديو من Vtik" }
+        const { error: dbErr } = await supabaseClient.from('videos').insert([
+            { user_id: user.id, video_url: urlData.publicUrl, caption: "فيديو جديد من Vtik" }
         ]);
 
-        if (dbErr) {
-            alert("تم الرفع لكن فشل التسجيل في القاعدة");
-        } else {
+        if (dbErr) alert("حدث خطأ في قاعدة البيانات");
+        else {
             document.getElementById('progress-bar').style.width = '100%';
-            alert("مبروك! الفيديو لايف دلوقتي 🚀");
+            alert("تم النشر بنجاح! نهارك سعيد");
             location.reload();
         }
     }
 
-    function logout() { supabase.auth.signOut().then(() => location.reload()); }
+    function logout() { supabaseClient.auth.signOut().then(() => location.reload()); }
 
-    // فحص الجلسة عند البداية
-    supabase.auth.getUser().then(({data}) => { if(data.user) showUploadUI(); });
+    // التحقق من الجلسة عند فتح الصفحة
+    supabaseClient.auth.getUser().then(({data}) => { if(data.user) showUploadUI(); });
 </script>
 </body>
-</html>
+    </html>
