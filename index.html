@@ -3,41 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Vtik </title>
+    <title>Vtik - منصة </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root { --gold: #FFD700; --dark: #000; --gray: #1a1a1a; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; overflow-x: hidden; }
         .container { max-width: 450px; margin: auto; padding: 20px; }
-        
-        /* شاشة الدخول */
         .auth-card { background: var(--gray); padding: 30px; border-radius: 25px; border: 1px solid var(--gold); text-align: center; margin-top: 50px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #050505; color: white; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 12px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(45deg, #8B0000, #FF0000); color: white; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #050505; color: white; box-sizing: border-box; text-align: center; }
+        .btn-main { width: 100%; padding: 12px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(45deg, #8B0000, #FF0000); color: white; margin-top: 10px; }
         .social-icons { display: flex; justify-content: center; gap: 30px; font-size: 30px; margin-top: 20px; }
-        .social-icons i { cursor: pointer; transition: 0.3s; }
-        .social-icons i:hover { transform: scale(1.2); }
-
-        /* شاشة الرفع */
-        #upload-ui { display: none; margin-top: 30px; border: 2px dashed var(--gold); padding: 20px; border-radius: 15px; }
-        #progress-container { width: 100%; background: #333; height: 8px; border-radius: 4px; display: none; margin: 15px 0; }
-        #progress-bar { width: 0%; height: 100%; background: var(--gold); border-radius: 4px; }
+        #upload-ui { display: none; margin-top: 30px; border: 2px dashed var(--gold); padding: 20px; border-radius: 15px; text-align: center; }
+        #progress-container { width: 100%; background: #333; height: 10px; border-radius: 5px; display: none; margin: 15px 0; }
+        #progress-bar { width: 0%; height: 100%; background: var(--gold); border-radius: 5px; transition: 0.3s; }
+        img.logo { width: 120px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="auth-section" class="auth-card">
-        <h1 style="color: var(--gold); margin-bottom: 5px;">Vtik</h1>
-        <p style="font-size: 12px; color: #888;">سجل دخول وابدأ المغامرة</p>
+        <img src="logo.png" alt="Vtik" class="logo">
+        <h2 style="color: var(--gold); margin: 0;">Vtik</h2>
+        <p style="font-size: 13px; color: #888;">سجل دخول وابدأ المغامرة</p>
         
         <input type="tel" id="user-phone" placeholder="رقم الموبايل">
         <input type="password" id="user-pass" placeholder="كلمة السر">
         <button class="btn-main" onclick="handlePhoneAuth()">دخول / تسجيل</button>
-        
-        <p onclick="alert('خطة الإنقاذ: تواصل مع الدعم لربط إيميلك')" style="font-size: 11px; color: #666; cursor: pointer; margin-top: 10px;">نسيت كلمة السر؟</p>
         
         <div class="social-icons">
             <i class="fab fa-google" style="color: #DB4437;" onclick="loginSocial('google')"></i>
@@ -46,48 +40,47 @@
     </div>
 
     <div id="upload-ui">
-        <h3 style="color: var(--gold);">ارفع فيديوهاتك</h3>
+        <h3 style="color: var(--gold);">ارفع فيديو جديد</h3>
         <input type="file" id="video-input" accept="video/*" onchange="previewVideo(event)">
-        <video id="video-preview" controls style="width: 100%; display: none; margin-top: 10px;"></video>
+        <video id="video-preview" controls style="width: 100%; display: none; margin-top: 10px; border-radius: 10px;"></video>
         
         <div id="progress-container"><div id="progress-bar"></div></div>
         
-        <button class="btn-main" id="start-upload" style="display: none; margin-top: 15px;" onclick="uploadProcess()">نشر الفيديو الآن 🚀</button>
-        <button onclick="supabase.auth.signOut().then(()=>location.reload())" style="background: none; border: none; color: #555; margin-top: 20px; cursor: pointer;">تسجيل خروج</button>
+        <button class="btn-main" id="start-upload" style="display: none;" onclick="uploadProcess()">نشر الآن 🚀</button>
+        <button onclick="logout()" style="background:none; border:none; color:#666; margin-top:20px; cursor:pointer;">تسجيل خروج</button>
     </div>
 </div>
 
 <script>
-    // إعدادات Supabase (ضع مفاتيحك هنا)
-    const supabaseUrl = 'YOUR_SUPABASE_URL';
-    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    // إعدادات Supabase الخاصة بمشروعك
+    const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- نظام الدخول بالموبايل ---
     async function handlePhoneAuth() {
         const phone = document.getElementById('user-phone').value;
         const pass = document.getElementById('user-pass').value;
+        if(!phone || !pass) return alert("اكمل البيانات");
         const fakeEmail = `${phone}@vtik.com`;
 
-        // محاولة دخول
         let { data, error } = await supabase.auth.signInWithPassword({ email: fakeEmail, password: pass });
 
         if (error) {
-            // لو الحساب مش موجود.. ننشئه (تسجيل تلقائي)
             const { error: signUpError } = await supabase.auth.signUp({ email: fakeEmail, password: pass });
             if (signUpError) alert("خطأ: " + signUpError.message);
-            else alert("تم إنشاء حسابك بنجاح! اضغط دخول مرة أخرى");
+            else alert("تم إنشاء حسابك! اضغط دخول الآن");
         } else {
             showUploadUI();
         }
     }
 
-    // --- دخول السوشيال ميديا ---
     async function loginSocial(provider) {
-        await supabase.auth.signInWithOAuth({ provider: provider });
+        await supabase.auth.signInWithOAuth({ 
+            provider: provider,
+            options: { redirectTo: window.location.origin }
+        });
     }
 
-    // --- التبديل بين الشاشات ---
     function showUploadUI() {
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('upload-ui').style.display = 'block';
@@ -96,42 +89,44 @@
     function previewVideo(e) {
         const file = e.target.files[0];
         if (file) {
-            document.getElementById('video-preview').src = URL.createObjectURL(file);
-            document.getElementById('video-preview').style.display = 'block';
+            const preview = document.getElementById('video-preview');
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
             document.getElementById('start-upload').style.display = 'block';
         }
     }
 
-    // --- عملية الرفع والربط الكاملة ---
     async function uploadProcess() {
         const file = document.getElementById('video-input').files[0];
         const { data: { user } } = await supabase.auth.getUser();
         
         document.getElementById('progress-container').style.display = 'block';
-        document.getElementById('progress-bar').style.width = '50%'; // وهمي للسرعة
+        document.getElementById('progress-bar').style.width = '30%';
 
         const fileName = `${Date.now()}_${file.name}`;
+        const { data, error: stErr } = await supabase.storage.from('vtik-videos').upload(fileName, file);
         
-        // 1. رفع الملف
-        const { data: stData, error: stErr } = await supabase.storage.from('vtik-videos').upload(fileName, file);
-        
-        if (stErr) return alert("خطأ في الرفع");
+        if (stErr) return alert("خطأ في الرفع: " + stErr.message);
 
-        // 2. جلب الرابط وتسجيله في الجدول
+        document.getElementById('progress-bar').style.width = '70%';
         const { data: urlData } = supabase.storage.from('vtik-videos').getPublicUrl(fileName);
         
         const { error: dbErr } = await supabase.from('videos').insert([
             { user_id: user.id, video_url: urlData.publicUrl, caption: "من تطبيق Vtik" }
         ]);
 
-        if (!dbErr) {
+        if (dbErr) {
+            alert("حدث خطأ في التسجيل بالجدول");
+        } else {
             document.getElementById('progress-bar').style.width = '100%';
-            alert("تم النشر بنجاح!");
+            alert("تم النشر بنجاح يا بطل!");
             location.reload();
         }
     }
 
-    // تحقق لو المستخدم مسجل دخول أصلاً
+    function logout() { supabase.auth.signOut().then(() => location.reload()); }
+
+    // التحقق من الجلسة عند فتح الصفحة
     supabase.auth.getUser().then(({data}) => { if(data.user) showUploadUI(); });
 </script>
 </body>
