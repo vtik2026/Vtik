@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Tik | فيديو تيك 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --main-color: #fe2c55; --bg-black: #010101; }
+        body { margin: 0; background-color: var(--bg-black); color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+        .container { display: flex; flex-direction: column; height: 100vh; }
+        header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 0.5px solid #333; z-index: 1000; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--main-color); letter-spacing: -1px; }
+        .video-feed { flex: 1; overflow-y: scroll; scroll-snap-type: y mandatory; height: calc(100vh - 60px); }
+        .video-card { height: calc(100vh - 60px); scroll-snap-align: start; display: flex; align-items: center; justify-content: center; position: relative; background: #000; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-google { background: white; color: black; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .btn-google:hover { background: #eee; }
+        .btn-upload { background: var(--main-color); color: white; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); border-radius: 50px; padding: 12px 35px; font-size: 24px; z-index: 1001; display: none; box-shadow: 0 4px 20px rgba(254, 44, 85, 0.5); }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .user-img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--main-color); }
+        .empty-state { text-align: center; padding: 20px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo">Video Tik</div>
+        <div id="auth-section">
+            <button class="btn btn-google" onclick="login()">
+                <img src="https://www.google.com/favicon.ico" width="16"> دخول بجوجل
+            </button>
+        </div>
+    </header>
+
+    <main class="video-feed" id="feed">
+        <div class="video-card">
+            <div class="empty-state">
+                <h2 style="color: white;">مرحباً بك 🚀</h2>
+                <p>سجل دخولك بجوجل لتبدأ التجربة</p>
+            </div>
+        </div>
+    </main>
+
+    <input type="file" id="video-input" hidden accept="video/*" onchange="handleFile(event)">
+    <button id="upload-btn" class="btn btn-upload" onclick="document.getElementById('video-input').click()">+</button>
+</div>
+
+<script>
+    // --- بياناتك الحقيقية تم دمجها هنا ---
+    const SB_URL = "https://adnoxldhqdjdfnghhsog.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0";
+    
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+    // التحقق من المستخدم عند فتح التطبيق
+    async function checkUser() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        const authSection = document.getElementById('auth-section');
+        const uploadBtn = document.getElementById('upload-btn');
+
+        if (user) {
+            authSection.innerHTML = `
+                <div class="user-profile">
+                    <img src="${user.user_metadata.avatar_url || 'https://via.placeholder.com/32'}" class="user-img">
+                    <button class="btn" onclick="logout()" style="background:transparent; color:#888; font-size:12px;">خروج</button>
+                </div>`;
+            uploadBtn.style.display = 'block';
+            loadVideos();
+        }
+    }
+
+    // تسجيل الدخول بجوجل
+    async function login() {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin }
+        });
+        if (error) alert("عفواً، حدث خطأ: " + error.message);
+    }
+
+    // تسجيل الخروج
+    async function logout() {
+        await supabaseClient.auth.signOut();
+        window.location.reload();
+    }
+
+    // رفع فيديو جديد
+    async function handleFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const btn = document.getElementById('upload-btn');
+        const originalText = btn.innerText;
+        btn.innerText = "جاري الرفع... ☁️";
+        btn.disabled = true;
+
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const filePath = `${user.id}/${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+
+            // 1. الرفع للمخزن
+            const { error: uploadError } = await supabaseClient.storage
+                .from('videos')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. الحصول على الرابط
+            const { data: urlData } = supabaseClient.storage.from('videos').getPublicUrl(filePath);
+            
+            // 3. التسجيل في قاعدة البيانات
+            const { error: dbError } = await supabaseClient.from('clips').insert([{ 
+                user_id: user.id, 
+                video_url: urlData.publicUrl,
+                caption: "فيديو جديد من Video Tik"
+            }]);
+
+            if (dbError) throw dbError;
+
+            alert("تم النشر بنجاح! 🎉");
+            window.location.reload();
+
+        } catch (err) {
+            console.error(err);
+            alert("خطأ في الرفع: " + err.message);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    // عرض الفيديوهات
+    async function loadVideos() {
+        const { data, error } = await supabaseClient
+            .from('clips')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (data && data.length > 0) {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = data.map(v => `
+                <div class="video-card">
+                    <video src="${v.video_url}" controls loop playsinline></video>
+                </div>
+            `).join('');
+        }
+    }
+
+    checkUser();
+</script>
+
+</body>
+</html>
