@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik - منصة </title>
+    <title>Vtik - منصة الفيديوهات</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -14,11 +14,12 @@
         .auth-card { background: var(--gray); padding: 30px; border-radius: 25px; border: 1px solid var(--gold); text-align: center; margin-top: 50px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #050505; color: white; box-sizing: border-box; text-align: center; }
         .btn-main { width: 100%; padding: 12px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(45deg, #8B0000, #FF0000); color: white; margin-top: 10px; }
-        .social-icons { display: flex; justify-content: center; gap: 30px; font-size: 30px; margin-top: 20px; }
+        .social-icons { display: flex; justify-content: center; gap: 30px; font-size: 35px; margin-top: 25px; }
+        .social-icons i { cursor: pointer; transition: 0.3s; }
         #upload-ui { display: none; margin-top: 30px; border: 2px dashed var(--gold); padding: 20px; border-radius: 15px; text-align: center; }
         #progress-container { width: 100%; background: #333; height: 10px; border-radius: 5px; display: none; margin: 15px 0; }
         #progress-bar { width: 0%; height: 100%; background: var(--gold); border-radius: 5px; transition: 0.3s; }
-        img.logo { width: 120px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        img.logo { width: 140px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
     </style>
 </head>
 <body>
@@ -40,7 +41,8 @@
     </div>
 
     <div id="upload-ui">
-        <h3 style="color: var(--gold);">ارفع فيديو جديد</h3>
+        <h3 style="color: var(--gold);">مرحباً بك في Vtik</h3>
+        <p>اختر فيديو لمشاركته مع العالم</p>
         <input type="file" id="video-input" accept="video/*" onchange="previewVideo(event)">
         <video id="video-preview" controls style="width: 100%; display: none; margin-top: 10px; border-radius: 10px;"></video>
         
@@ -52,10 +54,13 @@
 </div>
 
 <script>
-    // إعدادات Supabase الخاصة بمشروعك
+    // الإعدادات المسحوبة من مشروعك adnoxldhqdjdfnghhsog
     const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // الرابط اللي هيرجع عليه بعد دخول جوجل
+    const REDIRECT_URL = 'https://vtik2026.github.io/';
 
     async function handlePhoneAuth() {
         const phone = document.getElementById('user-phone').value;
@@ -68,17 +73,18 @@
         if (error) {
             const { error: signUpError } = await supabase.auth.signUp({ email: fakeEmail, password: pass });
             if (signUpError) alert("خطأ: " + signUpError.message);
-            else alert("تم إنشاء حسابك! اضغط دخول الآن");
+            else alert("تم إنشاء الحساب! جرب الدخول الآن");
         } else {
             showUploadUI();
         }
     }
 
     async function loginSocial(provider) {
-        await supabase.auth.signInWithOAuth({ 
+        const { error } = await supabase.auth.signInWithOAuth({ 
             provider: provider,
-            options: { redirectTo: window.location.origin }
+            options: { redirectTo: REDIRECT_URL } // التأكد من العودة لـ GitHub
         });
+        if (error) alert("خطأ في الاتصال بـ " + provider);
     }
 
     function showUploadUI() {
@@ -100,33 +106,38 @@
         const file = document.getElementById('video-input').files[0];
         const { data: { user } } = await supabase.auth.getUser();
         
+        if (!user) return alert("سجل دخول أولاً");
+
         document.getElementById('progress-container').style.display = 'block';
         document.getElementById('progress-bar').style.width = '30%';
 
-        const fileName = `${Date.now()}_${file.name}`;
-        const { data, error: stErr } = await supabase.storage.from('vtik-videos').upload(fileName, file);
+        const fileName = `${user.id}/${Date.now()}_${file.name}`;
         
-        if (stErr) return alert("خطأ في الرفع: " + stErr.message);
+        // الرفع لـ Storage
+        const { data: stData, error: stErr } = await supabase.storage.from('vtik-videos').upload(fileName, file);
+        
+        if (stErr) return alert("فشل الرفع: " + stErr.message);
 
         document.getElementById('progress-bar').style.width = '70%';
         const { data: urlData } = supabase.storage.from('vtik-videos').getPublicUrl(fileName);
         
+        // التسجيل في الجدول
         const { error: dbErr } = await supabase.from('videos').insert([
-            { user_id: user.id, video_url: urlData.publicUrl, caption: "من تطبيق Vtik" }
+            { user_id: user.id, video_url: urlData.publicUrl, caption: "فيديو من Vtik" }
         ]);
 
         if (dbErr) {
-            alert("حدث خطأ في التسجيل بالجدول");
+            alert("تم الرفع لكن فشل التسجيل في القاعدة");
         } else {
             document.getElementById('progress-bar').style.width = '100%';
-            alert("تم النشر بنجاح يا بطل!");
+            alert("مبروك! الفيديو لايف دلوقتي 🚀");
             location.reload();
         }
     }
 
     function logout() { supabase.auth.signOut().then(() => location.reload()); }
 
-    // التحقق من الجلسة عند فتح الصفحة
+    // فحص الجلسة عند البداية
     supabase.auth.getUser().then(({data}) => { if(data.user) showUploadUI(); });
 </script>
 </body>
