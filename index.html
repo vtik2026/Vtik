@@ -3,34 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | النسخة الاحترافية</title>
+    <title>Vtik 2026 | Full Integrated System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; --gemini: linear-gradient(135deg, #4285f4, #9b72cb); }
         .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow: hidden; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; transition: 0.3s; }
 
         header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); }
         .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
         .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; }
-        .tab { cursor: pointer; opacity: 0.5; font-size: 13px; transition: 0.3s; }
-        .tab.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
+        .tab { cursor: pointer; opacity: 0.5; font-size: 14px; transition: 0.3s; padding: 5px 10px; }
+        .tab.active { opacity: 1; border-bottom: 3px solid var(--accent); color: var(--accent); }
 
         .page { display: none; padding: 120px 0 85px; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .page.active { display: block; }
 
-        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 30px; overflow: hidden; background: #000; height: 78vh; scroll-snap-align: start; }
+        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 25px; overflow: hidden; background: #000; height: 80vh; scroll-snap-align: start; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
         
-        /* الوضع السينمائي */
-        .cinema header, .cinema .bottom-nav, .cinema .side-actions, .cinema #gemini-trigger { opacity: 0; pointer-events: none; }
-        .cinema .v-card { height: 100vh; width: 100vw; border-radius: 0; margin: 0; position: fixed; top: 0; left: 0; z-index: 5000; }
+        .side-actions { position: absolute; bottom: 80px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; text-align: center; z-index: 10; }
+        .side-actions i { font-size: 28px; text-shadow: 0 2px 5px #000; cursor: pointer; }
 
-        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 30px 30px 0 0; z-index: 11000; padding: 25px; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); }
-        .side-actions { position: absolute; bottom: 100px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; text-align: center; }
+        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 30px 30px 0 0; z-index: 11000; padding: 25px; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        input { width: 90%; padding: 12px; margin: 8px auto; border-radius: 12px; border: 1px solid #ddd; display: block; }
+        .btn-auth { width: 48%; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
+        
         #gemini-chat { display: none; position: fixed; top: 10%; left: 5%; right: 5%; bottom: 15%; background: var(--card); border-radius: 25px; z-index: 12000; flex-direction: column; border: 2px solid #4285f4; }
     </style>
 </head>
@@ -38,102 +41,163 @@
 
     <header>
         <div class="nav-top">
-            <button onclick="openPopup('auth-popup')" id="auth-btn" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 18px;">دخول</button>
-            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer">
-            <div style="color:var(--gold);">⭐ <span id="stars-count">0</span></div>
+            <button onclick="openPopup('auth-popup')" id="auth-btn" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 20px; font-weight:bold;">دخول</button>
+            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer" alt="Logo">
+            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="stars-display">0</span></div>
         </div>
         <div class="tabs">
-            <div class="tab active" onclick="switchTab(this, 'shorts')">Shorts</div>
-            <div class="tab" onclick="switchTab(this, 'video')">Video</div>
             <div class="tab" onclick="switchTab(this, 'merchant')">Merchant</div>
+            <div class="tab" onclick="switchTab(this, 'video')">Video</div>
+            <div class="tab active" onclick="switchTab(this, 'shorts')">Shorts</div>
         </div>
     </header>
 
     <div id="page-home" class="page active"><div id="feed"></div></div>
     <div id="page-favs" class="page" style="padding:130px 20px;"><h3>المفضلة ❤️</h3></div>
     <div id="page-add" class="page" style="padding-top:200px; text-align:center;">
-        <h3>رفع محتوى 📤</h3>
-        <button style="padding:15px 30px; border-radius:15px; background:#000; color:#fff;">اختر فيديو</button>
+        <i class="fas fa-cloud-upload-alt" style="font-size:50px; color:var(--accent);"></i>
+        <h3>رفع فيديو أو صورة</h3>
+        <button style="padding:15px 40px; border-radius:20px; background:#000; color:#fff; border:none;">اختر الملف</button>
     </div>
     <div id="page-profile" class="page" style="padding:130px 20px; text-align:center;">
-        <div id="user-info">سجل دخولك لرؤية حسابك</div>
+        <div id="user-profile-data">سجل دخولك لرؤية حسابك ونقاطك</div>
     </div>
 
     <div id="auth-popup" class="popup">
-        <div style="text-align:center; margin-bottom:15px;"><img src="logo.png" width="50"><br><b>Vtik Login</b></div>
-        <div id="login-form">
-            <input type="text" id="phone" placeholder="رقم الهاتف" style="width:90%; padding:12px; margin:5px; border-radius:10px; border:1px solid #ddd;">
-            <input type="password" id="pass" placeholder="كلمة المرور" style="width:90%; padding:12px; margin:5px; border-radius:10px; border:1px solid #ddd;">
-            <button onclick="loginWithPhone()" style="width:95%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px;">دخول</button>
-            <p onclick="openPopup('secure-popup')" style="text-align:center; color:var(--gold); font-size:12px; cursor:pointer;">هل تريد تأمين الحساب بإيميل حقيقي؟</p>
+        <div style="text-align:center; margin-bottom:15px;"><img src="logo.png" width="50"><br><b>Vtik 2026 Access</b></div>
+        <input type="text" id="phone-field" placeholder="رقم الهاتف">
+        <input type="password" id="pass-field" placeholder="كلمة المرور">
+        <div style="display:flex; justify-content:space-between; width:95%; margin:10px auto;">
+            <button onclick="handleAuth('login')" class="btn-auth" style="background:var(--accent); color:white;">دخول</button>
+            <button onclick="handleAuth('signup')" class="btn-auth" style="background:#333; color:white;">تسجيل جديد</button>
         </div>
-        <div style="display:flex; justify-content:center; gap:30px; margin-top:20px; font-size:35px;">
-            <i class="fab fa-google" style="color:#db4437; cursor:pointer;" onclick="socialLogin('google')"></i>
-            <i class="fab fa-facebook" style="color:#4267B2; cursor:pointer;" onclick="socialLogin('facebook')"></i>
+        <div style="display:flex; justify-content:center; gap:40px; margin-top:15px; font-size:35px;">
+            <i class="fab fa-google" style="color:#db4437; cursor:pointer;" onclick="socialAuth('google')"></i>
+            <i class="fab fa-facebook" style="color:#4267B2; cursor:pointer;" onclick="socialAuth('facebook')"></i>
         </div>
         <button onclick="closePopup('auth-popup')" style="width:100%; margin-top:20px; border:none; background:none; color:#999;">إغلاق</button>
     </div>
 
-    <div id="gemini-chat">
-        <div style="background:var(--gemini); color:white; padding:15px; border-radius:25px 25px 0 0; display:flex; justify-content:space-between;">
-            <b>Gemini AI Assistant ✨</b> <span onclick="toggleGemini(false)">✖</span>
+    <div id="gift-popup" class="popup">
+        <h3 style="text-align:center;">إرسال هدية 🎁</h3>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;">
+            <div onclick="processGift(1, 'وردة')" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">🌹<br><small>1⭐</small></div>
+            <div onclick="processGift(50, 'جوهرة')" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">💎<br><small>50⭐</small></div>
+            <div onclick="processGift(100, 'تاج')" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">👑<br><small>100⭐</small></div>
         </div>
-        <div id="chat-box" style="flex:1; padding:15px; overflow-y:auto; font-size:13px;">
-            مرحباً! يمكنني تغيير ألوان الموقع أو إضافة تعليقات. تعديل الفيديو متاح لصاحبه فقط.
-        </div>
-        <div style="padding:10px; border-top:1px solid #ddd; display:flex;">
-            <input type="text" id="g-input" style="flex:1; border:none; outline:none;" placeholder="اطلب أمر برمجياً...">
-            <button onclick="execGemini()" style="background:none; border:none; color:#4285f4;"><i class="fas fa-paper-plane"></i></button>
-        </div>
+        <button onclick="closePopup('gift-popup')" style="width:100%; margin-top:15px; border:none; background:none; color:#999;">إغلاق</button>
     </div>
-
-    <div id="gemini-trigger" onclick="toggleGemini(true)" style="position:fixed; bottom:90px; right:15px; width:45px; height:45px; background:var(--gemini); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; z-index:3000;">✨</div>
 
     <nav class="bottom-nav">
         <div onclick="showPage('home')"><i class="fas fa-home"></i></div>
         <div onclick="showPage('favs')"><i class="fas fa-heart"></i></div>
-        <div onclick="showPage('add')" style="background:#000; color:#fff; border-radius:10px; width:42px; height:30px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
+        <div onclick="showPage('add')" style="background:#000; color:#fff; border-radius:10px; width:45px; height:32px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
         <div onclick="showPage('profile')"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
     const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
 
-    async function socialLogin(provider) {
+    let currentUserId = null;
+    let targetOwnerId = null; // صاحب الفيديو الحالي لإرسال الهدايا له
+
+    // 1. نظام الدخول والتسجيل
+    async function handleAuth(type) {
+        const phone = document.getElementById('phone-field').value.trim();
+        const pass = document.getElementById('pass-field').value;
+        const fakeEmail = `${phone}@vtik.com`;
+
+        if(type === 'signup') {
+            const { error } = await client.auth.signUp({ email: fakeEmail, password: pass });
+            if(error) alert(error.message); else alert("تم التسجيل! ادخل الآن.");
+        } else {
+            const { data, error } = await client.auth.signInWithPassword({ email: fakeEmail, password: pass });
+            if(error) alert("خطأ في البيانات"); else location.reload();
+        }
+    }
+
+    async function socialAuth(provider) {
         await client.auth.signInWithOAuth({ provider: provider });
     }
 
-    async function loginWithPhone() {
-        const phone = document.getElementById('phone').value;
-        const pass = document.getElementById('pass').value;
-        const { error } = await client.auth.signInWithPassword({ email: phone + "@vtik.com", password: pass });
-        if(error) alert("خطأ: " + error.message); else location.reload();
+    // 2. تحديث رصيد النجوم (Stars Balance) من جدول profiles
+    async function syncStars() {
+        const { data: { user } } = await client.auth.getUser();
+        if (user) {
+            currentUserId = user.id;
+            const { data } = await client.from('profiles').select('stars_balance').eq('id', user.id).single();
+            if (data) document.getElementById('stars-display').innerText = data.stars_balance || 0;
+            document.getElementById('auth-btn').innerText = "خروج";
+        }
     }
 
-    async function loadFeed() {
-        const { data } = await client.from('videos').select('*, profiles(username)');
-        document.getElementById('feed').innerHTML = data.map(v => `
+    // 3. جلب المحتوى (Shorts من clips / Video من videos)
+    async function loadContent(tabType) {
+        const feed = document.getElementById('feed');
+        feed.innerHTML = "<p style='text-align:center; padding-top:50px;'>جاري تحميل عالمك...</p>";
+
+        const tableName = (tabType === 'shorts') ? 'clips' : 'videos';
+
+        const { data, error } = await client.from(tableName).select('*, profiles(username, id)');
+
+        if (error || !data || data.length === 0) {
+            feed.innerHTML = `<p style='text-align:center; padding-top:50px;'>لا يوجد محتوى في ${tableName}</p>`;
+            return;
+        }
+
+        feed.innerHTML = data.map(v => `
             <div class="v-card">
-                <div style="position:absolute; top:20px; right:20px; color:white; z-index:10;">@${v.profiles?.username}</div>
-                <video src="${v.video_url}" loop playsinline onclick="document.body.classList.toggle('cinema')"></video>
+                <div style="position:absolute; top:20px; right:20px; color:white; z-index:10; font-weight:bold;">@${v.profiles?.username || 'user'}</div>
+                <video src="${v.video_url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
                 <div class="side-actions">
                     <i class="fas fa-heart"></i>
-                    <i class="fas fa-gift" style="color:var(--gold)" onclick="alert('فتح هدايا...')"></i>
+                    <i class="fas fa-gift" style="color:var(--gold)" onclick="openGiftModal('${v.profiles?.id}')"></i>
                     <i class="fas fa-share" onclick="navigator.share({url:'${v.video_url}'})"></i>
                 </div>
             </div>`).join('');
     }
 
-    function showPage(p) {
-        document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
-        document.getElementById('page-' + p).classList.add('active');
+    // 4. نظام الهدايا (خصم من الرصيد وإرسال لصاحب الفيديو)
+    function openGiftModal(ownerId) {
+        targetOwnerId = ownerId;
+        openPopup('gift-popup');
     }
 
-    function toggleGemini(s) { document.getElementById('gemini-chat').style.display = s?'flex':'none'; }
+    async function processGift(amount, giftName) {
+        if (!currentUserId) return alert("سجل دخولك أولاً!");
+        
+        const currentStars = parseInt(document.getElementById('stars-display').innerText);
+        if (currentStars < amount) return alert("رصيدك غير كافٍ ⭐️");
+
+        // خصم من الراسل
+        const { error: subError } = await client.from('profiles').update({ stars_balance: currentStars - amount }).eq('id', currentUserId);
+        
+        if (!subError) {
+            // تسجيل في جدول gifts
+            await client.from('gifts').insert([{ sender_id: currentUserId, receiver_id: targetOwnerId, amount: amount }]);
+            alert(`تم إرسال ${giftName} بنجاح!`);
+            syncStars();
+            closePopup('gift-popup');
+        }
+    }
+
+    function switchTab(el, type) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        loadContent(type);
+    }
+
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + id).classList.add('active');
+    }
+
     function openPopup(id) { document.getElementById(id).style.display = 'block'; }
     function closePopup(id) { document.getElementById(id).style.display = 'none'; }
 
-    loadFeed();
+    // البداية
+    syncStars();
+    loadContent('shorts'); // لفتح فيديوهات القط الأسود فوراً
 </script>
 </body>
-</html>
+            </html>
