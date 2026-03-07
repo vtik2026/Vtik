@@ -3,70 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | Smart AI</title>
+    <title>Vtik 2026 | المنصة الذكية الشاملة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --gold: #D4AF37; --bg: #FFF0F5; --text: #333; --card: #fff; --accent: #FF1493; }
-        /* المود الليلي */
-        .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; --gold: #FFD700; }
+        /* المتغيرات الأساسية (الوضع النهاري) */
+        :root {
+            --bg: #FFF0F5;
+            --header-bg: rgba(255, 255, 255, 0.9);
+            --text: #333;
+            --gold: #D4AF37;
+            --accent: #FF1493;
+            --card-bg: #fff;
+            --gemini-grad: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+        }
+
+        /* المتغيرات (الوضع الليلي) */
+        .dark-mode {
+            --bg: #121212;
+            --header-bg: rgba(30, 30, 30, 0.95);
+            --text: #f0f0f0;
+            --card-bg: #1e1e1e;
+            --gold: #FFD700;
+        }
 
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
         
-        header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); padding: 10px 0; opacity: 0.95; }
-        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
-        .logo-main { width: 50px; cursor: pointer; filter: drop-shadow(0 0 5px var(--gold)); }
+        /* العلامة المائية للبراند */
+        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; opacity: 0.05; z-index: -1; pointer-events: none; }
+
+        /* الهيدر */
+        header { position: fixed; top: 0; width: 100%; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 1000; border-bottom: 2px solid var(--gold); }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
+        .logo-main { width: 55px; cursor: pointer; transition: transform 0.3s; filter: drop-shadow(0 0 5px var(--gold)); }
+        .logo-main:active { transform: scale(0.9) rotate(5deg); }
+
+        .tabs { display: flex; justify-content: center; gap: 30px; padding: 10px 0; font-weight: bold; }
+        .tab { cursor: pointer; color: #999; padding-bottom: 5px; font-size: 14px; }
+        .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
+
+        /* الصفحات المحتوى */
+        #main-app { padding-top: 130px; padding-bottom: 90px; }
+        .page-content { display: none; width: 100%; max-width: 450px; margin: 0 auto; animation: slideIn 0.3s ease-out; }
+        .active-page { display: block; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* كارت الفيديو */
+        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 35px; overflow: hidden; background: #000; height: 75vh; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
+        .side-actions { position: absolute; bottom: 80px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; z-index: 10; text-shadow: 0 2px 4px #000; }
+        .side-actions i { font-size: 28px; cursor: pointer; }
 
         /* شاشة دردشة Gemini */
-        #gemini-chat-panel { display: none; position: fixed; bottom: 170px; right: 20px; width: 300px; background: var(--card); border: 2px solid var(--gemini-blue); border-radius: 20px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); flex-direction: column; overflow: hidden; }
-        .chat-header { background: linear-gradient(45deg, #4285f4, #9b72cb); color: white; padding: 10px; font-size: 14px; display: flex; justify-content: space-between; }
-        .chat-body { height: 200px; padding: 10px; overflow-y: auto; font-size: 13px; }
-        .chat-input { display: flex; border-top: 1px solid #eee; }
-        .chat-input input { flex: 1; border: none; padding: 10px; outline: none; background: var(--card); color: var(--text); }
+        #gemini-chat { display: none; position: fixed; bottom: 170px; right: 20px; width: 320px; background: var(--card-bg); border: 2px solid #4285f4; border-radius: 25px; z-index: 9999; flex-direction: column; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
+        .chat-header { background: var(--gemini-grad); color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; }
+        .chat-messages { height: 250px; padding: 15px; overflow-y: auto; font-size: 14px; background: var(--card-bg); }
+        .chat-input-area { display: flex; border-top: 1px solid #eee; padding: 5px; background: var(--card-bg); }
+        .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; background: transparent; color: var(--text); }
 
-        /* زر Gemini المطور */
-        #gemini-trigger { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 9999; animation: pulse 2s infinite; border: 2px solid white; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        /* زر Gemini */
+        #gemini-trigger { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--gemini-grad); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 9998; border: 2px solid white; animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* تعديلات كروت الفيديو */
-        #main-app { padding-top: 120px; padding-bottom: 80px; }
-        .v-card { position: relative; width: 95%; max-width: 400px; margin: 0 auto 20px; border-radius: 30px; overflow: hidden; background: #000; height: 75vh; }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        /* مودالات التسجيل */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; }
+        .auth-card { background: var(--card-bg); color: var(--text); padding: 35px; border-radius: 40px; width: 85%; max-width: 360px; text-align: center; border: 2px solid var(--gold); }
+        .btn-auth { width: 100%; padding: 14px; margin: 10px 0; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-biz { background: var(--gold); color: #000 !important; font-size: 16px; margin-top: 15px; }
 
-        /* المودال الشامل (تاجر + عادي) */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
-        .auth-card { background: var(--card); color: var(--text); padding: 30px; border-radius: 30px; width: 85%; max-width: 350px; text-align: center; border: 2px solid var(--gold); }
-        .biz-btn { background: var(--gold); color: black !important; margin-top: 15px; }
-
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); }
-        .nav-item { color: var(--text); font-size: 24px; cursor: pointer; }
+        /* الناف بار السفلي */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
+        .nav-item { color: var(--text); font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--accent); transform: scale(1.2); }
     </style>
 </head>
 <body>
 
+    <img src="logo.png" class="watermark">
+
     <header>
         <div class="nav-top">
-            <button onclick="openModal('auth-modal')" style="background:var(--accent); color:white; border:none; border-radius:15px; padding:5px 15px;">دخول</button>
-            <img src="logo.png" class="logo-main" onclick="toggleDarkMode()" title="اضغط لتغيير الوضع">
-            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="pts">0</span></div>
+            <button onclick="openModal('auth-modal')" style="background:var(--accent); color:white; border:none; border-radius:15px; padding:6px 18px; font-weight:bold; cursor:pointer;">دخول</button>
+            <img src="logo.png" class="logo-main" onclick="toggleTheme()" title="اضغط لتغيير الوضع ليلي/نهاري">
+            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="pts-count">0</span></div>
+        </div>
+        <div class="tabs" id="home-tabs">
+            <div id="t-shorts" class="tab active" onclick="switchFeed('shorts')">Shorts ✨</div>
+            <div id="t-shops" class="tab" onclick="switchFeed('shops')">المتاجر 🛍️</div>
         </div>
     </header>
 
     <div id="main-app">
-        <div id="feed-container"></div>
+        <div id="page-home" class="page-content active-page">
+            <div id="feed-container"></div>
+        </div>
+
+        <div id="page-likes" class="page-content">
+            <h3 style="text-align:center; color:var(--accent);">المفضلة ❤️</h3>
+            <div id="likes-placeholder" style="text-align:center; padding:50px; color:#999;">لا يوجد فيديوهات في المفضلة بعد.</div>
+        </div>
+
+        <div id="page-profile" class="page-content">
+            <div style="text-align:center; padding:20px;">
+                <img src="logo.png" style="width:90px; height:90px; border-radius:50%; border:3px solid var(--gold);">
+                <h2 id="display-name">المبدع</h2>
+                <button onclick="logout()" style="background:#ff4d4d; color:white; border:none; padding:8px 20px; border-radius:12px;">تسجيل خروج</button>
+            </div>
+        </div>
     </div>
 
-    <div id="gemini-chat-panel">
+    <div id="gemini-chat">
         <div class="chat-header">
-            <span>Gemini AI Assistant 🌟</span>
+            <span>Gemini AI 🌟</span>
             <span onclick="toggleChat()" style="cursor:pointer;">✖</span>
         </div>
-        <div class="chat-body" id="chat-messages">
-            أهلاً بك! أنا Gemini.. كيف أساعدك في Vtik اليوم؟ (تعديل فيديو، كتابة تعليق، أو توثيق حسابك؟)
+        <div class="chat-messages" id="chat-box">
+            أهلاً بك في Vtik! أنا مساعدك Gemini.. اطلب مني تعديل فيديو، كتابة تعليق ذكي، أو حتى تحويل حسابك لتاجر!
         </div>
-        <div class="chat-input">
-            <input type="text" id="user-msg" placeholder="اطلب ما تريد...">
-            <button onclick="sendMsg()" style="background:none; border:none; color:#4285f4; padding:10px;"><i class="fas fa-paper-plane"></i></button>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="اطلب من Gemini...">
+            <button onclick="sendChatMessage()" style="background:none; border:none; color:#4285f4; font-size:20px;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -76,75 +134,136 @@
 
     <div id="auth-modal" class="modal">
         <div class="auth-card">
-            <img src="logo.png" style="width: 60px;">
-            <h3>انضم لعائلة Vtik</h3>
-            <button onclick="socialLogin('google')" style="width:100%; padding:12px; background:#db4437; color:white; border:none; border-radius:15px; margin-bottom:10px;"><i class="fab fa-google"></i> دخول سريع</button>
-            <hr>
-            <p style="font-size: 12px;">هل أنت صاحب مشروع؟</p>
-            <button onclick="alert('سيتم تحويلك لصفحة بيانات المحل..')" class="biz-btn" style="width:100%; padding:12px; border:none; border-radius:15px; font-weight:bold;">💼 تسجيل كتاجر (Business)</button>
-            <button onclick="closeModal('auth-modal')" style="background:none; border:none; color:#999; margin-top:15px;">إغلاق</button>
+            <img src="logo.png" style="width: 75px; margin-bottom: 10px;">
+            <h3>أهلاً بك في Vtik</h3>
+            <button class="btn-auth" style="background:#db4437; color:white;" onclick="login('google')"><i class="fab fa-google"></i> دخول بـ Google</button>
+            <button class="btn-auth" style="background:#4267B2; color:white;" onclick="login('facebook')"><i class="fab fa-facebook"></i> دخول بـ Facebook</button>
+            <hr style="opacity:0.2; margin:20px 0;">
+            <p style="font-size:13px;">هل أنت صاحب نشاط تجاري؟</p>
+            <button class="btn-auth btn-biz" onclick="alert('سيتم فتح نموذج بيانات المتاجر قريباً..')">💼 سجل كتاجر (Business)</button>
+            <button onclick="closeModal('auth-modal')" style="background:none; border:none; color:#999; margin-top:20px; cursor:pointer;">رجوع</button>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i></div>
-        <div class="nav-item"><i class="fas fa-search"></i></div>
-        <div class="nav-item" style="background:#000; color:#fff; border-radius:10px; padding:0 10px;"><i class="fas fa-plus"></i></div>
-        <div class="nav-item"><i class="fas fa-heart"></i></div>
-        <div class="nav-item"><i class="fas fa-user-circle"></i></div>
+        <div class="nav-item active" onclick="navTo('page-home', 0)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="navTo('page-home', 1)"><i class="fas fa-search"></i></div>
+        <div class="nav-item" onclick="checkAuth()" style="background:#000; color:#fff; width:50px; height:35px; border-radius:12px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
+        <div class="nav-item" onclick="navTo('page-likes', 3)"><i class="fas fa-heart"></i></div>
+        <div class="nav-item" onclick="navTo('page-profile', 4)"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
     const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
-    const SUPABASE_KEY = 'YOUR_KEY_HERE'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 1. تبديل الوضع الليلي
-    function toggleDarkMode() {
+    let user = null;
+    let currentFeed = 'shorts';
+
+    async function init() {
+        const { data } = await client.auth.getUser();
+        user = data.user;
+        if(user) updateUI(user);
+        loadVideos();
+    }
+
+    // 1. تبديل الوضع الليلي بالضغط على اللوجو
+    function toggleTheme() {
         document.body.classList.toggle('dark-mode');
         const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('vtik-theme', isDark ? 'dark' : 'light');
     }
 
-    // 2. التحكم في شات Gemini
+    // 2. إدارة الصفحات
+    function navTo(pageId, idx) {
+        if(!user && pageId !== 'page-home') { openModal('auth-modal'); return; }
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(pageId).classList.add('active-page');
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.nav-item')[idx].classList.add('active');
+        
+        document.getElementById('home-tabs').style.display = (pageId === 'page-home') ? 'flex' : 'none';
+    }
+
+    // 3. شات Gemini
     function toggleChat() {
-        const panel = document.getElementById('gemini-chat-panel');
-        panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
+        const chat = document.getElementById('gemini-chat');
+        chat.style.display = (chat.style.display === 'flex') ? 'none' : 'flex';
     }
 
-    function sendMsg() {
-        const input = document.getElementById('user-msg');
-        const chatBody = document.getElementById('chat-messages');
-        if(input.value.trim() !== "") {
-            chatBody.innerHTML += `<div style="text-align:left; color:var(--accent); margin-top:5px;"><b>أنت:</b> ${input.value}</div>`;
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const box = document.getElementById('chat-box');
+        if(input.value.trim()){
+            box.innerHTML += `<div style="margin-top:10px; color:var(--accent);"><b>أنت:</b> ${input.value}</div>`;
+            const req = input.value.toLowerCase();
             setTimeout(() => {
-                chatBody.innerHTML += `<div style="color:#4285f4; margin-top:5px;"><b>Gemini:</b> طلبك قيد التنفيذ! سأقوم بـ ${input.value} فوراً.</div>`;
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }, 1000);
+                let reply = "فهمت طلبك! جاري معالجة الأمر بواسطة ذكاء Vtik..";
+                if(req.includes("تعديل")) reply = "أرسل لي رابط الفيديو وسأقوم بتعديله لك فوراً! ✨";
+                if(req.includes("تعليق")) reply = "إليك تعليق مقترح: 'إبداع بلا حدود في عالم Vtik! 🚀'";
+                box.innerHTML += `<div style="margin-top:10px; color:#4285f4;"><b>Gemini:</b> ${reply}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 800);
             input.value = "";
         }
     }
 
-    // 3. فتح وإغلاق المودالات
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    // تحميل الفيديوهات
-    async function loadFeed() {
-        const { data } = await client.from('videos').select('*');
+    // 4. تحميل الفيديوهات
+    async function loadVideos() {
         const container = document.getElementById('feed-container');
-        data?.forEach(v => {
+        container.innerHTML = '<p style="text-align:center; padding:50px;">جاري جلب الإبداع...</p>';
+        
+        const { data } = await client.from('videos').select('*').order('created_at', { ascending: false });
+        container.innerHTML = '';
+        
+        const filtered = data?.filter(v => currentFeed === 'shops' ? v.is_business : !v.is_business) || [];
+        const finalData = (currentFeed === 'shorts' && filtered.length === 0) ? data : filtered;
+
+        finalData?.forEach(v => {
             container.innerHTML += `
                 <div class="v-card">
+                    <img src="logo.png" style="position:absolute; top:20px; right:20px; width:45px; opacity:0.6; z-index:5;">
                     <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div style="position:absolute; bottom:20px; right:20px; color:white; text-shadow:2px 2px 4px #000;">
-                        <b>@إبداع_فيتيك</b>
+                    <div class="side-actions">
+                        <i class="fas fa-heart" onclick="interaction()"></i>
+                        <i class="fas fa-gift" style="color:var(--gold)" onclick="interaction()"></i>
+                        <i class="fas fa-share" onclick="alert('تم نسخ الرابط!')"></i>
                     </div>
                 </div>`;
         });
     }
 
-    loadFeed();
+    function switchFeed(type) {
+        currentFeed = type;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('t-' + type).classList.add('active');
+        loadVideos();
+    }
+
+    // 5. التسجيل والدخول
+    async function login(provider) {
+        await client.auth.signInWithOAuth({
+            provider,
+            options: { redirectTo: 'https://vtik2026.github.io/Vtik/' }
+        });
+    }
+
+    function updateUI(u) {
+        document.getElementById('display-name').innerText = u.email.split('@')[0];
+        document.getElementById('pts-count').innerText = "150";
+    }
+
+    async function logout() { await client.auth.signOut(); location.reload(); }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function interaction() { if(!user) openModal('auth-modal'); else alert("تم التفاعل بنجاح! ✨"); }
+    function checkAuth() { if(!user) openModal('auth-modal'); else alert("صفحة الرفع قيد التجهيز.."); }
+
+    // تشغيل التطبيق
+    init();
+    if(localStorage.getItem('vtik-theme') === 'dark') toggleTheme();
 </script>
 </body>
 </html>
