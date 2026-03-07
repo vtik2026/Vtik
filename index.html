@@ -3,80 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik - الإمبراطورية النهائية</title>
+    <title>Vtik - منصة الإبداع والأعمال</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --gold: #D4AF37; --off-pink: #FFF0F5; --pink-dark: #FFB6C1; --text: #4A4A4A; --accent: #FF1493; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--off-pink); color: var(--text); overflow-x: hidden; }
-        
-        /* العلامة المائية الخلفية */
+        :root { --gold: #D4AF37; --off-pink: #FFF0F5; --pink-dark: #FFB6C1; --accent: #FF1493; --white: #FFFFFF; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--off-pink); color: #333; overflow-x: hidden; }
+
+        /* الشعار كعلامة مائية خلفية */
         body::before {
             content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 250px; height: 250px; background: url('logo.png') no-repeat center;
+            width: 300px; height: 300px; background: url('logo.png') no-repeat center;
             background-size: contain; opacity: 0.05; z-index: -1;
         }
 
-        header { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); padding: 10px 0; z-index: 1000; border-bottom: 2px solid var(--pink-dark); backdrop-filter: blur(10px); }
-        .logo-img { width: 55px; cursor: pointer; }
+        /* الهيدر والتبويبات */
+        header { position: fixed; top: 0; width: 100%; background: rgba(255,255,255,0.95); z-index: 1000; border-bottom: 2px solid var(--pink-dark); backdrop-filter: blur(10px); }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
+        .logo-img { width: 50px; cursor: pointer; }
+        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; font-size: 14px; }
+        .tab { cursor: pointer; color: #999; transition: 0.3s; padding-bottom: 5px; }
+        .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
 
-        /* شاشة الدخول الاحترافية */
-        #auth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.98); z-index: 5000; justify-content: center; align-items: center; }
-        .auth-card { background: white; padding: 30px; border-radius: 35px; box-shadow: 0 15px 40px rgba(255,182,193,0.4); width: 85%; max-width: 340px; text-align: center; border: 2px solid var(--gold); }
-        
-        .social-btn { width: 100%; padding: 12px; margin: 8px 0; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; transition: 0.3s; }
-        .btn-google { background: #DB4437; }
-        .btn-fb { background: #4267B2; }
-        .btn-pink-gold { background: var(--accent); color: white; border: 2px solid var(--gold); padding: 12px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        /* المحتوى */
+        #main-app { padding-top: 120px; padding-bottom: 90px; }
+        .feed-container { width: 100%; max-width: 480px; margin: 0 auto; }
 
-        /* الفيد والبحث */
-        #main-app { padding-top: 80px; padding-bottom: 90px; }
-        .video-card { width: 95%; max-width: 450px; margin: 0 auto 25px auto; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative; }
-        video { width: 100%; display: block; background: #000; max-height: 75vh; }
-        .v-actions { display: flex; justify-content: space-around; padding: 15px; background: white; font-size: 22px; color: #ddd; }
-        .liked { color: var(--accent) !important; animation: heartBeat 0.3s ease; }
+        /* كارت الشورتس */
+        .short-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 30px; overflow: hidden; background: #000; height: 80vh; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .short-card video { width: 100%; height: 100%; object-fit: cover; }
+        .v-logo { position: absolute; top: 20px; right: 20px; width: 40px; opacity: 0.7; z-index: 10; }
 
-        @keyframes heartBeat { 0% {transform: scale(1);} 50% {transform: scale(1.3);} 100% {transform: scale(1);} }
+        /* كارت المتاجر والأعمال */
+        .biz-card { width: 95%; margin: 0 auto 20px; background: var(--white); border-radius: 20px; overflow: hidden; border: 2px solid var(--gold); box-shadow: 0 10px 20px rgba(212,175,55,0.1); }
+        .biz-header { padding: 12px; display: flex; align-items: center; background: #fffcf0; }
+        .biz-badge { background: var(--gold); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-right: 8px; }
+        .biz-contact { display: flex; justify-content: space-around; padding: 12px; border-top: 1px dashed var(--gold); background: #fff; }
+        .biz-contact a { text-decoration: none; color: var(--accent); font-weight: bold; font-size: 13px; }
+
+        /* المودالات (نوافذ التسجيل والهدايا) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 240, 245, 0.98); z-index: 5000; justify-content: center; align-items: center; }
+        .card { background: white; padding: 25px; border-radius: 35px; width: 85%; max-width: 360px; text-align: center; border: 2px solid var(--gold); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn-gold { background: var(--gold); color: white; border: none; padding: 12px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; }
+
+        /* التوثيق الذهبي والأزرق */
+        .verified-gold { color: var(--gold); margin-right: 5px; }
+        .verified-blue { color: #1DA1F2; margin-right: 5px; }
+
+        /* الأكشنز الجانبية */
+        .side-actions { position: absolute; bottom: 100px; left: 15px; display: flex; flex-direction: column; gap: 20px; align-items: center; color: white; z-index: 20; }
+        .side-actions i { font-size: 26px; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
         /* القائمة السفلية */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid var(--pink-dark); z-index: 1000; }
-        .nav-item { color: var(--pink-dark); font-size: 24px; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: var(--gold); }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--pink-dark); z-index: 1000; }
+        .nav-item { color: var(--pink-dark); font-size: 24px; cursor: pointer; }
+        .upload-btn { background: #000; color: #fff; width: 50px; height: 35px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border-left: 2px solid #00f2ea; border-right: 2px solid #ff0050; }
     </style>
 </head>
 <body>
 
     <header>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 15px;">
-            <div id="auth-status"><button class="btn-pink-gold" onclick="openAuth()" style="font-size: 11px;">دخول / سجل</button></div>
-            <img src="logo.png" class="logo-img" onclick="loadFeed()">
-            <div id="user-pts" style="color:var(--gold); font-weight:bold; font-size:12px;">⭐ 0</div>
+        <div class="nav-top">
+            <button onclick="openModal('biz-reg-modal')" style="background:none; border:1px solid var(--gold); color:var(--gold); border-radius:15px; padding:4px 10px; font-size:11px; font-weight:bold;">💼 سجل كتاجر</button>
+            <img src="logo.png" class="logo-img" onclick="location.reload()">
+            <div id="pts-count" style="color:var(--gold); font-weight:bold;">⭐ 0</div>
+        </div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('shorts', this)">Shorts ✨</div>
+            <div class="tab" onclick="switchTab('videos', this)">Videos 📺</div>
+            <div class="tab" onclick="switchTab('shops', this)">المتاجر 🛍️</div>
         </div>
     </header>
 
     <div id="main-app">
-        <div id="feed-container"></div>
+        <div class="feed-container" id="feed-display"></div>
     </div>
 
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <img src="logo.png" style="width: 80px; margin-bottom: 15px;">
-            <h3 style="color: var(--accent);">سجل دخولك يا بطل</h3>
-            <button class="social-btn btn-google" onclick="socialLogin('google')"><i class="fab fa-google"></i> بالـ Google</button>
-            <button class="social-btn btn-fb" onclick="socialLogin('facebook')"><i class="fab fa-facebook"></i> بالـ Facebook</button>
-            <hr style="border: 0.5px solid #eee; margin: 15px 0;">
-            <input type="tel" id="p-phone" placeholder="رقم الموبايل" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; text-align:center;">
-            <button class="btn-pink-gold" style="width:100%;" onclick="phoneLogin()">دخول سريع</button>
-            <p onclick="closeAuth()" style="color:#999; font-size:12px; margin-top:15px; cursor:pointer;">تصفح كزائر</p>
+    <div id="biz-reg-modal" class="modal">
+        <div class="card">
+            <img src="logo.png" style="width: 60px;">
+            <h3 style="color: var(--gold);">شركاء Vtik للأعمال</h3>
+            <input type="text" id="b-name" placeholder="اسم النشاط التجاري">
+            <select id="b-cat">
+                <option value="قطع غيار">قطع غيار سيارات</option>
+                <option value="سوبر ماركت">سوبر ماركت</option>
+                <option value="مطاعم">مطاعم وكافيهات</option>
+            </select>
+            <input type="tel" id="b-wa" placeholder="رقم الواتساب">
+            <button class="btn-gold" onclick="registerBiz()">تفعيل حساب التاجر 👑</button>
+            <button onclick="closeModal('biz-reg-modal')" style="background:none; border:none; color:#999; margin-top:15px;">إلغاء</button>
+        </div>
+    </div>
+
+    <div id="gift-modal" class="modal">
+        <div class="card">
+            <h3 style="color: var(--accent);">أرسل دعمك للمبدع 🎁</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;">
+                <div onclick="giftSend('🌹', 10)">🌹<br><small>10</small></div>
+                <div onclick="giftSend('👑', 1000)">👑<br><small>1000</small></div>
+                <div onclick="giftSend('🚀', 5000)">🚀<br><small>5000</small></div>
+            </div>
+            <button onclick="closeModal('gift-modal')" style="margin-top:20px; border:none; background:none; color:#999;">إغلاق</button>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" id="home-btn" onclick="loadFeed()"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="alert('جاري البحث..')"><i class="fas fa-search"></i></div>
-        <div class="nav-item" style="background:#000; color:#fff; width:45px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;" onclick="checkUpload()"><i class="fas fa-plus"></i></div>
+        <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i></div>
+        <div class="nav-item"><i class="fas fa-search"></i></div>
+        <div class="nav-item upload-btn" onclick="alert('ارفع إبداعك!')"><i class="fas fa-plus"></i></div>
         <div class="nav-item"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" id="profile-btn" onclick="showMyVideos()"><i class="fas fa-user-circle"></i></div>
+        <div class="nav-item"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
@@ -84,82 +121,88 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentUserID = null;
+    let currentTab = 'shorts';
+    let mediaData = [];
 
-    async function initApp() {
-        const { data: { user } } = await client.auth.getUser();
-        if(user) {
-            currentUserID = user.id;
-            updateUI(user);
-        }
-        loadFeed();
+    async function init() {
+        const { data } = await client.from('videos').select('*').order('created_at', { ascending: false });
+        mediaData = data || [];
+        render();
     }
 
-    // 1. نظام الدخول بالسوشيال ميديا
-    async function socialLogin(provider) {
-        const { error } = await client.auth.signInWithOAuth({ provider: provider });
-        if (error) alert("عذراً، تأكد من إعدادات الـ Keys في Supabase");
+    function switchTab(type, el) {
+        currentTab = type;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        render();
     }
 
-    async function phoneLogin() {
-        const phone = document.getElementById('p-phone').value;
-        const email = `${phone}@vtik.com`;
-        const { error } = await client.auth.signInWithPassword({ email, password: 'nopasswordneeded' });
-        if(error) await client.auth.signUp({ email, password: 'nopasswordneeded' });
-        location.reload();
-    }
+    function render() {
+        const display = document.getElementById('feed-display');
+        display.innerHTML = '';
 
-    // 2. عرض الفيديوهات
-    async function loadFeed(onlyMine = false) {
-        let query = client.from('videos').select('*').order('created_at', { ascending: false });
-        if(onlyMine && currentUserID) query = query.eq('user_id', currentUserID);
-        
-        const { data: vids } = await query;
-        const container = document.getElementById('feed-container');
-        container.innerHTML = '';
-        
-        vids?.forEach(v => {
-            container.innerHTML += `
-                <div class="video-card">
-                    <img src="logo.png" style="position:absolute; top:15px; right:15px; width:35px; opacity:0.6; z-index:5;">
-                    <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div class="v-actions">
-                        <i class="fas fa-heart" onclick="toggleLike(this)"></i>
-                        <i class="fas fa-comment"></i>
-                        <i class="fas fa-share-alt"></i>
-                    </div>
-                </div>`;
+        mediaData.forEach(item => {
+            // منطق التقسيم
+            if(currentTab === 'shorts' && (!item.duration || item.duration <= 60)) {
+                display.innerHTML += `
+                    <div class="short-card">
+                        <img src="logo.png" class="v-logo">
+                        <video src="${item.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                        <div class="side-actions">
+                            <i class="fas fa-heart"></i>
+                            <i class="fas fa-gift" style="color:var(--gold)" onclick="openModal('gift-modal')"></i>
+                            <i class="fas fa-share"></i>
+                        </div>
+                        <div style="position:absolute; bottom:25px; right:20px; color:white; text-shadow:1px 1px 4px #000;">
+                            <b>@مبدع_فيتيك <i class="fas fa-check-circle verified-blue"></i></b>
+                            <p style="font-size:12px; margin-top:5px;">فيديو رائع يستحق المشاهدة 🌸</p>
+                        </div>
+                    </div>`;
+            } 
+            else if (currentTab === 'shops' && item.is_business) {
+                display.innerHTML += `
+                    <div class="biz-card">
+                        <div class="biz-header">
+                            <img src="logo.png" style="width:35px; border-radius:50%; border:1px solid var(--gold);">
+                            <div style="margin-right:10px;">
+                                <b>${item.biz_name}</b> <span class="biz-badge">متجر موثق 👑</span>
+                            </div>
+                        </div>
+                        <video src="${item.video_url}" controls style="width:100%; aspect-ratio:16/9;"></video>
+                        <div class="biz-contact">
+                            <a href="https://wa.me/${item.whatsapp}"><i class="fab fa-whatsapp"></i> واتساب</a>
+                            <a href="#"><i class="fas fa-map-marker-alt"></i> الموقع</a>
+                            <a href="tel:0123456789"><i class="fas fa-phone"></i> اتصل</a>
+                        </div>
+                    </div>`;
+            }
+            else if (currentTab === 'videos' && item.duration > 60) {
+                display.innerHTML += `
+                    <div class="biz-card" style="border:1px solid #eee;">
+                         <video src="${item.video_url}" controls style="width:100%; aspect-ratio:16/9;"></video>
+                         <div style="padding:15px;">
+                            <b>محتوى تعليمي/ترفيهي طويل <i class="fas fa-check-circle verified-blue"></i></b>
+                            <p style="font-size:12px; color:#777;">بواسطة @Vtik_Pro</p>
+                         </div>
+                    </div>`;
+            }
         });
     }
 
-    function showMyVideos() {
-        if(!currentUserID) return openAuth();
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById('profile-btn').classList.add('active');
-        loadFeed(true);
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function giftSend(emoji, pts) {
+        alert(`تم إرسال ${emoji} بنجاح! شكراً لدعمك للمبدعين ✨`);
+        closeModal('gift-modal');
     }
 
-    function toggleLike(el) {
-        if(!currentUserID) return openAuth();
-        el.classList.toggle('liked');
+    async function registerBiz() {
+        alert("تم استلام طلبك! حسابك سيتحول للون الذهبي خلال لحظات 👑");
+        closeModal('biz-reg-modal');
     }
 
-    function checkUpload() {
-        if(!currentUserID) openAuth();
-        else alert("جاهز للرفع! (سيتم ربط كود الرفع السابق هنا)");
-    }
-
-    function openAuth() { document.getElementById('auth-overlay').style.display = 'flex'; }
-    function closeAuth() { document.getElementById('auth-overlay').style.display = 'none'; }
-
-    function updateUI(user) {
-        document.getElementById('auth-status').innerHTML = `<i class="fas fa-sign-out-alt" style="color:var(--accent); font-size:20px;" onclick="logout()"></i>`;
-        document.getElementById('user-pts').innerText = "⭐ عضو ملكي";
-    }
-
-    async function logout() { await client.auth.signOut(); location.reload(); }
-
-    initApp();
+    init();
 </script>
 </body>
-</html>
+    </html>
