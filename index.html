@@ -3,198 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | النسخة الاحترافية</title>
+    <title>Vtik 2026 | النسخة المستقرة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #FFF0F5; --header-bg: rgba(255, 255, 255, 0.9); --text: #333; --gold: #D4AF37; --accent: #FF1493; --card-bg: #fff; --gemini-grad: linear-gradient(135deg, #4285f4, #9b72cb, #d96570); }
-        .dark-mode { --bg: #121212; --header-bg: rgba(30, 30, 30, 0.95); --text: #f0f0f0; --card-bg: #1e1e1e; --gold: #FFD700; }
-
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
+        :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; }
+        .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; }
         
-        /* الهيدر */
-        header { position: fixed; top: 0; width: 100%; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 1000; border-bottom: 2px solid var(--gold); }
-        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
-        .logo-main { width: 45px; cursor: pointer; filter: drop-shadow(0 0 5px var(--gold)); }
-        .tabs { display: flex; justify-content: center; gap: 20px; padding: 8px 0; font-weight: bold; }
-        .tab { cursor: pointer; color: #999; font-size: 13px; transition: 0.3s; }
-        .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
+        header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); }
+        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; }
+        .tab { cursor: pointer; opacity: 0.5; font-size: 14px; font-weight: bold; }
+        .tab.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
 
-        #main-app { padding-top: 130px; padding-bottom: 90px; }
-        .page-content { display: none; width: 100%; max-width: 450px; margin: 0 auto; animation: fadeIn 0.4s; }
+        #main-app { padding: 130px 0 80px; }
+        .page-content { display: none; max-width: 500px; margin: 0 auto; }
         .active-page { display: block; }
 
-        /* كارت الفيديو */
-        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 30px; overflow: hidden; background: #000; height: 78vh; }
+        .v-card { position: relative; width: 95%; margin: 0 auto 15px; border-radius: 25px; overflow: hidden; background: #000; height: 70vh; }
         video { width: 100%; height: 100%; object-fit: cover; }
+        .creator-info { position: absolute; bottom: 20px; right: 20px; color: white; text-shadow: 1px 1px 5px #000; }
+
+        /* صفحة البروفايل */
+        .profile-card { background: var(--card); padding: 20px; margin: 15px; border-radius: 20px; text-align: center; border: 1px solid var(--gold); }
+        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
+        .grid-item { position: relative; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden; }
+        .del-btn { position: absolute; top: 5px; left: 5px; background: rgba(255,0,0,0.7); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; }
+
+        /* Gemini الصغير */
+        #gemini-btn { position: fixed; bottom: 85px; right: 15px; width: 45px; height: 45px; background: linear-gradient(135deg, #4285f4, #9b72cb); border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; z-index: 2000; cursor: pointer; }
         
-        .creator-tag { position: absolute; bottom: 30px; right: 20px; color: white; z-index: 10; font-weight: bold; text-shadow: 1px 1px 5px #000; cursor: pointer; }
-        .side-actions { position: absolute; bottom: 100px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; z-index: 10; text-align: center; }
-        .side-actions i { font-size: 26px; cursor: pointer; transition: 0.2s; }
-        .liked { color: #ff0050; transform: scale(1.2); }
-
-        /* Popups */
-        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-radius: 25px 25px 0 0; z-index: 11000; padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .popup-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; }
-        .grid-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; }
-        .opt-item { cursor: pointer; font-size: 12px; }
-
-        /* Gemini الصغير والشات */
-        #gemini-trigger { position: fixed; bottom: 90px; right: 15px; width: 45px; height: 45px; background: var(--gemini-grad); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 9999; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        #gemini-chat-popup { display: none; position: fixed; top: 20%; left: 5%; right: 5%; background: var(--card-bg); border-radius: 20px; z-index: 12000; flex-direction: column; border: 2px solid #4285f4; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .chat-area { height: 250px; padding: 15px; overflow-y: auto; font-size: 14px; }
-
-        /* ناف بار سفلي */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
-        .nav-item { color: var(--text); font-size: 24px; cursor: pointer; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); }
+        .nav-item { font-size: 22px; cursor: pointer; color: var(--text); opacity: 0.6; }
+        .nav-item.active { opacity: 1; color: var(--accent); }
     </style>
 </head>
-<body class="light-mode">
+<body>
 
     <header>
-        <div class="nav-top">
-            <button onclick="toggleModal('auth-modal', true)" id="login-btn" style="background:var(--accent); color:white; border:none; border-radius:15px; padding:6px 18px; font-weight:bold; cursor:pointer;">دخول</button>
-            <img src="logo.png" class="logo-main" onclick="toggleTheme()">
-            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="pts">150</span></div>
+        <div style="display:flex; justify-content:space-between; padding:10px 15px;">
+            <button onclick="alert('تسجيل الدخول...')">دخول</button>
+            <img src="logo.png" width="40" onclick="document.body.classList.toggle('dark-mode')">
+            <span>⭐ 150</span>
         </div>
         <div class="tabs">
-            <div id="t-shorts" class="tab active" onclick="switchFeed('shorts')">Shorts ✨</div>
-            <div id="t-vids" class="tab" onclick="switchFeed('vids')">فيديو 🎬</div>
-            <div id="t-shops" class="tab" onclick="switchFeed('shops')">المتاجر 🛍️</div>
+            <div class="tab active" id="tab-shorts" onclick="switchFeed('shorts')">Shorts</div>
+            <div class="tab" id="tab-vids" onclick="switchFeed('vids')">فيديو</div>
+            <div class="tab" id="tab-shops" onclick="switchFeed('shops')">متاجر</div>
         </div>
     </header>
 
     <div id="main-app">
         <div id="page-home" class="page-content active-page">
-            <div id="feed-container"></div>
+            <div id="feed"></div>
         </div>
+
         <div id="page-likes" class="page-content">
-            <h3 style="text-align:center;">المفضلة ❤️</h3>
-            <div id="likes-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; padding:10px;"></div>
+            <h3 style="text-align:center;">فيديوهاتي المفضلة ❤️</h3>
+            <div id="likes-grid" class="video-grid"></div>
+        </div>
+
+        <div id="page-profile" class="page-content">
+            <div class="profile-card">
+                <img src="logo.png" width="70" style="border-radius:50%">
+                <h2 id="p-name">مستخدم فيتيك</h2>
+                <p id="p-phone">📱 010xxxxxxx</p>
+                <button style="font-size: 11px;">تعديل البيانات</button>
+            </div>
+            <h4 style="margin-right:15px;">منشوراتي</h4>
+            <div id="my-vids-grid" class="video-grid"></div>
         </div>
     </div>
 
-    <div id="gemini-chat-popup">
-        <div style="background:var(--gemini-grad); color:white; padding:12px; border-radius:18px 18px 0 0; display:flex; justify-content:space-between;">
-            <span>Gemini AI 🌟</span> <span onclick="toggleGeminiChat(false)" style="cursor:pointer;">✖</span>
-        </div>
-        <div class="chat-area" id="chat-box">أهلاً بك! اطلب مني تعديل فيديو، وصف، أو ميزة جديدة..</div>
-        <div style="display:flex; border-top:1px solid #ddd; padding:10px;">
-            <input type="text" id="chat-input" style="flex:1; border:none; outline:none; background:transparent; color:var(--text);" placeholder="اكتب طلبك هنا...">
-            <button onclick="askGemini()" style="border:none; background:none; color:#4285f4;"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <div id="gemini-trigger" onclick="toggleGeminiChat(true)">
-        <svg width="22" viewBox="0 0 24 24" fill="white"><path d="M12 2L14.85 8.65L21.5 11.5L14.85 14.35L12 21L9.15 14.35L2.5 11.5L9.15 8.65L12 2Z"/></svg>
-    </div>
-
-    <div id="gift-popup" class="popup">
-        <div class="popup-header"><span>إرسال هدية 🎁</span> <span onclick="closePopup('gift-popup')">✖</span></div>
-        <div class="grid-options">
-            <div class="opt-item" onclick="sendGift('وردة')"><i class="fas fa-seedling" style="color:pink;"></i> وردة</div>
-            <div class="opt-item" onclick="sendGift('جوهرة')"><i class="fas fa-gem" style="color:#00d2ff;"></i> جوهرة</div>
-            <div class="opt-item" onclick="sendGift('تاج')"><i class="fas fa-crown" style="color:var(--gold);"></i> تاج</div>
-            <div class="opt-item" onclick="sendGift('قلب')"><i class="fas fa-heart" style="color:red;"></i> قلب</div>
-        </div>
-    </div>
-
-    <div id="share-popup" class="popup">
-        <div class="popup-header"><span>مشاركة الفيديو 🔗</span> <span onclick="closePopup('share-popup')">✖</span></div>
-        <div class="grid-options">
-            <div class="opt-item" onclick="copyVideoLink()"><i class="fas fa-copy"></i> نسخ الرابط</div>
-            <div class="opt-item" onclick="realShare('whatsapp')"><i class="fab fa-whatsapp" style="color:#25D366;"></i> واتساب</div>
-            <div class="opt-item" onclick="realShare('facebook')"><i class="fab fa-facebook" style="color:#4267B2;"></i> فيسبوك</div>
-            <div class="opt-item" onclick="realShare('twitter')"><i class="fab fa-twitter" style="color:#1DA1F2;"></i> تويتر</div>
-        </div>
-    </div>
-
-    <div id="auth-modal" class="popup" style="bottom:20%; border-radius:25px; width:80%; left:10%; right:10%;">
-        <div style="text-align:center;">
-            <h3>تسجيل الدخول</h3>
-            <button onclick="alert('Google Login...')" style="width:100%; padding:10px; background:#db4437; color:white; border:none; border-radius:10px; margin-bottom:10px;">Google</button>
-            <button onclick="toggleModal('auth-modal', false)" style="background:none; border:none; color:#999;">إلغاء</button>
-        </div>
-    </div>
+    <div id="gemini-btn" onclick="alert('Gemini: أنا أسمعك، كيف أطور لك التطبيق الآن؟')">✨</div>
 
     <nav class="bottom-nav">
-        <div class="nav-item" onclick="navTo('page-home')"><i class="fas fa-home"></i></div>
-        <div class="nav-item"><i class="fas fa-search"></i></div>
-        <div class="nav-item" style="background:#000; color:#fff; border-radius:12px; width:50px; height:35px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
-        <div class="nav-item" onclick="navTo('page-likes')"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" onclick="navTo('page-profile')"><i class="fas fa-user-circle"></i></div>
+        <div class="nav-item active" onclick="showPage('page-home', 0)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="showPage('page-likes', 1)"><i class="fas fa-heart"></i></div>
+        <div class="nav-item" style="background:#000; color:#fff; border-radius:10px; padding:5px 12px;"><i class="fas fa-plus"></i></div>
+        <div class="nav-item" onclick="showPage('page-profile', 3)"><i class="fas fa-user"></i></div>
     </nav>
 
 <script>
     const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
 
-    let currentFeed = 'shorts';
-    let currentVideoUrl = '';
-    let likedVideos = new Set();
+    let currentTab = 'shorts';
+    let allVideos = [];
 
-    async function loadFeed() {
-        const container = document.getElementById('feed-container');
-        container.innerHTML = '<p style="text-align:center; padding:50px;">جاري التحميل...</p>';
-        const { data } = await client.from('videos').select('*').order('created_at', { ascending: false });
+    // تحميل البيانات وحفظ الحالة في LocalStorage
+    async function init() {
+        const { data } = await client.from('videos').select('*');
+        allVideos = data || [];
+        renderFeed();
+        renderLikes();
+        renderMyVideos();
+    }
+
+    function renderFeed() {
+        const container = document.getElementById('feed');
         container.innerHTML = '';
         
-        data?.forEach(v => {
-            if(currentFeed === 'shops' && !v.is_business) return;
-            const isLiked = likedVideos.has(v.id) ? 'liked' : '';
+        // فلترة الفيديوهات بناءً على المدة (افتراضياً: الفيديوهات الطويلة لها حقل duration)
+        const filtered = allVideos.filter(v => {
+            if(currentTab === 'shops') return v.is_business;
+            if(currentTab === 'vids') return v.duration > 60; 
+            return !v.is_business && (!v.duration || v.duration <= 60);
+        });
+
+        filtered.forEach(v => {
+            const isLiked = localStorage.getItem('like_'+v.id);
             container.innerHTML += `
                 <div class="v-card">
-                    <div class="creator-tag" onclick="alert('فتح صفحة المبدع..')">@Vtik_Creator</div>
+                    <div class="creator-info">@User_${v.user_id.slice(0,5)}</div>
                     <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div class="side-actions">
-                        <i class="fas fa-heart ${isLiked}" id="heart-${v.id}" onclick="toggleLike('${v.id}', '${v.video_url}')"></i>
-                        <i class="fas fa-gift" style="color:var(--gold)" onclick="openPopup('gift-popup')"></i>
-                        <i class="fas fa-share" onclick="openShare('${v.video_url}')"></i>
+                    <div style="position:absolute; left:15px; bottom:80px; color:white; display:flex; flex-direction:column; gap:20px;">
+                        <i class="fas fa-heart" id="like-icon-${v.id}" style="color:${isLiked?'red':'white'}; font-size:25px;" onclick="toggleLike('${v.id}', '${v.video_url}')"></i>
+                        <i class="fas fa-share" onclick="alert('رابط الفيديو: ${v.video_url}')"></i>
                     </div>
                 </div>`;
         });
     }
 
-    function openShare(url) { currentVideoUrl = url; openPopup('share-popup'); }
-    function copyVideoLink() { navigator.clipboard.writeText(currentVideoUrl); alert("تم نسخ رابط الفيديو! ✅"); closePopup('share-popup'); }
-    
-    function realShare(plat) {
-        let link = "";
-        if(plat === 'whatsapp') link = `https://api.whatsapp.com/send?text=${encodeURIComponent(currentVideoUrl)}`;
-        if(plat === 'facebook') link = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentVideoUrl)}`;
-        if(plat === 'twitter') link = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentVideoUrl)}`;
-        window.open(link, '_blank');
-        closePopup('share-popup');
-    }
-
     function toggleLike(id, url) {
-        const h = document.getElementById('heart-'+id);
-        h.classList.toggle('liked');
-        if(h.classList.contains('liked')) likedVideos.add(id); else likedVideos.delete(id);
+        if(localStorage.getItem('like_'+id)) {
+            localStorage.removeItem('like_'+id);
+            document.getElementById('like-icon-'+id).style.color = 'white';
+        } else {
+            localStorage.setItem('like_'+id, url);
+            document.getElementById('like-icon-'+id).style.color = 'red';
+        }
+        renderLikes();
     }
 
-    function askGemini() {
-        const input = document.getElementById('chat-input');
-        const box = document.getElementById('chat-box');
-        if(!input.value) return;
-        box.innerHTML += `<div style="text-align:left; color:var(--accent); margin-bottom:10px;">أنت: ${input.value}</div>`;
-        setTimeout(() => {
-            box.innerHTML += `<div style="color:#4285f4; margin-bottom:10px;">Gemini: جاري تنفيذ طلبك [${input.value}] في قاعدة بيانات Vtik.. ✨</div>`;
-            box.scrollTop = box.scrollHeight;
-        }, 1000);
-        input.value = "";
+    function renderLikes() {
+        const grid = document.getElementById('likes-grid');
+        grid.innerHTML = '';
+        for (let i = 0; i < localStorage.length; i++){
+            let key = localStorage.key(i);
+            if(key.startsWith('like_')) {
+                grid.innerHTML += `<div class="grid-item"><video src="${localStorage.getItem(key)}"></video></div>`;
+            }
+        }
     }
 
-    function toggleGeminiChat(show) { document.getElementById('gemini-chat-popup').style.display = show ? 'flex' : 'none'; }
-    function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }
-    function openPopup(id) { document.getElementById(id).style.display = 'block'; }
-    function closePopup(id) { document.getElementById(id).style.display = 'none'; }
-    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
-    function navTo(page) { document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active-page')); document.getElementById(page).classList.add('active-page'); }
-    function switchFeed(type) { currentFeed = type; document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('t-' + type).classList.add('active'); loadFeed(); }
-    function sendGift(g) { alert("تم إرسال هدية (" + g + ") لصاحب الفيديو بنجاح! 🎁"); closePopup('gift-popup'); }
+    function renderMyVideos() {
+        const grid = document.getElementById('my-vids-grid');
+        grid.innerHTML = '';
+        // هنا نجلب فيديوهات المستخدم المسجل (للتجربة سنعرض أول 3 فيديوهات)
+        allVideos.slice(0,3).forEach(v => {
+            grid.innerHTML += `
+                <div class="grid-item" id="my-vid-${v.id}">
+                    <button class="del-btn" onclick="deleteVideo('${v.id}')">×</button>
+                    <video src="${v.video_url}"></video>
+                </div>`;
+        });
+    }
 
-    loadFeed();
+    function deleteVideo(id) {
+        if(confirm('هل تريد حذف هذا الفيديو نهائياً؟')) {
+            document.getElementById('my-vid-'+id).remove();
+            alert('تم الحذف من العرض');
+        }
+    }
+
+    function switchFeed(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+tab).classList.add('active');
+        renderFeed();
+    }
+
+    function showPage(id, idx) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(id).classList.add('active-page');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.nav-item')[idx].classList.add('active');
+    }
+
+    init();
 </script>
 </body>
-    </html>
+</html>
