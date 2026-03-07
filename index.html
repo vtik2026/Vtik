@@ -3,94 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | المنصة الذكية الشاملة</title>
+    <title>Vtik 2026 | Ultimate Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* المتغيرات الأساسية (الوضع النهاري) */
-        :root {
-            --bg: #FFF0F5;
-            --header-bg: rgba(255, 255, 255, 0.9);
-            --text: #333;
-            --gold: #D4AF37;
-            --accent: #FF1493;
-            --card-bg: #fff;
-            --gemini-grad: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
-        }
-
-        /* المتغيرات (الوضع الليلي) */
-        .dark-mode {
-            --bg: #121212;
-            --header-bg: rgba(30, 30, 30, 0.95);
-            --text: #f0f0f0;
-            --card-bg: #1e1e1e;
-            --gold: #FFD700;
-        }
+        :root { --bg: #FFF0F5; --header-bg: rgba(255, 255, 255, 0.9); --text: #333; --gold: #D4AF37; --accent: #FF1493; --card-bg: #fff; --gemini-grad: linear-gradient(135deg, #4285f4, #9b72cb, #d96570); }
+        .dark-mode { --bg: #121212; --header-bg: rgba(30, 30, 30, 0.95); --text: #f0f0f0; --card-bg: #1e1e1e; --gold: #FFD700; }
 
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
         
-        /* العلامة المائية للبراند */
-        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; opacity: 0.05; z-index: -1; pointer-events: none; }
-
-        /* الهيدر */
         header { position: fixed; top: 0; width: 100%; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 1000; border-bottom: 2px solid var(--gold); }
         .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
-        .logo-main { width: 55px; cursor: pointer; transition: transform 0.3s; filter: drop-shadow(0 0 5px var(--gold)); }
-        .logo-main:active { transform: scale(0.9) rotate(5deg); }
-
-        .tabs { display: flex; justify-content: center; gap: 30px; padding: 10px 0; font-weight: bold; }
-        .tab { cursor: pointer; color: #999; padding-bottom: 5px; font-size: 14px; }
+        .logo-main { width: 55px; cursor: pointer; filter: drop-shadow(0 0 5px var(--gold)); }
+        
+        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; }
+        .tab { cursor: pointer; color: #999; padding-bottom: 5px; font-size: 13px; transition: 0.3s; }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
 
-        /* الصفحات المحتوى */
-        #main-app { padding-top: 130px; padding-bottom: 90px; }
-        .page-content { display: none; width: 100%; max-width: 450px; margin: 0 auto; animation: slideIn 0.3s ease-out; }
+        #main-app { padding-top: 135px; padding-bottom: 90px; }
+        .page-content { display: none; width: 100%; max-width: 450px; margin: 0 auto; animation: slideIn 0.3s ease; }
         .active-page { display: block; }
+        @keyframes slideIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* كارت الفيديو */
-        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 35px; overflow: hidden; background: #000; height: 75vh; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 35px; overflow: hidden; background: #000; height: 75vh; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        .side-actions { position: absolute; bottom: 80px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; z-index: 10; text-shadow: 0 2px 4px #000; }
-        .side-actions i { font-size: 28px; cursor: pointer; }
+        .side-actions { position: absolute; bottom: 80px; left: 15px; display: flex; flex-direction: column; gap: 22px; color: white; z-index: 10; text-shadow: 0 2px 4px #000; text-align: center; }
+        .side-actions i { font-size: 28px; cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* تأثير القلب عند الضغط */
+        .side-actions i.fa-heart.liked { color: #ff0050; transform: scale(1.2); }
 
-        /* شاشة دردشة Gemini */
-        #gemini-chat { display: none; position: fixed; bottom: 170px; right: 20px; width: 320px; background: var(--card-bg); border: 2px solid #4285f4; border-radius: 25px; z-index: 9999; flex-direction: column; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
-        .chat-header { background: var(--gemini-grad); color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; }
-        .chat-messages { height: 250px; padding: 15px; overflow-y: auto; font-size: 14px; background: var(--card-bg); }
-        .chat-input-area { display: flex; border-top: 1px solid #eee; padding: 5px; background: var(--card-bg); }
-        .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; background: transparent; color: var(--text); }
+        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-radius: 30px 30px 0 0; z-index: 11000; padding: 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .grid-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; }
+        .opt-item { cursor: pointer; color: var(--text); }
+        .opt-item i { font-size: 24px; margin-bottom: 5px; display: block; }
 
-        /* زر Gemini */
-        #gemini-trigger { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--gemini-grad); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 9998; border: 2px solid white; animation: float 3s infinite ease-in-out; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        /* مودالات التسجيل */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; }
-        .auth-card { background: var(--card-bg); color: var(--text); padding: 35px; border-radius: 40px; width: 85%; max-width: 360px; text-align: center; border: 2px solid var(--gold); }
-        .btn-auth { width: 100%; padding: 14px; margin: 10px 0; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-biz { background: var(--gold); color: #000 !important; font-size: 16px; margin-top: 15px; }
-
-        /* الناف بار السفلي */
+        #gemini-trigger { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--gemini-grad); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 9998; border: 2px solid white; }
+        
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
-        .nav-item { color: var(--text); font-size: 24px; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: var(--accent); transform: scale(1.2); }
+        .nav-item { color: var(--text); font-size: 24px; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <img src="logo.png" class="watermark">
-
     <header>
         <div class="nav-top">
-            <button onclick="openModal('auth-modal')" style="background:var(--accent); color:white; border:none; border-radius:15px; padding:6px 18px; font-weight:bold; cursor:pointer;">دخول</button>
-            <img src="logo.png" class="logo-main" onclick="toggleTheme()" title="اضغط لتغيير الوضع ليلي/نهاري">
-            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="pts-count">0</span></div>
+            <button onclick="openModal('auth-modal')" style="background:var(--accent); color:white; border:none; border-radius:15px; padding:6px 18px; font-weight:bold;">دخول</button>
+            <img src="logo.png" class="logo-main" onclick="toggleTheme()" title="تغيير الوضع">
+            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="pts">150</span></div>
         </div>
-        <div class="tabs" id="home-tabs">
+        <div class="tabs">
             <div id="t-shorts" class="tab active" onclick="switchFeed('shorts')">Shorts ✨</div>
+            <div id="t-vids" class="tab" onclick="switchFeed('vids')">فيديو 🎬</div>
             <div id="t-shops" class="tab" onclick="switchFeed('shops')">المتاجر 🛍️</div>
         </div>
     </header>
@@ -99,171 +65,110 @@
         <div id="page-home" class="page-content active-page">
             <div id="feed-container"></div>
         </div>
-
         <div id="page-likes" class="page-content">
-            <h3 style="text-align:center; color:var(--accent);">المفضلة ❤️</h3>
-            <div id="likes-placeholder" style="text-align:center; padding:50px; color:#999;">لا يوجد فيديوهات في المفضلة بعد.</div>
-        </div>
-
-        <div id="page-profile" class="page-content">
-            <div style="text-align:center; padding:20px;">
-                <img src="logo.png" style="width:90px; height:90px; border-radius:50%; border:3px solid var(--gold);">
-                <h2 id="display-name">المبدع</h2>
-                <button onclick="logout()" style="background:#ff4d4d; color:white; border:none; padding:8px 20px; border-radius:12px;">تسجيل خروج</button>
-            </div>
+            <h3 style="text-align:center;">المفضلة ❤️</h3>
+            <div id="likes-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; padding:10px;"></div>
         </div>
     </div>
 
-    <div id="gemini-chat">
-        <div class="chat-header">
-            <span>Gemini AI 🌟</span>
-            <span onclick="toggleChat()" style="cursor:pointer;">✖</span>
-        </div>
-        <div class="chat-messages" id="chat-box">
-            أهلاً بك في Vtik! أنا مساعدك Gemini.. اطلب مني تعديل فيديو، كتابة تعليق ذكي، أو حتى تحويل حسابك لتاجر!
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="اطلب من Gemini...">
-            <button onclick="sendChatMessage()" style="background:none; border:none; color:#4285f4; font-size:20px;"><i class="fas fa-paper-plane"></i></button>
+    <div id="gift-popup" class="popup">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b>أرسل هدية 🎁</b> <span onclick="closePopup('gift-popup')" style="cursor:pointer;">✖</span></div>
+        <div class="grid-options">
+            <div class="opt-item" onclick="sendGift('وردة')"><i class="fas fa-seedling" style="color:pink;"></i><span>وردة</span></div>
+            <div class="opt-item" onclick="sendGift('جوهرة')"><i class="fas fa-gem" style="color:#00d2ff;"></i><span>جوهرة</span></div>
+            <div class="opt-item" onclick="sendGift('تاج')"><i class="fas fa-crown" style="color:var(--gold);"></i><span>تاج</span></div>
+            <div class="opt-item" onclick="sendGift('نار')"><i class="fas fa-fire" style="color:orange;"></i><span>نار</span></div>
         </div>
     </div>
 
-    <div id="gemini-trigger" onclick="toggleChat()">
+    <div id="share-popup" class="popup">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b>مشاركة 🔗</b> <span onclick="closePopup('share-popup')" style="cursor:pointer;">✖</span></div>
+        <div class="grid-options">
+            <div class="opt-item" onclick="copyLink()"><i class="fas fa-link"></i><span>نسخ</span></div>
+            <div class="opt-item" onclick="shareTo('WhatsApp')"><i class="fab fa-whatsapp" style="color:#25D366;"></i><span>واتساب</span></div>
+            <div class="opt-item" onclick="shareTo('Facebook')"><i class="fab fa-facebook" style="color:#4267B2;"></i><span>فيسبوك</span></div>
+            <div class="opt-item" onclick="shareTo('Telegram')"><i class="fab fa-telegram" style="color:#0088cc;"></i><span>تليجرام</span></div>
+        </div>
+    </div>
+
+    <div id="gemini-trigger" onclick="alert('شات Gemini قيد التشغيل.. اطلب ما تريد!')">
         <svg width="30" viewBox="0 0 24 24" fill="white"><path d="M12 2L14.85 8.65L21.5 11.5L14.85 14.35L12 21L9.15 14.35L2.5 11.5L9.15 8.65L12 2Z"/></svg>
     </div>
 
-    <div id="auth-modal" class="modal">
-        <div class="auth-card">
-            <img src="logo.png" style="width: 75px; margin-bottom: 10px;">
-            <h3>أهلاً بك في Vtik</h3>
-            <button class="btn-auth" style="background:#db4437; color:white;" onclick="login('google')"><i class="fab fa-google"></i> دخول بـ Google</button>
-            <button class="btn-auth" style="background:#4267B2; color:white;" onclick="login('facebook')"><i class="fab fa-facebook"></i> دخول بـ Facebook</button>
-            <hr style="opacity:0.2; margin:20px 0;">
-            <p style="font-size:13px;">هل أنت صاحب نشاط تجاري؟</p>
-            <button class="btn-auth btn-biz" onclick="alert('سيتم فتح نموذج بيانات المتاجر قريباً..')">💼 سجل كتاجر (Business)</button>
-            <button onclick="closeModal('auth-modal')" style="background:none; border:none; color:#999; margin-top:20px; cursor:pointer;">رجوع</button>
-        </div>
-    </div>
-
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="navTo('page-home', 0)"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="navTo('page-home', 1)"><i class="fas fa-search"></i></div>
-        <div class="nav-item" onclick="checkAuth()" style="background:#000; color:#fff; width:50px; height:35px; border-radius:12px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
-        <div class="nav-item" onclick="navTo('page-likes', 3)"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" onclick="navTo('page-profile', 4)"><i class="fas fa-user-circle"></i></div>
+        <div class="nav-item active" onclick="navTo('page-home',0)"><i class="fas fa-home"></i></div>
+        <div class="nav-item"><i class="fas fa-search"></i></div>
+        <div class="nav-item" style="background:#000; color:#fff; border-radius:12px; width:50px; height:35px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
+        <div class="nav-item" onclick="navTo('page-likes',3)"><i class="fas fa-heart"></i></div>
+        <div class="nav-item"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
-    const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0';
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
 
-    let user = null;
     let currentFeed = 'shorts';
+    let likedVideos = new Set();
 
-    async function init() {
-        const { data } = await client.auth.getUser();
-        user = data.user;
-        if(user) updateUI(user);
-        loadVideos();
-    }
-
-    // 1. تبديل الوضع الليلي بالضغط على اللوجو
-    function toggleTheme() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('vtik-theme', isDark ? 'dark' : 'light');
-    }
-
-    // 2. إدارة الصفحات
-    function navTo(pageId, idx) {
-        if(!user && pageId !== 'page-home') { openModal('auth-modal'); return; }
-        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active-page'));
-        document.getElementById(pageId).classList.add('active-page');
-        
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.querySelectorAll('.nav-item')[idx].classList.add('active');
-        
-        document.getElementById('home-tabs').style.display = (pageId === 'page-home') ? 'flex' : 'none';
-    }
-
-    // 3. شات Gemini
-    function toggleChat() {
-        const chat = document.getElementById('gemini-chat');
-        chat.style.display = (chat.style.display === 'flex') ? 'none' : 'flex';
-    }
-
-    function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        const box = document.getElementById('chat-box');
-        if(input.value.trim()){
-            box.innerHTML += `<div style="margin-top:10px; color:var(--accent);"><b>أنت:</b> ${input.value}</div>`;
-            const req = input.value.toLowerCase();
-            setTimeout(() => {
-                let reply = "فهمت طلبك! جاري معالجة الأمر بواسطة ذكاء Vtik..";
-                if(req.includes("تعديل")) reply = "أرسل لي رابط الفيديو وسأقوم بتعديله لك فوراً! ✨";
-                if(req.includes("تعليق")) reply = "إليك تعليق مقترح: 'إبداع بلا حدود في عالم Vtik! 🚀'";
-                box.innerHTML += `<div style="margin-top:10px; color:#4285f4;"><b>Gemini:</b> ${reply}</div>`;
-                box.scrollTop = box.scrollHeight;
-            }, 800);
-            input.value = "";
-        }
-    }
-
-    // 4. تحميل الفيديوهات
-    async function loadVideos() {
+    async function loadFeed() {
         const container = document.getElementById('feed-container');
-        container.innerHTML = '<p style="text-align:center; padding:50px;">جاري جلب الإبداع...</p>';
-        
+        container.innerHTML = '<p style="text-align:center; padding:50px;">جاري التحميل...</p>';
         const { data } = await client.from('videos').select('*').order('created_at', { ascending: false });
         container.innerHTML = '';
         
-        const filtered = data?.filter(v => currentFeed === 'shops' ? v.is_business : !v.is_business) || [];
-        const finalData = (currentFeed === 'shorts' && filtered.length === 0) ? data : filtered;
+        data?.forEach(v => {
+            // فلترة بسيطة للتبويبات
+            if(currentFeed === 'shops' && !v.is_business) return;
+            if(currentFeed === 'vids' && !v.is_long) return;
 
-        finalData?.forEach(v => {
+            const isLiked = likedVideos.has(v.id) ? 'liked' : '';
             container.innerHTML += `
                 <div class="v-card">
-                    <img src="logo.png" style="position:absolute; top:20px; right:20px; width:45px; opacity:0.6; z-index:5;">
                     <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
                     <div class="side-actions">
-                        <i class="fas fa-heart" onclick="interaction()"></i>
-                        <i class="fas fa-gift" style="color:var(--gold)" onclick="interaction()"></i>
-                        <i class="fas fa-share" onclick="alert('تم نسخ الرابط!')"></i>
+                        <i class="fas fa-heart ${isLiked}" id="heart-${v.id}" onclick="toggleLike('${v.id}', '${v.video_url}')"></i>
+                        <i class="fas fa-gift" style="color:var(--gold)" onclick="openPopup('gift-popup')"></i>
+                        <i class="fas fa-share" onclick="openPopup('share-popup')"></i>
                     </div>
                 </div>`;
         });
+    }
+
+    function toggleLike(id, url) {
+        const h = document.getElementById('heart-'+id);
+        const grid = document.getElementById('likes-grid');
+        
+        if(!h.classList.contains('liked')) {
+            h.classList.add('liked');
+            likedVideos.add(id);
+            // إضافة كارت صغير لصفحة المفضلة
+            grid.innerHTML += `<div id="fav-${id}" style="aspect-ratio:9/16; background:#000; border-radius:10px; overflow:hidden;"><video src="${url}" style="width:100%; height:100%; object-fit:cover;"></video></div>`;
+        } else {
+            h.classList.remove('liked');
+            likedVideos.delete(id);
+            document.getElementById('fav-'+id)?.remove();
+        }
     }
 
     function switchFeed(type) {
         currentFeed = type;
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById('t-' + type).classList.add('active');
-        loadVideos();
+        loadFeed();
     }
 
-    // 5. التسجيل والدخول
-    async function login(provider) {
-        await client.auth.signInWithOAuth({
-            provider,
-            options: { redirectTo: 'https://vtik2026.github.io/Vtik/' }
-        });
+    function navTo(page, idx) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(page).classList.add('active-page');
     }
 
-    function updateUI(u) {
-        document.getElementById('display-name').innerText = u.email.split('@')[0];
-        document.getElementById('pts-count').innerText = "150";
-    }
+    function openPopup(id) { document.getElementById(id).style.display = 'block'; }
+    function closePopup(id) { document.getElementById(id).style.display = 'none'; }
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    function copyLink() { navigator.clipboard.writeText(window.location.href); closePopup('share-popup'); }
+    function shareTo(plat) { alert("مشاركة عبر " + plat); closePopup('share-popup'); }
+    function sendGift(g) { alert("شكراً! تم إرسال " + g); closePopup('gift-popup'); }
 
-    async function logout() { await client.auth.signOut(); location.reload(); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function interaction() { if(!user) openModal('auth-modal'); else alert("تم التفاعل بنجاح! ✨"); }
-    function checkAuth() { if(!user) openModal('auth-modal'); else alert("صفحة الرفع قيد التجهيز.."); }
-
-    // تشغيل التطبيق
-    init();
-    if(localStorage.getItem('vtik-theme') === 'dark') toggleTheme();
+    loadFeed();
 </script>
 </body>
-</html>
+                                                                  </html>
