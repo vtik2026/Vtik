@@ -3,184 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | النسخة المستقرة</title>
+    <title>Vtik 2026 | النسخة المربوطة بالكامل</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; }
+        :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; --gemini: linear-gradient(135deg, #4285f4, #9b72cb); }
         .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
         
         header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); }
-        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; }
-        .tab { cursor: pointer; opacity: 0.5; font-size: 14px; font-weight: bold; }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
+        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; }
+        .tab { cursor: pointer; opacity: 0.5; font-size: 13px; transition: 0.3s; }
         .tab.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
 
-        #main-app { padding: 130px 0 80px; }
-        .page-content { display: none; max-width: 500px; margin: 0 auto; }
+        #main-app { padding: 130px 0 85px; }
+        .page-content { display: none; max-width: 500px; margin: 0 auto; animation: fadeIn 0.4s; }
         .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .v-card { position: relative; width: 95%; margin: 0 auto 15px; border-radius: 25px; overflow: hidden; background: #000; height: 70vh; }
+        /* كارت الفيديو */
+        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 30px; overflow: hidden; background: #000; height: 78vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .creator-info { position: absolute; bottom: 20px; right: 20px; color: white; text-shadow: 1px 1px 5px #000; }
+        .creator-tag { position: absolute; bottom: 30px; right: 20px; color: white; z-index: 10; font-weight: bold; text-shadow: 2px 2px 5px #000; }
+        .side-actions { position: absolute; bottom: 100px; left: 15px; display: flex; flex-direction: column; gap: 25px; color: white; text-align: center; text-shadow: 0 2px 4px #000; }
+        .side-actions i { font-size: 28px; cursor: pointer; transition: 0.2s; }
+        .liked { color: #ff0050 !important; transform: scale(1.2); }
 
-        /* صفحة البروفايل */
-        .profile-card { background: var(--card); padding: 20px; margin: 15px; border-radius: 20px; text-align: center; border: 1px solid var(--gold); }
+        /* Popups */
+        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 25px 25px 0 0; z-index: 11000; padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .grid-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; }
+
+        /* البروفايل */
+        .profile-header { text-align: center; padding: 25px; background: var(--card); margin: 15px; border-radius: 25px; border: 1px solid var(--gold); }
         .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
-        .grid-item { position: relative; aspect-ratio: 9/16; background: #000; border-radius: 10px; overflow: hidden; }
-        .del-btn { position: absolute; top: 5px; left: 5px; background: rgba(255,0,0,0.7); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; }
+        .grid-item { position: relative; aspect-ratio: 9/16; background: #000; border-radius: 12px; overflow: hidden; }
+        .del-btn { position: absolute; top: 5px; left: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; z-index: 5; }
 
-        /* Gemini الصغير */
-        #gemini-btn { position: fixed; bottom: 85px; right: 15px; width: 45px; height: 45px; background: linear-gradient(135deg, #4285f4, #9b72cb); border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; z-index: 2000; cursor: pointer; }
-        
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); }
-        .nav-item { font-size: 22px; cursor: pointer; color: var(--text); opacity: 0.6; }
+        /* Gemini */
+        #gemini-trigger { position: fixed; bottom: 90px; right: 15px; width: 45px; height: 45px; background: var(--gemini); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 3000; border: 2px solid white; }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
+        .nav-item { font-size: 24px; cursor: pointer; color: var(--text); opacity: 0.6; }
         .nav-item.active { opacity: 1; color: var(--accent); }
     </style>
 </head>
 <body>
 
     <header>
-        <div style="display:flex; justify-content:space-between; padding:10px 15px;">
-            <button onclick="alert('تسجيل الدخول...')">دخول</button>
-            <img src="logo.png" width="40" onclick="document.body.classList.toggle('dark-mode')">
-            <span>⭐ 150</span>
+        <div class="nav-top">
+            <button onclick="handleAuth()" id="auth-btn" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 16px; font-weight:bold;">دخول</button>
+            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer">
+            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="star-count">150</span></div>
         </div>
         <div class="tabs">
-            <div class="tab active" id="tab-shorts" onclick="switchFeed('shorts')">Shorts</div>
-            <div class="tab" id="tab-vids" onclick="switchFeed('vids')">فيديو</div>
-            <div class="tab" id="tab-shops" onclick="switchFeed('shops')">متاجر</div>
+            <div class="tab active" id="tab-shorts" onclick="switchFeed('shorts')">Shorts ✨</div>
+            <div class="tab" id="tab-vids" onclick="switchFeed('vids')">فيديو 🎬</div>
+            <div class="tab" id="tab-shops" onclick="switchFeed('shops')">المتاجر 🛍️</div>
         </div>
     </header>
 
     <div id="main-app">
-        <div id="page-home" class="page-content active-page">
-            <div id="feed"></div>
-        </div>
-
+        <div id="page-home" class="page-content active-page"><div id="feed"></div></div>
+        
         <div id="page-likes" class="page-content">
-            <h3 style="text-align:center;">فيديوهاتي المفضلة ❤️</h3>
+            <h3 style="text-align:center;">المفضلة ❤️</h3>
             <div id="likes-grid" class="video-grid"></div>
         </div>
 
         <div id="page-profile" class="page-content">
-            <div class="profile-card">
-                <img src="logo.png" width="70" style="border-radius:50%">
-                <h2 id="p-name">مستخدم فيتيك</h2>
-                <p id="p-phone">📱 010xxxxxxx</p>
-                <button style="font-size: 11px;">تعديل البيانات</button>
+            <div class="profile-header">
+                <img src="logo.png" width="70" style="border-radius:50%; border:2px solid var(--gold)">
+                <h3 id="u-name">مستخدم Vtik</h3>
+                <p id="u-phone" style="font-size:14px; opacity:0.7;">📱 لم يتم ربط هاتف</p>
+                <button style="font-size:12px; padding:5px 15px;">تعديل البروفايل</button>
             </div>
-            <h4 style="margin-right:15px;">منشوراتي</h4>
-            <div id="my-vids-grid" class="video-grid"></div>
+            <h4 style="margin:15px">فيديوهاتي</h4>
+            <div id="my-vids" class="video-grid"></div>
         </div>
     </div>
 
-    <div id="gemini-btn" onclick="alert('Gemini: أنا أسمعك، كيف أطور لك التطبيق الآن؟')">✨</div>
+    <div id="gift-pop" class="popup">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b>أرسل هدية 🎁</b> <span onclick="closePop('gift-pop')">✖</span></div>
+        <div class="grid-options">
+            <div onclick="sendGift('وردة')">🌹<br>وردة</div>
+            <div onclick="sendGift('جوهرة')">💎<br>جوهرة</div>
+            <div onclick="sendGift('تاج')">👑<br>تاج</div>
+            <div onclick="sendGift('قلب')">💖<br>حب</div>
+        </div>
+    </div>
+
+    <div id="share-pop" class="popup">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><b>مشاركة عبر 🔗</b> <span onclick="closePop('share-pop')">✖</span></div>
+        <div class="grid-options">
+            <div onclick="copyVid()"><i class="fas fa-copy"></i><br>نسخ</div>
+            <div onclick="socialShare('wa')"><i class="fab fa-whatsapp"></i><br>واتساب</div>
+            <div onclick="socialShare('fb')"><i class="fab fa-facebook"></i><br>فيسبوك</div>
+            <div onclick="socialShare('tg')"><i class="fab fa-telegram"></i><br>تليجرام</div>
+        </div>
+    </div>
+
+    <div id="gemini-trigger" onclick="alert('Gemini Assistant: كيف يمكنني مساعدتك في Vtik اليوم؟ ✨')">✨</div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="showPage('page-home', 0)"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="showPage('page-likes', 1)"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" style="background:#000; color:#fff; border-radius:10px; padding:5px 12px;"><i class="fas fa-plus"></i></div>
-        <div class="nav-item" onclick="showPage('page-profile', 3)"><i class="fas fa-user"></i></div>
+        <div class="nav-item active" onclick="nav('page-home', 0)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="nav('page-likes', 1)"><i class="fas fa-heart"></i></div>
+        <div class="nav-item" style="background:#000; color:#fff; border-radius:12px; width:45px; height:32px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
+        <div class="nav-item" onclick="nav('page-profile', 3)"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
     const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
 
+    let user = null;
     let currentTab = 'shorts';
-    let allVideos = [];
+    let currentUrl = '';
 
-    // تحميل البيانات وحفظ الحالة في LocalStorage
     async function init() {
-        const { data } = await client.from('videos').select('*');
-        allVideos = data || [];
-        renderFeed();
-        renderLikes();
-        renderMyVideos();
+        const { data: { user: u } } = await client.auth.getUser();
+        user = u;
+        if(user) {
+            document.getElementById('auth-btn').innerText = "خروج";
+            document.getElementById('u-name').innerText = user.email.split('@')[0];
+            loadMyContent();
+        }
+        loadFeed();
     }
 
-    function renderFeed() {
+    async function loadFeed() {
+        const { data } = await client.from('videos').select('*').order('created_at', {ascending: false});
         const container = document.getElementById('feed');
         container.innerHTML = '';
         
-        // فلترة الفيديوهات بناءً على المدة (افتراضياً: الفيديوهات الطويلة لها حقل duration)
-        const filtered = allVideos.filter(v => {
-            if(currentTab === 'shops') return v.is_business;
-            if(currentTab === 'vids') return v.duration > 60; 
-            return !v.is_business && (!v.duration || v.duration <= 60);
-        });
+        data?.forEach(v => {
+            // فلترة ذكية
+            if(currentTab === 'shops' && !v.is_business) return;
+            if(currentTab === 'vids' && v.duration <= 60) return;
+            if(currentTab === 'shorts' && v.duration > 60) return;
 
-        filtered.forEach(v => {
-            const isLiked = localStorage.getItem('like_'+v.id);
+            const isLiked = localStorage.getItem('fav_'+v.id) ? 'liked' : '';
             container.innerHTML += `
                 <div class="v-card">
-                    <div class="creator-info">@User_${v.user_id.slice(0,5)}</div>
+                    <div class="creator-tag">@Creator_${v.user_id.slice(0,5)}</div>
                     <video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div style="position:absolute; left:15px; bottom:80px; color:white; display:flex; flex-direction:column; gap:20px;">
-                        <i class="fas fa-heart" id="like-icon-${v.id}" style="color:${isLiked?'red':'white'}; font-size:25px;" onclick="toggleLike('${v.id}', '${v.video_url}')"></i>
-                        <i class="fas fa-share" onclick="alert('رابط الفيديو: ${v.video_url}')"></i>
+                    <div class="side-actions">
+                        <i class="fas fa-heart ${isLiked}" id="h-${v.id}" onclick="toggleLike('${v.id}', '${v.video_url}')"></i>
+                        <i class="fas fa-gift" style="color:var(--gold)" onclick="openPop('gift-pop')"></i>
+                        <i class="fas fa-share" onclick="openShare('${v.video_url}')"></i>
                     </div>
                 </div>`;
         });
     }
 
     function toggleLike(id, url) {
-        if(localStorage.getItem('like_'+id)) {
-            localStorage.removeItem('like_'+id);
-            document.getElementById('like-icon-'+id).style.color = 'white';
+        const el = document.getElementById('h-'+id);
+        el.classList.toggle('liked');
+        if(el.classList.contains('liked')) {
+            localStorage.setItem('fav_'+id, url);
         } else {
-            localStorage.setItem('like_'+id, url);
-            document.getElementById('like-icon-'+id).style.color = 'red';
+            localStorage.removeItem('fav_'+id);
         }
-        renderLikes();
+        loadLikes();
     }
 
-    function renderLikes() {
+    function loadLikes() {
         const grid = document.getElementById('likes-grid');
         grid.innerHTML = '';
         for (let i = 0; i < localStorage.length; i++){
             let key = localStorage.key(i);
-            if(key.startsWith('like_')) {
+            if(key.startsWith('fav_')) {
                 grid.innerHTML += `<div class="grid-item"><video src="${localStorage.getItem(key)}"></video></div>`;
             }
         }
     }
 
-    function renderMyVideos() {
-        const grid = document.getElementById('my-vids-grid');
-        grid.innerHTML = '';
-        // هنا نجلب فيديوهات المستخدم المسجل (للتجربة سنعرض أول 3 فيديوهات)
-        allVideos.slice(0,3).forEach(v => {
-            grid.innerHTML += `
-                <div class="grid-item" id="my-vid-${v.id}">
-                    <button class="del-btn" onclick="deleteVideo('${v.id}')">×</button>
-                    <video src="${v.video_url}"></video>
-                </div>`;
-        });
+    async function loadMyContent() {
+        const { data } = await client.from('videos').select('*').eq('user_id', user.id);
+        document.getElementById('my-vids').innerHTML = data?.map(v => `
+            <div class="grid-item" id="my-${v.id}">
+                <button class="del-btn" onclick="delVid('${v.id}')">×</button>
+                <video src="${v.video_url}"></video>
+            </div>`).join('') || '';
     }
 
-    function deleteVideo(id) {
-        if(confirm('هل تريد حذف هذا الفيديو نهائياً؟')) {
-            document.getElementById('my-vid-'+id).remove();
-            alert('تم الحذف من العرض');
+    async function delVid(id) {
+        if(confirm('هل أنت متأكد من حذف الفيديو؟')) {
+            await client.from('videos').delete().eq('id', id);
+            document.getElementById('my-'+id).remove();
         }
     }
 
-    function switchFeed(tab) {
-        currentTab = tab;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-'+tab).classList.add('active');
-        renderFeed();
+    function switchFeed(t) {
+        currentTab = t;
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-'+t).classList.add('active');
+        loadFeed();
     }
 
-    function showPage(id, idx) {
+    function nav(id, idx) {
         document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active-page'));
         document.getElementById(id).classList.add('active-page');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.nav-item')[idx].classList.add('active');
+        if(id === 'page-likes') loadLikes();
     }
+
+    async function handleAuth() {
+        if(user) { await client.auth.signOut(); location.reload(); }
+        else { await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } }); }
+    }
+
+    function openShare(url) { currentUrl = url; openPop('share-pop'); }
+    function copyVid() { navigator.clipboard.writeText(currentUrl); alert('تم النسخ! ✅'); closePop('share-pop'); }
+    function socialShare(p) {
+        let l = p==='wa'?`https://wa.me/?text=${currentUrl}`:p==='fb'?`https://fb.com/sharer/sharer.php?u=${currentUrl}`:`https://t.me/share/url?url=${currentUrl}`;
+        window.open(l, '_blank');
+    }
+
+    function openPop(id) { document.getElementById(id).style.display = 'block'; }
+    function closePop(id) { document.getElementById(id).style.display = 'none'; }
+    function sendGift(g) { alert('تم إرسال ' + g + ' لصاحب الفيديو! 🎁'); closePop('gift-pop'); }
 
     init();
 </script>
 </body>
-</html>
+            </html>
