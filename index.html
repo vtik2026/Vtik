@@ -3,197 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | النسخة المربوطة بالكامل</title>
+    <title>Vtik 2026 | النسخة المعتمدة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; --gemini: linear-gradient(135deg, #4285f4, #9b72cb); }
         .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow: hidden; }
-        
-        /* الهيدر والناف بار */
+
+        /* الهيدر والناف بار (نقطة 1، 2، 3) */
         header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); }
         .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
         .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; }
-        .tab { cursor: pointer; opacity: 0.5; font-size: 13px; }
+        .tab { cursor: pointer; opacity: 0.5; font-size: 13px; transition: 0.3s; }
         .tab.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
 
-        /* الوضع السينمائي Cinematic Mode */
-        .cinema header, .cinema .bottom-nav, .cinema .side-actions, .cinema .creator-tag, .cinema #gemini-trigger {
-            transform: translateY(200px); opacity: 0; pointer-events: none;
-        }
-        .cinema .v-card { height: 100vh; width: 100vw; border-radius: 0; margin: 0; position: fixed; top: 0; left: 0; z-index: 5000; background: #000; }
-        .cinema video { object-fit: contain; }
+        /* الصفحات والتنقل (نقطة 5، 6، 7، 8) */
+        .page { display: none; padding: 120px 0 85px; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .page.active { display: block; }
 
-        /* الفيديوهات */
-        #main-app { padding: 120px 0 85px; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        /* كروت الفيديوهات والوضع السينمائي */
         .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 30px; overflow: hidden; background: #000; height: 78vh; scroll-snap-align: start; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-        .creator-tag { position: absolute; bottom: 30px; right: 20px; color: white; font-weight: bold; text-shadow: 2px 2px 5px #000; z-index: 10; cursor: pointer; }
         .side-actions { position: absolute; bottom: 100px; left: 15px; display: flex; flex-direction: column; gap: 25px; color: white; text-align: center; z-index: 10; }
-        .side-actions i { font-size: 28px; cursor: pointer; text-shadow: 0 2px 4px #000; transition: 0.2s; }
-        .liked { color: #ff0050 !important; transform: scale(1.2); }
+        .side-actions i { font-size: 28px; cursor: pointer; text-shadow: 0 2px 4px #000; }
 
-        /* نوافذ Popups */
+        /* بوب آب الدخول والهدايا (نقطة 1، 9) */
         .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 30px 30px 0 0; z-index: 11000; padding: 25px; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); animation: slideUp 0.3s; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center; }
-        .gift-item { cursor: pointer; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
-
-        /* Gemini Chat */
-        #gemini-chat { display: none; position: fixed; top: 15%; left: 5%; right: 5%; bottom: 15%; background: var(--card); border-radius: 25px; z-index: 12000; flex-direction: column; border: 2px solid #4285f4; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        #gemini-trigger { position: fixed; bottom: 90px; right: 15px; width: 45px; height: 45px; background: var(--gemini); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 3000; border: 2px solid white; }
-
+        .auth-form input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; }
+        
+        /* Gemini (نقطة 4) */
+        #gemini-chat { display: none; position: fixed; top: 10%; left: 5%; right: 5%; bottom: 15%; background: var(--card); border-radius: 25px; z-index: 12000; flex-direction: column; border: 2px solid #4285f4; }
+        
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
+        
+        /* تأثير الوضع السينمائي */
+        .cinema header, .cinema .bottom-nav, .cinema .side-actions, .cinema #gemini-trigger { opacity: 0; pointer-events: none; }
+        .cinema .v-card { height: 100vh; width: 100vw; border-radius: 0; margin: 0; position: fixed; top: 0; left: 0; z-index: 5000; }
+        .cinema video { object-fit: contain; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="nav-top">
-            <button onclick="openPopup('auth-popup')" id="btn-login" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 18px; font-weight:bold;">دخول</button>
-            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer">
-            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="stars-balance">0</span></div>
+            <button onclick="openPopup('auth-popup')" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 18px; font-weight:bold;">دخول</button>
+            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer" title="تغيير المود">
+            <div style="color:var(--gold);">⭐ <span id="stars-count">0</span></div>
         </div>
         <div class="tabs">
-            <div class="tab active" onclick="loadFeed('shorts')">Shorts</div>
-            <div class="tab" onclick="loadFeed('vids')">فيديو</div>
-            <div class="tab" onclick="loadFeed('shops')">المتاجر</div>
+            <div class="tab active" onclick="switchTab(this, 'shorts')">Shorts</div>
+            <div class="tab" onclick="switchTab(this, 'video')">Video</div>
+            <div class="tab" onclick="switchTab(this, 'merchant')">Merchant</div>
         </div>
     </header>
 
-    <div id="main-app">
-        <div id="feed"></div>
+    <div id="page-home" class="page active"><div id="feed"></div></div>
+    <div id="page-favs" class="page"><h3 style="text-align:center;">المفضلة ❤️</h3><div id="fav-feed"></div></div>
+    <div id="page-add" class="page" style="text-align:center; padding-top:150px;">
+        <h3>رفع فيديو أو صورة 📤</h3>
+        <button onclick="alert('فتح معرض الصور...')" style="padding:20px 40px; border-radius:20px; background:#000; color:#fff;">اختر ملف</button>
     </div>
-
-    <div id="gift-popup" class="popup">
-        <h3 style="text-align:center;">أرسل هدية 🎁</h3>
-        <div class="gift-grid">
-            <div class="gift-item" onclick="sendGift('وردة', 5)">🌹<br><small>5 نجوم</small></div>
-            <div class="gift-item" onclick="sendGift('جوهرة', 50)">💎<br><small>50 نجمة</small></div>
-            <div class="gift-item" onclick="sendGift('تاج', 100)">👑<br><small>100 نجمة</small></div>
-        </div>
-        <button onclick="closePopup('gift-popup')" style="width:100%; margin-top:15px; border:none; background:none; color:#999;">إغلاق</button>
+    <div id="page-profile" class="page" style="text-align:center; padding-top:50px;">
+        <div id="user-header"></div>
+        <hr>
+        <div id="user-vids-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px;"></div>
     </div>
 
     <div id="auth-popup" class="popup">
-        <h3 style="text-align:center;">تسجيل الدخول</h3>
-        <div style="padding:10px;">
-            <input type="text" id="phone" placeholder="رقم الهاتف" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-            <input type="password" id="pass" placeholder="كلمة المرور" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-            <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px;">دخول</button>
-            <p onclick="alert('اتبع خطة الإيميل الوهمي للاستعادة')" style="text-align:center; color:var(--gold); font-size:12px; margin-top:10px; cursor:pointer;">نسيت كلمة المرور؟</p>
+        <div style="text-align:center; margin-bottom:15px;"><img src="logo.png" width="50"><br><b>تسجيل الدخول</b></div>
+        <div class="auth-form">
+            <input type="text" id="login-phone" placeholder="رقم الهاتف">
+            <input type="password" id="login-pass" placeholder="كلمة المرور">
+            <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:12px; margin-top:10px;">دخول</button>
+            <div style="display:flex; justify-content:center; gap:25px; margin-top:15px; font-size:30px;">
+                <i class="fab fa-google" style="color:#db4437; cursor:pointer;" onclick="alert('Google Login...')"></i>
+                <i class="fab fa-facebook" style="color:#4267B2; cursor:pointer;" onclick="alert('FB Login...')"></i>
+            </div>
         </div>
+        <button onclick="closePopup('auth-popup')" style="width:100%; background:none; border:none; color:#999; margin-top:20px;">إغلاق</button>
     </div>
 
     <div id="gemini-chat">
         <div style="background:var(--gemini); color:white; padding:15px; border-radius:25px 25px 0 0; display:flex; justify-content:space-between;">
             <b>Gemini Assistant</b> <span onclick="toggleGemini(false)">✖</span>
         </div>
-        <div id="chat-box" style="flex:1; padding:15px; overflow-y:auto; font-size:14px;"></div>
+        <div style="background:#fff3cd; padding:8px; font-size:11px; text-align:center; color:#856404;">
+            تنبيه: يمكنني تغيير الألوان وإضافة تعليقات ذكية. تعديل الفيديو متاح لصاحبه فقط.
+        </div>
+        <div id="chat-box" style="flex:1; padding:15px; overflow-y:auto;"></div>
         <div style="padding:10px; border-top:1px solid #ddd; display:flex;">
-            <input type="text" id="gemini-in" style="flex:1; border:none; outline:none;" placeholder="اطلب أمر برمجياً...">
+            <input type="text" id="g-input" style="flex:1; border:none; outline:none;" placeholder="اطلب أمر برمجياً...">
             <button onclick="execGemini()" style="background:none; border:none; color:#4285f4;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <div id="gemini-trigger" onclick="toggleGemini(true)">✨</div>
+    <div id="gift-popup" class="popup">
+        <h3 style="text-align:center;">إرسال هدية 🎁</h3>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;">
+            <div onclick="sendGift('وردة', 0)" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">🌹<br><small>مجاني</small></div>
+            <div onclick="sendGift('جوهرة', 50)" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">💎<br><small>50⭐</small></div>
+            <div onclick="sendGift('تاج', 100)" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">👑<br><small>100⭐</small></div>
+        </div>
+        <button onclick="closePopup('gift-popup')" style="width:100%; margin-top:20px; border:none; background:none; color:#999;">إغلاق</button>
+    </div>
+
+    <div id="gemini-trigger" onclick="toggleGemini(true)" style="position:fixed; bottom:90px; right:15px; width:45px; height:45px; background:var(--gemini); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; z-index:3000; box-shadow:0 4px 10px rgba(0,0,0,0.2);">✨</div>
 
     <nav class="bottom-nav">
-        <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="alert('فتح المفضلة...')"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" style="background:#000; color:#fff; border-radius:10px; width:45px; height:32px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
-        <div class="nav-item" onclick="alert('فتح البروفايل...')"><i class="fas fa-user-circle"></i></div>
+        <div onclick="showPage('home')"><i class="fas fa-home"></i></div>
+        <div onclick="showPage('favs')"><i class="fas fa-heart"></i></div>
+        <div onclick="showPage('add')" style="background:#000; color:#fff; border-radius:10px; width:42px; height:30px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
+        <div onclick="showPage('profile')"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
     const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
-
+    
     let user = null;
-    let currentVideo = null;
 
     async function init() {
         const { data: { user: u } } = await client.auth.getUser();
         user = u;
-        if(user) {
-            document.getElementById('btn-login').innerText = "خروج";
-            fetchStars();
-        }
         loadFeed();
     }
 
-    async function fetchStars() {
-        const { data } = await client.from('profiles').select('stars_balance').eq('id', user.id).single();
-        if(data) document.getElementById('stars-balance').innerText = data.stars_balance;
+    // نقطة 10: شير ذكي وشامل
+    async function shareVideo(url) {
+        if (navigator.share) {
+            navigator.share({ title: 'Vtik Video', url: url });
+        } else {
+            navigator.clipboard.writeText(url);
+            alert("تم نسخ رابط الفيديو! ✅");
+        }
     }
 
-    async function loadFeed(filter = 'shorts') {
-        const { data } = await client.from('videos').select('*, profiles(username)').order('created_at', {ascending: false});
-        const container = document.getElementById('feed');
-        container.innerHTML = data.map(v => `
+    // التنقل بين الصفحات
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + id).classList.add('active');
+        if(document.body.classList.contains('cinema')) document.body.classList.remove('cinema');
+    }
+
+    function switchTab(el, type) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        loadFeed(); // يمكن إضافة فلترة هنا بناءً على الـ type
+    }
+
+    async function loadFeed() {
+        const { data } = await client.from('videos').select('*, profiles(username)');
+        const feed = document.getElementById('feed');
+        feed.innerHTML = data.map(v => `
             <div class="v-card">
-                <div class="creator-tag" onclick="alert('ملف @${v.profiles?.username}')">@${v.profiles?.username || 'user'}</div>
-                <video src="${v.video_url}" loop playsinline onclick="toggleCinema(this)"></video>
+                <div style="position:absolute; top:20px; right:20px; color:white; z-index:10; font-weight:bold; cursor:pointer;" onclick="showPage('profile')">@${v.profiles?.username || 'user'}</div>
+                <video src="${v.video_url}" loop playsinline onclick="document.body.classList.toggle('cinema')"></video>
                 <div class="side-actions">
-                    <i class="fas fa-heart" id="like-${v.id}" onclick="toggleLike('${v.id}')"></i>
-                    <i class="fas fa-gift" style="color:var(--gold)" onclick="openGift('${v.id}', '${v.user_id}')"></i>
-                    <i class="fas fa-share" onclick="copyLink('${v.video_url}')"></i>
+                    <i class="fas fa-heart" onclick="this.style.color='#ff1493'"></i>
+                    <i class="fas fa-gift" style="color:var(--gold)" onclick="openPopup('gift-popup')"></i>
+                    <i class="fas fa-share" onclick="shareVideo('${v.video_url}')"></i>
                 </div>
             </div>`).join('');
     }
 
-    function toggleCinema(vid) {
-        if(document.body.classList.contains('cinema')) {
-            document.body.classList.remove('cinema');
-        } else {
-            document.body.classList.add('cinema');
-            vid.play();
-        }
-    }
-
-    async function toggleLike(vid) {
-        if(!user) return openPopup('auth-popup');
-        const icon = document.getElementById('like-'+vid);
-        icon.classList.toggle('liked');
-        // ربط حقيقي بجدول likes
-        await client.from('likes').insert([{ user_id: user.id, video_id: vid }]);
-    }
-
-    function openGift(vid, creatorId) {
-        if(!user) return openPopup('auth-popup');
-        currentVideo = { id: vid, creator: creatorId };
-        openPopup('gift-popup');
-    }
-
-    async function sendGift(type, stars) {
-        const { error } = await client.from('gifts').insert([
-            { sender_id: user.id, receiver_id: currentVideo.creator, video_id: currentVideo.id, gift_type: type, stars_value: stars }
-        ]);
-        if(!error) {
-            alert(`تم إرسال ${type} بنجاح! 🎉`);
-            closePopup('gift-popup');
-        }
-    }
-
-    function copyLink(url) {
-        navigator.clipboard.writeText(url);
-        alert("تم نسخ رابط الفيديو المباشر! ✅");
-    }
-
     function execGemini() {
-        const cmd = document.getElementById('gemini-in').value;
-        const chat = document.getElementById('chat-box');
-        chat.innerHTML += `<div><b>أنت:</b> ${cmd}</div>`;
-        if(cmd.includes("ليل")) { document.body.classList.add('dark-mode'); chat.innerHTML += `<div><b>Gemini:</b> تم تفعيل الوضع الليلي 🌙</div>`; }
-        else { chat.innerHTML += `<div><b>Gemini:</b> جاري تنفيذ الأمر برمجياً...</div>`; }
-        document.getElementById('gemini-in').value = "";
-    }
-
-    async function handleLogin() {
-        const email = document.getElementById('phone').value + "@vtik.com";
-        const password = document.getElementById('pass').value;
-        const { error } = await client.auth.signInWithPassword({ email, password });
-        if(error) alert("خطأ: " + error.message); else location.reload();
+        const cmd = document.getElementById('g-input').value;
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `<div>أنت: ${cmd}</div>`;
+        if(cmd.includes("ليل")) { document.body.classList.add('dark-mode'); box.innerHTML += `<div>Gemini: تم تفعيل الوضع الليلي 🌙</div>`; }
+        else { box.innerHTML += `<div>Gemini: جاري معالجة طلبك...</div>`; }
+        document.getElementById('g-input').value = "";
     }
 
     function openPopup(id) { document.getElementById(id).style.display = 'block'; }
@@ -203,4 +183,4 @@
     init();
 </script>
 </body>
-    </html>
+</html>
