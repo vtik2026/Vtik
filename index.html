@@ -3,201 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | Full Integrated System</title>
+    <title>Vtik 2026 | Ultimate Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; --gemini: linear-gradient(135deg, #4285f4, #9b72cb); }
-        .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; transition: 0.3s; }
+        /* الهوية البصرية: Off-pink, Gold, Accent Pink */
+        :root { 
+            --bg: #FFF0F5; 
+            --accent: #FF1493; 
+            --gold: #D4AF37; 
+            --card: #fff; 
+            --text: #333;
+        }
 
-        header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); }
-        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
-        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; }
-        .tab { cursor: pointer; opacity: 0.5; font-size: 14px; transition: 0.3s; padding: 5px 10px; }
-        .tab.active { opacity: 1; border-bottom: 3px solid var(--accent); color: var(--accent); }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); overflow-x: hidden; color: var(--text); }
+        
+        /* الهيدر */
+        header { position: fixed; top: 0; width: 100%; background: #fff; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--gold); box-sizing: border-box; }
+        .header-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); cursor: pointer; object-fit: cover; }
 
-        .page { display: none; padding: 120px 0 85px; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        /* الصفحات */
+        .page { display: none; padding: 80px 15px 100px; min-height: 100vh; box-sizing: border-box; }
         .page.active { display: block; }
 
-        .v-card { position: relative; width: 95%; margin: 0 auto 20px; border-radius: 25px; overflow: hidden; background: #000; height: 80vh; scroll-snap-align: start; }
-        video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        /* تصميم الكروت والأزرار */
+        .profile-header { text-align: center; padding: 30px; background: var(--card); border-radius: 30px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .profile-img-big { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 15px; object-fit: cover; }
         
-        .side-actions { position: absolute; bottom: 80px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; text-align: center; z-index: 10; }
-        .side-actions i { font-size: 28px; text-shadow: 0 2px 5px #000; cursor: pointer; }
+        .btn-gold { background: var(--gold); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-gold:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4); }
 
-        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 30px 30px 0 0; z-index: 11000; padding: 25px; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        /* نافذة التحذير (Modal) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--bg); width: 85%; max-width: 400px; padding: 30px; border-radius: 25px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        input { width: 90%; padding: 12px; margin: 8px auto; border-radius: 12px; border: 1px solid #ddd; display: block; }
-        .btn-auth { width: 48%; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
-        
-        #gemini-chat { display: none; position: fixed; top: 10%; left: 5%; right: 5%; bottom: 15%; background: var(--card); border-radius: 25px; z-index: 12000; flex-direction: column; border: 2px solid #4285f4; }
+        /* تأثير النجوم المتطايرة */
+        .star-particle { position: absolute; color: var(--gold); font-size: 20px; pointer-events: none; animation: flyOut 1s ease-out forwards; z-index: 10001; }
+        @keyframes flyOut { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
+
+        /* نافذة التنقل السفلي */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .bottom-nav i { font-size: 22px; color: #888; cursor: pointer; }
+        .bottom-nav i.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="nav-top">
-            <button onclick="openPopup('auth-popup')" id="auth-btn" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 20px; font-weight:bold;">دخول</button>
-            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer" alt="Logo">
-            <div style="color:var(--gold); font-weight:bold;">⭐ <span id="stars-display">0</span></div>
+        <div onclick="showPage('profile')">
+            <img id="header-avatar" src="" class="header-avatar">
         </div>
-        <div class="tabs">
-            <div class="tab" onclick="switchTab(this, 'merchant')">Merchant</div>
-            <div class="tab" onclick="switchTab(this, 'video')">Video</div>
-            <div class="tab active" onclick="switchTab(this, 'shorts')">Shorts</div>
-        </div>
+        <div style="font-weight:bold; color:var(--accent); font-size: 1.2rem;">Vtik 2026</div>
+        <div style="color:var(--gold); font-weight: bold;">⭐ <span id="stars-val">0</span></div>
     </header>
 
-    <div id="page-home" class="page active"><div id="feed"></div></div>
-    <div id="page-favs" class="page" style="padding:130px 20px;"><h3>المفضلة ❤️</h3></div>
-    <div id="page-add" class="page" style="padding-top:200px; text-align:center;">
-        <i class="fas fa-cloud-upload-alt" style="font-size:50px; color:var(--accent);"></i>
-        <h3>رفع فيديو أو صورة</h3>
-        <button style="padding:15px 40px; border-radius:20px; background:#000; color:#fff; border:none;">اختر الملف</button>
-    </div>
-    <div id="page-profile" class="page" style="padding:130px 20px; text-align:center;">
-        <div id="user-profile-data">سجل دخولك لرؤية حسابك ونقاطك</div>
+    <div id="effect-container" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10000;"></div>
+
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="font-size: 50px; color: var(--gold); margin-bottom: 15px;"><i id="modal-icon" class="fas fa-star"></i></div>
+            <h2 id="modal-title" style="color: var(--accent); margin-bottom: 10px;">انضم إلينا!</h2>
+            <p id="modal-message" style="color: #555; margin-bottom: 25px;">سجل دخولك الآن لتتمكن من التفاعل.</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-gold" onclick="goToAuth()">سجل الآن مجاناً</button>
+                <button style="background:transparent; border:none; color:#888; cursor:pointer;" onclick="closeModal()">ليس الآن</button>
+            </div>
+        </div>
     </div>
 
-    <div id="auth-popup" class="popup">
-        <div style="text-align:center; margin-bottom:15px;"><img src="logo.png" width="50"><br><b>Vtik 2026 Access</b></div>
-        <input type="text" id="phone-field" placeholder="رقم الهاتف">
-        <input type="password" id="pass-field" placeholder="كلمة المرور">
-        <div style="display:flex; justify-content:space-between; width:95%; margin:10px auto;">
-            <button onclick="handleAuth('login')" class="btn-auth" style="background:var(--accent); color:white;">دخول</button>
-            <button onclick="handleAuth('signup')" class="btn-auth" style="background:#333; color:white;">تسجيل جديد</button>
+    <div id="page-home" class="page active">
+        <div style="background: #000; height: 70vh; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; position: relative; overflow: hidden;">
+            <span>فيديو تجريبي</span>
+            <div style="position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 20px;">
+                <i class="fas fa-heart" style="font-size: 30px;" onclick="handleAction('like', {videoId: '123'})"></i>
+                <i class="fas fa-gift" style="font-size: 30px; color: var(--gold);" onclick="handleAction('gift', {videoId: '123', receiverId: 'user_xyz', amount: 50, name: 'Rose'})"></i>
+            </div>
         </div>
-        <div style="display:flex; justify-content:center; gap:40px; margin-top:15px; font-size:35px;">
-            <i class="fab fa-google" style="color:#db4437; cursor:pointer;" onclick="socialAuth('google')"></i>
-            <i class="fab fa-facebook" style="color:#4267B2; cursor:pointer;" onclick="socialAuth('facebook')"></i>
-        </div>
-        <button onclick="closePopup('auth-popup')" style="width:100%; margin-top:20px; border:none; background:none; color:#999;">إغلاق</button>
     </div>
 
-    <div id="gift-popup" class="popup">
-        <h3 style="text-align:center;">إرسال هدية 🎁</h3>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center;">
-            <div onclick="processGift(1, 'وردة')" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">🌹<br><small>1⭐</small></div>
-            <div onclick="processGift(50, 'جوهرة')" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">💎<br><small>50⭐</small></div>
-            <div onclick="processGift(100, 'تاج')" style="border:1px solid #eee; padding:10px; border-radius:15px; cursor:pointer;">👑<br><small>100⭐</small></div>
+    <div id="page-profile" class="page">
+        <div class="profile-header">
+            <img id="profile-display-img" src="" class="profile-img-big">
+            <h3 id="profile-name">تحميل...</h3>
+            <p>رصيد نجومك: <span id="profile-stars">0</span> ⭐</p>
+            <button class="btn-gold" style="margin-top: 10px;" onclick="showPage('store')">شحن نجوم</button>
+            <br>
+            <button onclick="signOut()" style="margin-top: 20px; background: #eee; border: none; padding: 8px 15px; border-radius: 10px;">تسجيل خروج</button>
         </div>
-        <button onclick="closePopup('gift-popup')" style="width:100%; margin-top:15px; border:none; background:none; color:#999;">إغلاق</button>
+    </div>
+
+    <div id="page-store" class="page" style="text-align: center;">
+        <h2 style="color: var(--accent);">متجر النجوم ⭐</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px;">
+            <div class="profile-header" onclick="purchaseStars(100, event)">⭐ 100<br><small>1.00$</small></div>
+            <div class="profile-header" style="border: 2px solid var(--gold);" onclick="purchaseStars(500, event)">⭐ 500<br><small>4.50$</small></div>
+        </div>
+        <button class="btn-secondary" onclick="showPage('home')">العودة للرئيسية</button>
     </div>
 
     <nav class="bottom-nav">
-        <div onclick="showPage('home')"><i class="fas fa-home"></i></div>
-        <div onclick="showPage('favs')"><i class="fas fa-heart"></i></div>
-        <div onclick="showPage('add')" style="background:#000; color:#fff; border-radius:10px; width:45px; height:32px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
-        <div onclick="showPage('profile')"><i class="fas fa-user-circle"></i></div>
+        <i class="fas fa-home active" onclick="showPage('home')"></i>
+        <i class="fas fa-plus-circle" onclick="showPage('add')"></i>
+        <i class="fas fa-user" onclick="showPage('profile')"></i>
     </nav>
 
 <script>
-    const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
+    const client = supabase.createClient('URL_الخاص_بك', 'KEY_الخاص_بك');
 
-    let currentUserId = null;
-    let targetOwnerId = null; // صاحب الفيديو الحالي لإرسال الهدايا له
-
-    // 1. نظام الدخول والتسجيل
-    async function handleAuth(type) {
-        const phone = document.getElementById('phone-field').value.trim();
-        const pass = document.getElementById('pass-field').value;
-        const fakeEmail = `${phone}@vtik.com`;
-
-        if(type === 'signup') {
-            const { error } = await client.auth.signUp({ email: fakeEmail, password: pass });
-            if(error) alert(error.message); else alert("تم التسجيل! ادخل الآن.");
-        } else {
-            const { data, error } = await client.auth.signInWithPassword({ email: fakeEmail, password: pass });
-            if(error) alert("خطأ في البيانات"); else location.reload();
-        }
-    }
-
-    async function socialAuth(provider) {
-        await client.auth.signInWithOAuth({ provider: provider });
-    }
-
-    // 2. تحديث رصيد النجوم (Stars Balance) من جدول profiles
-    async function syncStars() {
-        const { data: { user } } = await client.auth.getUser();
-        if (user) {
-            currentUserId = user.id;
-            const { data } = await client.from('profiles').select('stars_balance').eq('id', user.id).single();
-            if (data) document.getElementById('stars-display').innerText = data.stars_balance || 0;
-            document.getElementById('auth-btn').innerText = "خروج";
-        }
-    }
-
-    // 3. جلب المحتوى (Shorts من clips / Video من videos)
-    async function loadContent(tabType) {
-        const feed = document.getElementById('feed');
-        feed.innerHTML = "<p style='text-align:center; padding-top:50px;'>جاري تحميل عالمك...</p>";
-
-        const tableName = (tabType === 'shorts') ? 'clips' : 'videos';
-
-        const { data, error } = await client.from(tableName).select('*, profiles(username, id)');
-
-        if (error || !data || data.length === 0) {
-            feed.innerHTML = `<p style='text-align:center; padding-top:50px;'>لا يوجد محتوى في ${tableName}</p>`;
-            return;
-        }
-
-        feed.innerHTML = data.map(v => `
-            <div class="v-card">
-                <div style="position:absolute; top:20px; right:20px; color:white; z-index:10; font-weight:bold;">@${v.profiles?.username || 'user'}</div>
-                <video src="${v.video_url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
-                <div class="side-actions">
-                    <i class="fas fa-heart"></i>
-                    <i class="fas fa-gift" style="color:var(--gold)" onclick="openGiftModal('${v.profiles?.id}')"></i>
-                    <i class="fas fa-share" onclick="navigator.share({url:'${v.video_url}'})"></i>
-                </div>
-            </div>`).join('');
-    }
-
-    // 4. نظام الهدايا (خصم من الرصيد وإرسال لصاحب الفيديو)
-    function openGiftModal(ownerId) {
-        targetOwnerId = ownerId;
-        openPopup('gift-popup');
-    }
-
-    async function processGift(amount, giftName) {
-        if (!currentUserId) return alert("سجل دخولك أولاً!");
-        
-        const currentStars = parseInt(document.getElementById('stars-display').innerText);
-        if (currentStars < amount) return alert("رصيدك غير كافٍ ⭐️");
-
-        // خصم من الراسل
-        const { error: subError } = await client.from('profiles').update({ stars_balance: currentStars - amount }).eq('id', currentUserId);
-        
-        if (!subError) {
-            // تسجيل في جدول gifts
-            await client.from('gifts').insert([{ sender_id: currentUserId, receiver_id: targetOwnerId, amount: amount }]);
-            alert(`تم إرسال ${giftName} بنجاح!`);
-            syncStars();
-            closePopup('gift-popup');
-        }
-    }
-
-    function switchTab(el, type) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        loadContent(type);
-    }
-
+    // 1. إدارة الصفحات
     function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-' + id).classList.add('active');
+        document.querySelectorAll('.bottom-nav i').forEach(i => i.classList.remove('active'));
     }
 
-    function openPopup(id) { document.getElementById(id).style.display = 'block'; }
-    function closePopup(id) { document.getElementById(id).style.display = 'none'; }
+    // 2. معالج التفاعلات (Like, Gift) مع التحقق من الرصيد والاشتراك
+    async function handleAction(type, data) {
+        const { data: { user } } = await client.auth.getUser();
 
-    // البداية
-    syncStars();
-    loadContent('shorts'); // لفتح فيديوهات القط الأسود فوراً
+        if (!user) {
+            let config = {
+                like: { title: "أظهر حبك! ❤️", msg: "سجل دخولك لتتمكن من الإعجاب بالفيديوهات." },
+                gift: { title: "أرسل بريقك الخاص! ⭐", msg: "انضم إلينا لتمتلك محفظة نجومك وتدعم المبدعين." }
+            };
+            renderCustomPopup(config[type].title, config[type].msg);
+            return;
+        }
+
+        if (type === 'gift') {
+            processGift(user.id, data);
+        } else if (type === 'like') {
+            alert("تم تسجيل الإعجاب!"); // هنا نربط بجدول likes
+        }
+    }
+
+    // 3. معالجة إرسال الهدايا
+    async function processGift(userId, giftData) {
+        const { data: profile } = await client.from('profiles').select('stars_balance').eq('id', userId).single();
+
+        if (profile.stars_balance < giftData.amount) {
+            renderCustomPopup("رصيدك غير كافٍ! ⚠️", `تحتاج إلى ${giftData.amount} نجوم. رصيدك الحالي: ${profile.stars_balance}`);
+            return;
+        }
+
+        // استدعاء RPC لنقل النجوم
+        const { error } = await client.rpc('send_gift_transaction', {
+            sender_uuid: userId,
+            receiver_uuid: giftData.receiverId,
+            video_uuid: giftData.videoId,
+            gift_val: giftData.amount,
+            gift_nm: giftData.name
+        });
+
+        if (!error) {
+            createStarBurst(window.event);
+            document.getElementById('stars-val').innerText = profile.stars_balance - giftData.amount;
+            alert("تم إرسال الهدية!");
+        }
+    }
+
+    // 4. تأثير النجوم المتطايرة
+    function createStarBurst(e) {
+        const container = document.getElementById('effect-container');
+        for (let i = 0; i < 12; i++) {
+            const star = document.createElement('div');
+            star.className = 'star-particle';
+            star.innerHTML = '⭐';
+            star.style.left = (e.clientX || window.innerWidth/2) + 'px';
+            star.style.top = (e.clientY || window.innerHeight/2) + 'px';
+            star.style.setProperty('--x', `${(Math.random() - 0.5) * 300}px`);
+            star.style.setProperty('--y', `${(Math.random() - 0.5) * 300}px`);
+            container.appendChild(star);
+            setTimeout(() => star.remove(), 1000);
+        }
+    }
+
+    // 5. وظائف الـ Popup
+    function renderCustomPopup(title, msg) {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-message').innerText = msg;
+        document.getElementById('auth-modal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('auth-modal').style.display = 'none'; }
+    function goToAuth() { showPage('profile'); closeModal(); }
+
+    // تحميل البيانات الأولية
+    async function init() {
+        const { data: { user } } = await client.auth.getUser();
+        const defaultAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`;
+        
+        document.getElementById('header-avatar').src = defaultAvatar;
+        
+        if (user) {
+            const { data: profile } = await client.from('profiles').select('*').eq('id', user.id).single();
+            if (profile) {
+                document.getElementById('stars-val').innerText = profile.stars_balance || 0;
+                document.getElementById('profile-stars').innerText = profile.stars_balance || 0;
+                document.getElementById('profile-name').innerText = profile.username || 'مستخدم Vtik';
+                if (profile.avatar_url) {
+                    document.getElementById('header-avatar').src = profile.avatar_url;
+                    document.getElementById('profile-display-img').src = profile.avatar_url;
+                }
+            }
+        }
+    }
+
+    init();
 </script>
 </body>
-            </html>
+    </html>
