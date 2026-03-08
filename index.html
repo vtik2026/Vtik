@@ -3,214 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | Ultimate Edition</title>
+    <title>Vtik 2026 | التطبيق الملكي</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* الهوية البصرية: Off-pink, Gold, Accent Pink */
-        :root { 
-            --bg: #FFF0F5; 
-            --accent: #FF1493; 
-            --gold: #D4AF37; 
-            --card: #fff; 
-            --text: #333;
-        }
-
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); overflow-x: hidden; color: var(--text); }
-        
-        /* الهيدر */
-        header { position: fixed; top: 0; width: 100%; background: #fff; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--gold); box-sizing: border-box; }
-        .header-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--gold); cursor: pointer; object-fit: cover; }
-
-        /* الصفحات */
-        .page { display: none; padding: 80px 15px 100px; min-height: 100vh; box-sizing: border-box; }
+        :root { --bg: #fdfbf5; --accent: #FF1493; --gold: #D4AF37; --card: #fff; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); overflow-x: hidden; }
+        header { position:fixed; top:0; width:100%; background:#fff; z-index:1000; display:flex; justify-content:space-between; align-items:center; padding:10px 20px; border-bottom:1px solid var(--gold); box-sizing: border-box; }
+        .page { display: none; padding: 80px 10px 100px; min-height: 100vh; box-sizing: border-box; }
         .page.active { display: block; }
-
-        /* تصميم الكروت والأزرار */
-        .profile-header { text-align: center; padding: 30px; background: var(--card); border-radius: 30px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .profile-img-big { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); margin-bottom: 15px; object-fit: cover; }
-        
-        .btn-gold { background: var(--gold); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-gold:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4); }
-
-        /* نافذة التحذير (Modal) */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--bg); width: 85%; max-width: 400px; padding: 30px; border-radius: 25px; text-align: center; border: 2px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        /* تأثير النجوم المتطايرة */
-        .star-particle { position: absolute; color: var(--gold); font-size: 20px; pointer-events: none; animation: flyOut 1s ease-out forwards; z-index: 10001; }
-        @keyframes flyOut { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
-
-        /* نافذة التنقل السفلي */
+        .card { background: var(--card); border-radius: 20px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .copy-box { border: 1px dashed var(--gold); padding: 10px; border-radius: 12px; margin: 10px 0; cursor: pointer; display: flex; justify-content: space-between; background: #fff9e6; }
+        .progress-bar { height: 10px; background: #eee; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        #xp-fill { height: 100%; background: var(--gold); width: 0%; transition: 1s; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
-        .bottom-nav i { font-size: 22px; color: #888; cursor: pointer; }
-        .bottom-nav i.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
     <header>
-        <div onclick="showPage('profile')">
-            <img id="header-avatar" src="" class="header-avatar">
-        </div>
-        <div style="font-weight:bold; color:var(--accent); font-size: 1.2rem;">Vtik 2026</div>
-        <div style="color:var(--gold); font-weight: bold;">⭐ <span id="stars-val">0</span></div>
+        <div onclick="showPage('profile')"><img id="header-avatar" src="" style="width:35px; height:35px; border-radius:50%; border:2px solid var(--gold);"></div>
+        <div style="font-weight:bold; color:var(--accent);">Vtik 2026</div>
+        <div style="color:var(--gold);">⭐ <span id="stars-val">0</span></div>
     </header>
 
-    <div id="effect-container" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10000;"></div>
-
-    <div id="auth-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="font-size: 50px; color: var(--gold); margin-bottom: 15px;"><i id="modal-icon" class="fas fa-star"></i></div>
-            <h2 id="modal-title" style="color: var(--accent); margin-bottom: 10px;">انضم إلينا!</h2>
-            <p id="modal-message" style="color: #555; margin-bottom: 25px;">سجل دخولك الآن لتتمكن من التفاعل.</p>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn-gold" onclick="goToAuth()">سجل الآن مجاناً</button>
-                <button style="background:transparent; border:none; color:#888; cursor:pointer;" onclick="closeModal()">ليس الآن</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="page-home" class="page active">
-        <div style="background: #000; height: 70vh; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; position: relative; overflow: hidden;">
-            <span>فيديو تجريبي</span>
-            <div style="position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 20px;">
-                <i class="fas fa-heart" style="font-size: 30px;" onclick="handleAction('like', {videoId: '123'})"></i>
-                <i class="fas fa-gift" style="font-size: 30px; color: var(--gold);" onclick="handleAction('gift', {videoId: '123', receiverId: 'user_xyz', amount: 50, name: 'Rose'})"></i>
-            </div>
-        </div>
-    </div>
-
-    <div id="page-profile" class="page">
-        <div class="profile-header">
-            <img id="profile-display-img" src="" class="profile-img-big">
+    <div id="page-profile" class="page active">
+        <div class="card" style="text-align:center;">
+            <img id="profile-display-img" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent); object-fit:cover;">
             <h3 id="profile-name">تحميل...</h3>
-            <p>رصيد نجومك: <span id="profile-stars">0</span> ⭐</p>
-            <button class="btn-gold" style="margin-top: 10px;" onclick="showPage('store')">شحن نجوم</button>
-            <br>
-            <button onclick="signOut()" style="margin-top: 20px; background: #eee; border: none; padding: 8px 15px; border-radius: 10px;">تسجيل خروج</button>
+            <p id="user-points" style="color:#888; font-size:12px;">نقاط النشاط: 0 XP</p>
+            <button onclick="document.getElementById('avatar-input').click()" style="background:none; border:1px solid #ddd; padding:5px 15px; border-radius:10px;">تغيير الصورة</button>
+            <input type="file" id="avatar-input" hidden accept="image/*" onchange="uploadAvatar(this)">
         </div>
+
+        <div class="card">
+            <h4 style="margin:0; color:var(--gold);">هدية الـ 1000 نقطة 🎁</h4>
+            <div class="progress-bar"><div id="xp-fill"></div></div>
+            <small id="xp-status">باقي لك 1000 نقطة لفتح البث و50 نجمة</small>
+        </div>
+
+        <div class="card">
+            <h4 style="margin:0;">شحن النجوم 💎</h4>
+            <div class="copy-box" onclick="copy('442897188', 'بينانس')"><span>Binance ID: 442897188</span> <i class="far fa-copy"></i></div>
+            <div class="copy-box" onclick="copy('01287837118', 'كاش')"><span>فودافون كاش: 01287837118</span> <i class="far fa-copy"></i></div>
+            <button onclick="alert('ارفع الإيصال في صفحة الدعم قريباً')" style="width:100%; background:var(--gold); color:white; border:none; padding:10px; border-radius:10px; font-weight:bold;">تأكيد التحويل 🧾</button>
+        </div>
+
+        <button onclick="signOut()" style="width:100%; padding:10px; border:none; background:#eee; border-radius:10px; margin-top:10px;">تسجيل خروج</button>
     </div>
 
-    <div id="page-store" class="page" style="text-align: center;">
-        <h2 style="color: var(--accent);">متجر النجوم ⭐</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px;">
-            <div class="profile-header" onclick="purchaseStars(100, event)">⭐ 100<br><small>1.00$</small></div>
-            <div class="profile-header" style="border: 2px solid var(--gold);" onclick="purchaseStars(500, event)">⭐ 500<br><small>4.50$</small></div>
+    <div id="page-add" class="page" style="text-align:center;">
+        <div class="card">
+            <h3>نشر محتوى جديد</h3>
+            <select id="v-type" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px;">
+                <option value="clips">فيديو قصير (Clips)</option>
+                <option value="videos">فيديو طويل (Videos)</option>
+            </select>
+            <input type="text" id="v-url" placeholder="رابط الفيديو" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; box-sizing:border-box;">
+            <button onclick="publishVideo()" style="width:100%; background:black; color:white; padding:15px; border-radius:10px; border:none;">نشر الآن</button>
         </div>
-        <button class="btn-secondary" onclick="showPage('home')">العودة للرئيسية</button>
     </div>
 
     <nav class="bottom-nav">
-        <i class="fas fa-home active" onclick="showPage('home')"></i>
-        <i class="fas fa-plus-circle" onclick="showPage('add')"></i>
-        <i class="fas fa-user" onclick="showPage('profile')"></i>
+        <div onclick="showPage('home')"><i class="fas fa-home"></i></div>
+        <div onclick="showPage('add')"><i class="fas fa-plus-circle"></i></div>
+        <div onclick="showPage('profile')"><i class="fas fa-user"></i></div>
     </nav>
 
-<script>
-    const client = supabase.createClient('URL_الخاص_بك', 'KEY_الخاص_بك');
+    <script>
+        // تشفير بيانات الربط
+        const _0x5a12=["\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x64\x6E\x6F\x78\x6C\x64\x68\x71\x64\x6A\x64\x66\x6E\x67\x68\x68\x73\x6F\x67\x2E\x73\x75\x70\x61\x62\x61\x73\x65\x2E\x63\x6F","\x65\x79\x4A\x68\x62\x47\x63\x69\x4F\x69\x4A\x49\x55\x7A\x49\x31\x4E\x69\x49\x73\x49\x6E\x52\x35\x63\x43\x49\x36\x49\x6B\x70\x58\x56\x54\x49\x39\x2E\x65\x79\x4A\x70\x63\x33\x4D\x69\x4F\x69\x4A\x7A\x64\x58\x42\x68\x59\x6D\x46\x7A\x5A\x53\x49\x73\x49\x6E\x4A\x6C\x5A\x69\x49\x36\x49\x6D\x46\x6B\x62\x67\x34\x77\x62\x47\x52\x6F\x63\x57\x52\x71\x5A\x47\x5A\x75\x5A\x32\x68\x6F\x63\x32\x39\x6E\x49\x69\x77\x69\x63\x6D\x39\x73\x5A\x53\x49\x36\x49\x6D\x46\x72\x59\x57\x4A\x7A\x5A\x58\x4E\x6C\x4C\x43\x4A\x70\x59\x58\x51\x69\x4F\x6A\x45\x33\x4E\x7A\x49\x32\x4F\x44\x4D\x33\x4D\x6A\x55\x73\x49\x6D\x56\x34\x63\x43\x49\x36\x4D\x6A\x41\x34\x4F\x44\x49\x31\x4F\x54\x63\x79\x4E\x56\x30\x2E\x68\x4D\x56\x37\x49\x32\x61\x35\x6D\x67\x31\x2D\x33\x6D\x37\x43\x58\x52\x47\x75\x6E\x56\x6F\x52\x39\x39\x41\x49\x65\x63\x45\x7A\x76\x54\x31\x74\x7A\x6D\x45\x68\x58\x30"];
+        const client = supabase.createClient(_0x5a12[0], _0x5a12[1]);
 
-    // 1. إدارة الصفحات
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
-        document.querySelectorAll('.bottom-nav i').forEach(i => i.classList.remove('active'));
-    }
-
-    // 2. معالج التفاعلات (Like, Gift) مع التحقق من الرصيد والاشتراك
-    async function handleAction(type, data) {
-        const { data: { user } } = await client.auth.getUser();
-
-        if (!user) {
-            let config = {
-                like: { title: "أظهر حبك! ❤️", msg: "سجل دخولك لتتمكن من الإعجاب بالفيديوهات." },
-                gift: { title: "أرسل بريقك الخاص! ⭐", msg: "انضم إلينا لتمتلك محفظة نجومك وتدعم المبدعين." }
-            };
-            renderCustomPopup(config[type].title, config[type].msg);
-            return;
-        }
-
-        if (type === 'gift') {
-            processGift(user.id, data);
-        } else if (type === 'like') {
-            alert("تم تسجيل الإعجاب!"); // هنا نربط بجدول likes
-        }
-    }
-
-    // 3. معالجة إرسال الهدايا
-    async function processGift(userId, giftData) {
-        const { data: profile } = await client.from('profiles').select('stars_balance').eq('id', userId).single();
-
-        if (profile.stars_balance < giftData.amount) {
-            renderCustomPopup("رصيدك غير كافٍ! ⚠️", `تحتاج إلى ${giftData.amount} نجوم. رصيدك الحالي: ${profile.stars_balance}`);
-            return;
-        }
-
-        // استدعاء RPC لنقل النجوم
-        const { error } = await client.rpc('send_gift_transaction', {
-            sender_uuid: userId,
-            receiver_uuid: giftData.receiverId,
-            video_uuid: giftData.videoId,
-            gift_val: giftData.amount,
-            gift_nm: giftData.name
-        });
-
-        if (!error) {
-            createStarBurst(window.event);
-            document.getElementById('stars-val').innerText = profile.stars_balance - giftData.amount;
-            alert("تم إرسال الهدية!");
-        }
-    }
-
-    // 4. تأثير النجوم المتطايرة
-    function createStarBurst(e) {
-        const container = document.getElementById('effect-container');
-        for (let i = 0; i < 12; i++) {
-            const star = document.createElement('div');
-            star.className = 'star-particle';
-            star.innerHTML = '⭐';
-            star.style.left = (e.clientX || window.innerWidth/2) + 'px';
-            star.style.top = (e.clientY || window.innerHeight/2) + 'px';
-            star.style.setProperty('--x', `${(Math.random() - 0.5) * 300}px`);
-            star.style.setProperty('--y', `${(Math.random() - 0.5) * 300}px`);
-            container.appendChild(star);
-            setTimeout(() => star.remove(), 1000);
-        }
-    }
-
-    // 5. وظائف الـ Popup
-    function renderCustomPopup(title, msg) {
-        document.getElementById('modal-title').innerText = title;
-        document.getElementById('modal-message').innerText = msg;
-        document.getElementById('auth-modal').style.display = 'flex';
-    }
-
-    function closeModal() { document.getElementById('auth-modal').style.display = 'none'; }
-    function goToAuth() { showPage('profile'); closeModal(); }
-
-    // تحميل البيانات الأولية
-    async function init() {
-        const { data: { user } } = await client.auth.getUser();
-        const defaultAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`;
-        
-        document.getElementById('header-avatar').src = defaultAvatar;
-        
-        if (user) {
+        async function loadUserProfile() {
+            const { data: { user } } = await client.auth.getUser();
+            if (!user) return;
             const { data: profile } = await client.from('profiles').select('*').eq('id', user.id).single();
             if (profile) {
+                const img = profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
+                document.getElementById('header-avatar').src = img;
+                document.getElementById('profile-display-img').src = img;
+                document.getElementById('profile-name').innerText = profile.username || 'عضو ملكي';
                 document.getElementById('stars-val').innerText = profile.stars_balance || 0;
-                document.getElementById('profile-stars').innerText = profile.stars_balance || 0;
-                document.getElementById('profile-name').innerText = profile.username || 'مستخدم Vtik';
-                if (profile.avatar_url) {
-                    document.getElementById('header-avatar').src = profile.avatar_url;
-                    document.getElementById('profile-display-img').src = profile.avatar_url;
-                }
+                document.getElementById('user-points').innerText = `نقاط النشاط: ${profile.live_points || 0} XP`;
+                
+                let xp = profile.live_points || 0;
+                document.getElementById('xp-fill').style.width = (xp/1000*100 > 100 ? 100 : xp/1000*100) + '%';
+                document.getElementById('xp-status').innerText = xp >= 1000 ? "تم فتح البث! ✅" : `باقي ${1000-xp} نقطة للجائزة`;
             }
         }
-    }
 
-    init();
-</script>
+        function copy(t, l) { navigator.clipboard.writeText(t); alert(`تم نسخ ${l}`); }
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); if(id !== 'home') document.getElementById('page-' + id).classList.add('active'); }
+        async function signOut() { await client.auth.signOut(); location.reload(); }
+        loadUserProfile();
+    </script>
 </body>
     </html>
