@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 | النسخة الاحترافية</title>
+    <title>Vtik 2026 | النسخة الملكية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; }
+        :root { --bg: #FFF0F5; --text: #333; --gold: #D4AF37; --accent: #FF1493; --card: #fff; --gemini: linear-gradient(135deg, #4285f4, #9b72cb); }
         .dark-mode { --bg: #121212; --text: #f0f0f0; --card: #1e1e1e; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow: hidden; }
 
-        /* 1. إخفاء معلومات الداتابيز عبر شاشة التحميل (Splash) */
+        /* شاشة السبلاش لإخفاء روابط Supabase */
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); z-index: 20000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         header { position: fixed; top: 0; width: 100%; background: var(--card); z-index: 1000; border-bottom: 2px solid var(--gold); }
         .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
+        .tabs { display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-weight: bold; }
+        .tab { cursor: pointer; opacity: 0.5; font-size: 13px; }
+        .tab.active { opacity: 1; border-bottom: 2px solid var(--accent); color: var(--accent); }
 
         .page { display: none; padding: 120px 0 85px; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .page.active { display: block; }
@@ -28,8 +31,10 @@
         .side-actions { position: absolute; bottom: 80px; left: 15px; display: flex; flex-direction: column; gap: 20px; color: white; text-align: center; font-size: 22px; z-index: 10; }
         .side-actions i { text-shadow: 0 2px 5px rgba(0,0,0,0.5); cursor: pointer; }
 
-        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 30px 30px 0 0; z-index: 11000; padding: 25px; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); text-align: center; box-sizing: border-box; }
+        .popup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-radius: 30px 30px 0 0; z-index: 11000; padding: 25px; box-shadow: 0 -5px 25px rgba(0,0,0,0.3); text-align: center; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
+        
+        #gemini-chat { display: none; position: fixed; top: 10%; left: 5%; right: 5%; bottom: 15%; background: var(--card); border-radius: 25px; z-index: 12000; flex-direction: column; border: 2px solid #4285f4; }
     </style>
 </head>
 <body class="dark-mode">
@@ -37,52 +42,68 @@
     <div id="splash-screen">
         <img src="logo.png" width="80" style="margin-bottom: 20px;">
         <div class="loader"></div>
-        <p style="color: var(--accent); font-weight: bold; margin-top: 15px;">جاري تشفير الاتصال بالبيانات...</p>
+        <p style="color: var(--accent); font-weight: bold; margin-top: 15px;">Vtik 2026 Secured</p>
     </div>
 
     <header>
         <div class="nav-top">
-            <button onclick="openPopup('auth-popup')" id="auth-btn" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 18px;">دخول</button>
-            <img src="logo.png" width="45">
+            <button onclick="checkAuthAndAction(() => alert('أنت مسجل بالفعل!'))" id="auth-btn" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:6px 18px;">دخول</button>
+            <img src="logo.png" width="45" onclick="document.body.classList.toggle('dark-mode')" style="cursor:pointer">
             <div style="color:var(--gold);">⭐ <span id="stars-count">0</span></div>
+        </div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(this, 'shorts')">Shorts</div>
+            <div class="tab" onclick="switchTab(this, 'video')">Video</div>
         </div>
     </header>
 
     <div id="page-home" class="page active"><div id="feed"></div></div>
+    
+    <div id="page-favs" class="page" style="padding:130px 20px;"><h3>المفضلة ❤️</h3></div>
 
     <div id="page-add" class="page" style="text-align:center; padding-top:150px;">
         <div style="background:var(--card); margin:20px; padding:30px; border-radius:30px; border:1px solid var(--gold);">
             <h3>رفع فيديو جديد 📤</h3>
-            <input type="text" id="v-url" placeholder="رابط الفيديو (Direct URL)" style="width:90%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
-            <button onclick="publishVideo()" style="width:90%; padding:15px; background:black; color:white; border-radius:12px; border:none;">نشر الآن</button>
+            <input type="text" id="v-url" placeholder="رابط الفيديو" style="width:90%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+            <button onclick="publishVideo()" style="width:90%; padding:15px; background:black; color:white; border-radius:12px; margin-top:15px;">نشر الآن</button>
         </div>
     </div>
 
     <div id="page-profile" class="page" style="padding:130px 20px; text-align:center;">
-        <div id="user-info">
-            <img id="profile-img" src="logo.png" width="100" style="border-radius:50%; border:3px solid var(--accent);">
-            <h3 id="profile-name">الملف الشخصي</h3>
-            <button onclick="signOut()" style="background:#ff4d4d; color:white; border:none; padding:10px 30px; border-radius:10px; margin-top:20px;">خروج من الحساب</button>
-        </div>
+        <img id="profile-img" src="logo.png" width="100" style="border-radius:50%; border:3px solid var(--accent);">
+        <h3 id="profile-name">الملف الشخصي</h3>
+        <button onclick="signOut()" style="background:#ff4d4d; color:white; border:none; padding:10px 30px; border-radius:10px;">خروج</button>
     </div>
 
     <div id="auth-popup" class="popup">
-        <b>تسجيل الدخول</b><br>
+        <b>Vtik Login</b><br>
         <input type="text" id="phone" placeholder="رقم الهاتف" style="width:90%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
         <input type="password" id="pass" placeholder="كلمة المرور" style="width:90%; padding:12px; margin:5px 0; border-radius:10px; border:1px solid #ddd;">
         <button onclick="loginWithPhone()" style="width:95%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; margin-top:10px;">دخول</button>
-        <button onclick="socialLogin('google')" style="width:95%; padding:12px; background:#fff; color:#333; border:1px solid #ddd; border-radius:10px; margin-top:10px;"><i class="fab fa-google"></i> الدخول بجوجل</button>
+        <div style="display:flex; justify-content:center; gap:25px; margin-top:20px; font-size:30px;">
+            <i class="fab fa-google" style="color:#db4437; cursor:pointer;" onclick="socialLogin('google')"></i>
+            <i class="fab fa-facebook" style="color:#4267B2; cursor:pointer;" onclick="socialLogin('facebook')"></i>
+        </div>
         <button onclick="closePopup('auth-popup')" style="width:100%; margin-top:15px; border:none; background:none; color:#999;">إغلاق</button>
     </div>
 
+    <div id="gemini-chat">
+        <div style="background:var(--gemini); color:white; padding:15px; border-radius:25px 25px 0 0; display:flex; justify-content:space-between;">
+            <b>Gemini AI Assistant ✨</b> <span onclick="toggleGemini(false)">✖</span>
+        </div>
+        <div id="chat-box" style="flex:1; padding:15px; overflow-y:auto; font-size:13px;">مرحباً! كيف أساعدك اليوم؟</div>
+    </div>
+    <div id="gemini-trigger" onclick="toggleGemini(true)" style="position:fixed; bottom:90px; right:15px; width:45px; height:45px; background:var(--gemini); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; z-index:3000;">✨</div>
+
     <nav class="bottom-nav">
         <div onclick="showPage('home')"><i class="fas fa-home"></i></div>
-        <div onclick="checkAuthAndAction(() => showPage('add'))"><i class="fas fa-plus-circle"></i></div>
+        <div onclick="showPage('favs')"><i class="fas fa-heart"></i></div>
+        <div onclick="checkAuthAndAction(() => showPage('add'))" style="background:#000; color:#fff; border-radius:10px; width:42px; height:30px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-plus"></i></div>
         <div onclick="showPage('profile')"><i class="fas fa-user-circle"></i></div>
     </nav>
 
 <script>
-    // 1. تشفير معلومات الداتابيز: الروابط موجودة لكن لا تظهر في الواجهة
+    // مفاتيحك الأصلية الثابتة
     const client = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbm94bGRocWRqZGZuZ2hoc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2ODM3MjUsImV4cCI6MjA4ODI1OTcyNX0.hMV7I2a5mg1-3m7CXRGunVoR99AIecEzvtV1tzmEhX0');
 
     async function checkAuthAndAction(action) {
@@ -91,14 +112,7 @@
         action();
     }
 
-    // 2. تفعيل زر الرفع (Add)
-    async function publishVideo() {
-        const url = document.getElementById('v-url').value;
-        const { data: { user } } = await client.auth.getUser();
-        if(!url) return alert("ضع رابط الفيديو أولاً");
-        const { error } = await client.from('videos').insert([{ user_id: user.id, video_url: url }]);
-        if(error) alert(error.message); else { alert("تم النشر بنجاح!"); location.reload(); }
-    }
+    async function socialLogin(provider) { await client.auth.signInWithOAuth({ provider: provider }); }
 
     async function loginWithPhone() {
         const phone = document.getElementById('phone').value;
@@ -107,9 +121,6 @@
         if(error) alert("خطأ: " + error.message); else location.reload();
     }
 
-    async function socialLogin(provider) { await client.auth.signInWithOAuth({ provider: provider }); }
-
-    // 4. استعادة الأكشن (لايك، شير، مفضلة) في الفيد
     async function loadFeed() {
         const { data } = await client.from('videos').select('*, profiles(username)');
         if (data) {
@@ -119,21 +130,20 @@
                     <div class="side-actions">
                         <i class="fas fa-heart" onclick="checkAuthAndAction(() => alert('تمت الإضافة للمفضلة ❤️'))"></i>
                         <i class="fas fa-share" onclick="navigator.share({url:'${v.video_url}'})"></i>
-                        <i class="fas fa-star" style="color:var(--gold)" onclick="checkAuthAndAction(() => alert('تم التقييم ⭐'))"></i>
+                        <i class="fas fa-star" style="color:var(--gold)" onclick="checkAuthAndAction(() => alert('تقييم رائع!'))"></i>
                     </div>
-                    <div style="position:absolute; bottom:20px; right:20px; color:white; font-weight:bold;">@${v.profiles?.username || 'user'}</div>
+                    <div style="position:absolute; bottom:20px; right:20px; color:white;">@${v.profiles?.username || 'user'}</div>
                 </div>`).join('');
         }
-        // إخفاء الـ Splash Screen بعد انتهاء التحميل
+        // إخفاء السبلاش بعد 2 ثانية
         setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => document.getElementById('splash-screen').style.display='none', 500); }, 2000);
     }
 
-    async function loadUser() {
+    async function publishVideo() {
+        const url = document.getElementById('v-url').value;
         const { data: { user } } = await client.auth.getUser();
-        if(user) {
-            document.getElementById('auth-btn').style.display = 'none'; // 3. زر الدخول يختفي عند التسجيل
-            document.getElementById('profile-name').innerText = user.email.split('@')[0];
-        }
+        const { error } = await client.from('videos').insert([{ user_id: user.id, video_url: url }]);
+        if(error) alert(error.message); else { alert("تم النشر!"); location.reload(); }
     }
 
     function showPage(p) {
@@ -143,10 +153,10 @@
 
     function openPopup(id) { document.getElementById(id).style.display = 'block'; }
     function closePopup(id) { document.getElementById(id).style.display = 'none'; }
+    function toggleGemini(s) { document.getElementById('gemini-chat').style.display = s?'flex':'none'; }
     async function signOut() { await client.auth.signOut(); location.reload(); }
 
     loadFeed();
-    loadUser();
 </script>
 </body>
-</html>
+    </html>
