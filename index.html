@@ -3,167 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik 2026 - المنصة المتكاملة</title>
+    <title>Vtik 2026 - الإصدار الكامل</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg: #FFF0F5; --card-bg: #FFFFFF; --gold: #D4AF37; --text: #4A4A4A;
-            --orange: #FF7900; --dark-bg: #0A0A0A;
-        }
-        [data-theme="dark"] {
-            --bg: var(--dark-bg); --card-bg: #1A1A1A; --gold: #FFD700; --text: #E0E0E0;
-        }
+        :root { --gold: #D4AF37; --orange: #FF7900; --bg: #0A0A0A; --card: #1A1A1A; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; overflow: hidden; }
 
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); transition: 0.4s; overflow-x: hidden; }
-        
-        /* 1. الهيدر الاحترافي مع نظام النقاط */
-        header { 
-            position: fixed; top: 0; width: 100%; background: var(--card-bg); 
-            padding: 10px 0; z-index: 1000; border-bottom: 2px solid var(--gold); 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .header-logo { width: 45px; cursor: pointer; margin: 0 15px; transition: 0.3s; }
-        .header-logo:hover { transform: rotate(15deg); }
-        
-        .stats-bar { display: flex; gap: 8px; margin-right: 15px; }
-        .stat-item { background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        /* الهيدر */
+        header { position: fixed; top: 0; width: 100%; background: var(--card); display: flex; justify-content: space-between; align-items: center; padding: 10px 0; z-index: 1000; border-bottom: 1px solid var(--gold); }
+        .stat-box { background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 11px; margin-right: 10px; }
 
-        /* 2. منطقة الفيديو والتفاعل */
-        #main-app { padding-top: 85px; padding-bottom: 80px; }
-        .video-card { width: 95%; max-width: 450px; margin: 0 auto 20px; background: #000; border-radius: 30px; overflow: hidden; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-        video { width: 100%; max-height: 75vh; display: block; }
+        /* الفيديوهات */
+        main { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .video-wrapper { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* أزرار التفاعل الجانبية (لايك، نجوم، شير) */
-        .side-actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-        .action-btn { color: white; text-align: center; cursor: pointer; }
-        .action-btn i { font-size: 28px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); }
-        .action-btn span { font-size: 11px; display: block; margin-top: 5px; font-weight: bold; }
+        /* أزرار التفاعل */
+        .side-bar { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
+        .icon-unit { text-align: center; cursor: pointer; }
+        .icon-unit i { font-size: 28px; color: #fff; filter: drop-shadow(0 2px 4px #000); }
+        .icon-unit span { font-size: 11px; display: block; margin-top: 5px; }
 
-        /* 3. نظام الشحن (Orange Money) */
-        #payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; }
-        .payment-card { background: var(--card-bg); padding: 25px; border-radius: 30px; width: 85%; max-width: 350px; text-align: center; border: 2px solid var(--orange); }
-        .orange-btn { background: var(--orange); color: white; width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; margin: 10px 0; cursor: pointer; }
+        /* نافذة تسجيل الدخول */
+        #auth-modal { display: none; position: fixed; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; }
+        .auth-card { background: var(--card); padding: 30px; border-radius: 25px; text-align: center; border: 1px solid var(--gold); width: 80%; max-width: 350px; }
+        .login-btn { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
-        /* 4. القائمة السفلية */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
-        .nav-item { color: var(--gold); font-size: 22px; cursor: pointer; }
-        .upload-center { background: linear-gradient(45deg, var(--orange), var(--gold)); color: white; padding: 8px 25px; border-radius: 15px; margin-top: -10px; }
+        /* Gemini Popup */
+        #gemini-trigger { position: fixed; bottom: 100px; left: 20px; width: 45px; height: 45px; cursor: pointer; z-index: 2000; filter: drop-shadow(0 0 10px var(--gold)); }
+        #gemini-chat { display: none; position: fixed; bottom: 160px; left: 20px; width: 300px; height: 400px; background: var(--card); border: 1px solid var(--gold); border-radius: 20px; z-index: 2000; flex-direction: column; box-shadow: 0 10px 30px #000; }
+        .chat-header { background: var(--gold); color: #000; padding: 10px; border-radius: 20px 20px 0 0; font-weight: bold; display: flex; justify-content: space-between; }
 
-        /* شاشة الترحيب والذكاء الاصطناعي */
-        #ai-assistant { position: fixed; bottom: 100px; left: 15px; background: var(--gold); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; }
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--gold); z-index: 1000; }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
     <header>
-        <div class="stats-bar">
-            <div class="stat-item" id="star-display">⭐ 0 نجوم</div>
-            <div class="stat-item" id="pts-display">💎 0 نقطة</div>
-        </div>
-        <img src="logo.png" class="header-logo" id="theme-trigger" onclick="toggleVtikMode()" title="اضغط لتغيير الجو">
-        <button onclick="showShop()" style="margin-left:15px; background:var(--orange); color:white; border:none; border-radius:12px; padding:6px 15px; font-weight:bold; cursor:pointer;">شحن</button>
+        <div class="user-stats"><div class="stat-box">⭐ <span id="stars-val">0</span></div></div>
+        <img src="logo.png" style="width:40px;">
+        <button id="auth-status-btn" onclick="openAuth()" style="margin-left:15px; background:var(--orange); color:#white; border:none; padding:5px 15px; border-radius:10px;">دخول</button>
     </header>
 
-    <div id="main-app">
-        <div id="mode-text" style="text-align:center; font-weight:bold; margin-bottom:15px; color:var(--gold);">نهارك سعيد في Vtik! ☀️</div>
-        <div id="feed-container">
-            <p style="text-align:center;">جاري تحضير المحتوى المميز...</p>
+    <main id="feed"></main>
+
+    <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d473530c25e2906682ca.svg" id="gemini-trigger" onclick="toggleGemini()">
+    
+    <div id="gemini-chat">
+        <div class="chat-header"><span>مساعد Vtik الذكي</span><i class="fas fa-times" onclick="toggleGemini()" style="cursor:pointer"></i></div>
+        <div style="flex:1; padding:10px; font-size:13px;">مرحباً بك! أنا Gemini، كيف يمكنني مساعدتك في تطوير محتواك اليوم؟</div>
+        <div style="padding:10px; border-top:1px solid #333;"><input type="text" placeholder="اسألني أي شيء..." style="width:85%; background:none; border:none; color:#white; outline:none;"></div>
+    </div>
+
+    <div id="auth-modal">
+        <div class="auth-card">
+            <h3 style="color:var(--gold)">انضم إلى Vtik 2026</h3>
+            <p style="font-size:12px; margin-bottom:20px;">يجب تسجيل الدخول للتفاعل مع المبدعين</p>
+            <button class="login-btn" style="background:#fff; color:#000;" onclick="signIn('google')"><i class="fab fa-google"></i> الدخول بجوجل</button>
+            <button class="login-btn" style="background:#1877F2; color:#fff;" onclick="signIn('facebook')"><i class="fab fa-facebook"></i> الدخول بفيسبوك</button>
+            <p onclick="closeAuth()" style="margin-top:15px; cursor:pointer; font-size:12px; color:#888;">إغلاق</p>
         </div>
     </div>
 
-    <div id="payment-modal">
-        <div class="payment-card">
-            <h3 style="color:var(--orange)">محفظة Vtik 2026</h3>
-            <p style="font-size:13px;">اشحن النجوم لدعم المبدعين وتحويل النقاط</p>
-            <button class="orange-btn" onclick="payWithOrange()">الشحن عبر Orange Money</button>
-            <button onclick="payWithGoogle()" style="width:100%; padding:10px; background:#000; color:white; border-radius:12px; border:none;">Google Pay</button>
-            <p onclick="hideShop()" style="margin-top:15px; color:var(--sub-text); cursor:pointer; font-size:12px;">إغلاق</p>
-        </div>
-    </div>
-
-    <div id="ai-assistant" onclick="askAI()"><i class="fas fa-robot"></i></div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item"><i class="fas fa-home"></i></div>
-        <div class="nav-item"><i class="fas fa-fire"></i></div>
-        <div class="nav-item upload-center"><i class="fas fa-plus"></i></div>
-        <div class="nav-item"><i class="fas fa-envelope"></i></div>
-        <div class="nav-item"><i class="fas fa-user-circle"></i></div>
+    <nav>
+        <div onclick="checkAuth()"><i class="fas fa-home" style="color:var(--gold)"></i></div>
+        <div onclick="checkAuth()"><i class="fas fa-plus-square" style="background:var(--orange); padding:5px 10px; border-radius:8px;"></i></div>
+        <div onclick="checkAuth()"><i class="fas fa-user" style="color:var(--gold)"></i></div>
     </nav>
 
 <script>
-    // إعدادات Supabase التي ضبطناها معاً
-    const SUPABASE_URL = 'https://adnoxldhqdjdfnghhsog.supabase.co';
-    const SUPABASE_KEY = 'YOUR_ANON_KEY'; 
-    const vtik = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const vtik = supabase.createClient('https://adnoxldhqdjdfnghhsog.supabase.co', 'YOUR_KEY');
+    let currentUser = null;
 
-    // 1. نظام المود المتغير (اتفاق الشعار)
-    function toggleVtikMode() {
-        const body = document.body;
-        const txt = document.getElementById('mode-text');
-        const isLight = body.getAttribute('data-theme') === 'light';
-        
-        body.setAttribute('data-theme', isLight ? 'dark' : 'light');
-        txt.innerText = isLight ? "سهرة ذهبية ممتعة في Vtik! 🌙" : "نهارك سعيد في Vtik! ☀️";
-        localStorage.setItem('vtik-theme', isLight ? 'dark' : 'light');
+    // التأكد من حالة المستخدم
+    vtik.auth.onAuthStateChange((event, session) => {
+        currentUser = session?.user;
+        document.getElementById('auth-status-btn').innerText = currentUser ? 'خروج' : 'دخول';
+    });
+
+    function checkAuth() {
+        if (!currentUser) { openAuth(); return false; }
+        return true;
     }
 
-    // 2. جلب الفيديوهات مع نظام التفاعل (اللايك والنجوم والهدايا)
-    async function fetchVtikFeed() {
-        const { data: videos, error } = await vtik.from('videos').select('*').order('created_at', { ascending: false });
-        const container = document.getElementById('feed-container');
-        container.innerHTML = '';
+    function openAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
+    function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
 
-        videos?.forEach(vid => {
-            container.innerHTML += `
-                <div class="video-card">
+    async function signIn(provider) {
+        // الربط مع Redirect URLs التي حددناها
+        await vtik.auth.signInWithOAuth({ provider: provider, options: { redirectTo: 'https://vtik2026.github.io/Vtik/' } });
+    }
+
+    function toggleGemini() {
+        const chat = document.getElementById('gemini-chat');
+        chat.style.display = (chat.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // تحميل المحتوى مع حماية التفاعل
+    async function loadFeed() {
+        const { data } = await vtik.from('clips').select('*');
+        const feed = document.getElementById('feed');
+        data?.forEach(vid => {
+            feed.innerHTML += `
+                <div class="video-wrapper">
                     <video src="${vid.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div class="side-actions">
-                        <div class="action-btn" onclick="likeAction('${vid.id}')"><i class="fas fa-heart"></i><span>${vid.likes || 0}</span></div>
-                        <div class="action-btn" onclick="sendStarGift('${vid.id}')"><i class="fas fa-star" style="color:var(--gold)"></i><span>هدية</span></div>
-                        <div class="action-btn" onclick="shareVtik('${vid.id}')"><i class="fas fa-share"></i><span>شير</span></div>
+                    <div class="side-bar">
+                        <div class="icon-unit" onclick="checkAuth() && handleLike()"><i class="fas fa-heart"></i><span>${vid.stars_count || 0}</span></div>
+                        <div class="icon-unit" onclick="checkAuth() && openShop()"><i class="fas fa-star" style="color:var(--gold)"></i><span>شحن</span></div>
                     </div>
                 </div>`;
         });
     }
-
-    // 3. إدارة المحفظة والشحن (Orange Money)
-    function showShop() { document.getElementById('payment-modal').style.display = 'flex'; }
-    function hideShop() { document.getElementById('payment-modal').style.display = 'none'; }
-
-    function payWithOrange() {
-        alert("سيتم فتح بوابة Orange Money لشحن رصيد البيانات والنجوم...");
-        // الربط المالي هنا
-    }
-
-    // 4. المساعد الذكي (Gemini Integration)
-    function askAI() {
-        alert("مرحباً بك! أنا مساعد Vtik الذكي، كيف يمكنني مساعدتك في صانع المحتوى اليوم؟");
-    }
-
-    // تشغيل التطبيق
-    window.onload = () => {
-        if(localStorage.getItem('vtik-theme') === 'dark') toggleVtikMode();
-        fetchVtikFeed();
-    };
-</script>
-</body>
-</html>[{ user_id: user.id, video_url: url }]);
-        if(error) alert(error.message); else { alert("تم النشر!"); location.reload(); }
-    }
-
-    function showPage(p) {
-        document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
-        document.getElementById('page-' + p).classList.add('active');
-    }
-
-    function openPopup(id) { document.getElementById(id).style.display = 'block'; }
-    function closePopup(id) { document.getElementById(id).style.display = 'none'; }
-    function toggleGemini(s) { document.getElementById('gemini-chat').style.display = s?'flex':'none'; }
-    async function signOut() { await client.auth.signOut(); location.reload(); }
-
     loadFeed();
 </script>
 </body>
-    </html
+</html>
