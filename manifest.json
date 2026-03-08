@@ -1,0 +1,9 @@
+{
+  "name": "Vtik 2026",
+  "short_name": "Vtik",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fdfbf5",
+  "theme_color": "#D4AF37",
+  "icons": [{"src": "https://api.dicebear.com/7.x/bottts/svg?seed=Vtik", "sizes": "512x512", "type": "image/svg+xml"}]
+}
