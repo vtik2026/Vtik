@@ -1,1 +1,1 @@
-# Vtik
+ VTik is a video, audio, and communication platform that facilitates interaction between users. There is competition among them to earn points, which can be converted into real money that can be exchanged in several ways (Binance/Orange Money). This money can then be sent as a valuable gift to broadcasters, video creators, and audio producers.
