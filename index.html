@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Egypt Galaxy</title>
+    <title>VTIK - النسخة الاحترافية</title>
     <style>
         :root { 
             --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #000; 
@@ -17,49 +17,53 @@
         .tg-btn { background: #0088cc; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
         .copy-badge { background: #222; padding: 10px; border-radius: 10px; margin: 10px 0; border: 1px dashed var(--gold); cursor: pointer; }
 
-        /* النظام الرئيسي */
+        /* التغذية الرئيسية */
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
-        .icon-btn { width: 55px; height: 55px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 26px; backdrop-filter: blur(8px); }
+        
+        /* أيقونات جانبية بنظام يوتيوب/تيك توك */
+        .side-icons { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; }
+        .icon-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; font-size: 24px; backdrop-filter: blur(5px); cursor: pointer; }
+        .side-icons span { font-size: 11px; margin-bottom: 10px; text-shadow: 1px 1px 2px black; }
 
-        /* البروفايل */
+        /* التعليقات */
+        .comments-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 65%; background: #111; z-index: 5000; border-radius: 20px 20px 0 0; transition: 0.4s; padding: 20px; box-sizing: border-box; border-top: 1px solid #333; }
+        .comments-sheet.active { bottom: 0; }
+        .comment-item { margin-bottom: 12px; font-size: 14px; border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .comment-input-area { display: flex; gap: 10px; position: absolute; bottom: 20px; width: 90%; }
+
+        /* الصفحات */
         .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
-        .wallet-card { background: linear-gradient(145deg, #1a1a1a, #000); padding: 25px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; }
+        .wallet-card { background: linear-gradient(145deg, #1a1a1a, #000); padding: 25px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .form-panel { background: #111; padding: 15px; border-radius: 15px; margin: 10px 20px; display: none; border: 1px solid #222; }
         input { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 8px; text-align: center; box-sizing: border-box; }
 
-        /* الجدول */
-        .history-table { width: 90%; margin: 10px auto; border-collapse: collapse; font-size: 11px; text-align: center; }
-        .history-table th { color: #555; padding: 8px; border-bottom: 1px solid #222; }
-        .history-table td { padding: 10px; border-bottom: 1px solid #111; }
-
-        /* لعبة المجرة */
+        /* الجالاكسي */
         #galaxyGame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 6000; display: none; }
-        .target-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 20px var(--gold); z-index: 5; pointer-events: none; }
+        .target-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 110px; height: 110px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; box-shadow: 0 0 20px var(--gold); z-index: 5; pointer-events: none; }
 
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 2000; }
-        .galaxy-btn { position: fixed; bottom: 80px; left: 20px; width: 55px; height: 55px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; z-index: 3000; box-shadow: 0 0 15px var(--gold); }
+        .galaxy-btn { position: fixed; bottom: 80px; left: 20px; width: 55px; height: 55px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; z-index: 3000; box-shadow: 0 0 15px var(--gold); cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
         <div class="login-card">
-            <h2 style="color: var(--gold); letter-spacing: 2px;">VTIK EGYPT</h2>
+            <h2 style="color: var(--gold);">VTIK 🦋</h2>
             <div id="inputSection">
-                <input type="text" id="regName" placeholder="اكتب اسمك المفضل هنا">
-                <button class="tg-btn" onclick="prepareAuth()">تجهيز كود التفعيل 🔑</button>
+                <input type="text" id="regName" placeholder="اكتب اسمك للملف الشخصي">
+                <button class="tg-btn" onclick="prepareAuth()">تفعيل الحساب (تيليجرام) 🔑</button>
             </div>
             
             <div id="verifyArea" style="display:none;">
                 <div class="copy-badge" onclick="copyCode()">
-                    كود التفعيل: <b id="vCodeLabel" style="color:var(--gold); font-size:20px;"></b>
+                    أرسل الكود: <b id="vCodeLabel" style="color:var(--gold); font-size:20px;"></b>
                     <div style="font-size:10px; color:#777;">(اضغط للنسخ)</div>
                 </div>
-                <button class="tg-btn" style="background:#0088cc;" onclick="goToTelegram()">فتح تيليجرام للإرسال ✈️</button>
-                <p style="font-size:11px; color:var(--tiktok-blue); margin-top:10px;">بانتظار وصول الكود للبوت...</p>
+                <button class="tg-btn" style="background:#0088cc;" onclick="goToTelegram()">فتح تيليجرام ✈️</button>
+                <p id="waitText" style="font-size:11px; color:var(--tiktok-blue); margin-top:10px;">بانتظار التحقق من الرسالة...</p>
             </div>
         </div>
     </div>
@@ -75,77 +79,65 @@
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; padding:0 20px;">
-            <button onclick="toggleF('dF')" style="background:var(--tiktok-blue); padding:12px; border:none; border-radius:10px; font-weight:bold;">📥 إيداع (فودافون كاش)</button>
+            <button onclick="toggleF('dF')" style="background:var(--tiktok-blue); padding:12px; border:none; border-radius:10px; font-weight:bold;">📥 إيداع رصيد</button>
             <button onclick="toggleF('wF')" style="background:var(--tiktok-red); padding:12px; border:none; border-radius:10px; color:white; font-weight:bold;">📤 سحب كاش</button>
-            <button onclick="exchangeCoins()" style="background:var(--gold); padding:12px; border:none; border-radius:10px; font-weight:bold;">💱 تحويل (100 كوين = 10ج)</button>
+            <button onclick="exchangeCoins()" style="background:var(--gold); padding:12px; border:none; border-radius:10px; font-weight:bold;">💱 تحويل الكوينز (100 = 10ج)</button>
         </div>
 
-        <div id="dF" class="form-panel">
-            <input type="number" id="amtD" placeholder="المبلغ">
-            <input type="text" id="phoneD" placeholder="رقم المرسل منه">
-            <button onclick="processFinance('إيداع')" style="width:100%; padding:10px; background:var(--tiktok-blue); border:none; border-radius:8px; font-weight:bold;">تأكيد الإيداع</button>
-        </div>
+        <div id="dF" class="form-panel"><input type="number" id="amtD" placeholder="المبلغ"><input type="text" id="phoneD" placeholder="رقم المحفظة"><button onclick="processFinance('إيداع')" style="width:100%; padding:10px; background:var(--tiktok-blue); border:none; border-radius:8px;">تأكيد</button></div>
+        <div id="wF" class="form-panel"><input type="number" id="amtW" placeholder="المبلغ"><input type="text" id="phoneW" placeholder="رقم المستلم"><button onclick="processFinance('سحب')" style="width:100%; padding:10px; background:var(--tiktok-red); color:white; border:none; border-radius:8px;">تأكيد</button></div>
 
-        <div id="wF" class="form-panel">
-            <input type="number" id="amtW" placeholder="المبلغ">
-            <input type="text" id="phoneW" placeholder="رقم المحفظة المستلمة">
-            <button onclick="processFinance('سحب')" style="width:100%; padding:10px; background:var(--tiktok-red); color:white; border:none; border-radius:8px; font-weight:bold;">طلب سحب</button>
-        </div>
+        <h4 style="margin-right:20px; color:#555;">سجل العمليات</h4>
+        <div id="historyList" style="padding: 0 20px;"></div>
+    </div>
 
-        <table class="history-table">
-            <thead><tr><th>العملية</th><th>القيمة</th><th>التاريخ</th></tr></thead>
-            <tbody id="hBody"></tbody>
-        </table>
+    <div id="commentSheet" class="comments-sheet">
+        <div style="display:flex; justify-content:space-between; align-items:center;"><b>التعليقات</b><button onclick="closeComments()" style="background:none; border:none; color:white;">✕</button></div>
+        <div id="commentsList" style="height:250px; overflow-y:auto; margin-top:15px; font-size:13px;"></div>
+        <div class="comment-input-area">
+            <input type="text" id="newComment" placeholder="اكتب تعليقك..." style="margin:0;">
+            <button onclick="addComment()" style="background:var(--tiktok-blue); border:none; padding:10px; border-radius:8px;">إرسال</button>
+        </div>
     </div>
 
     <div id="galaxyGame">
         <div class="target-ring"></div>
-        <button style="position:absolute; top:20px; right:20px; color:white; background:rgba(0,0,0,0.5); border:none; width:40px; height:40px; border-radius:50%; z-index:100;" onclick="closeGalaxy()">✕</button>
         <canvas id="galaxyCanvas"></canvas>
     </div>
 
     <nav class="nav-bar">
         <button style="background:none; border:none; color:white; font-size:24px;" onclick="closeAll()">🏠</button>
-        <div style="width:45px; height:30px; background:white; border-radius:8px; display:flex; align-items:center; justify-content:center; color:black; font-weight:bold;" id="upBtn">➕</div>
         <button style="background:none; border:none; color:white; font-size:24px;" onclick="showPage('profilePage')">👤</button>
     </nav>
 
     <script>
-        // --- الإعدادات (ضع بياناتك الحقيقية هنا) ---
+        // --- الإعدادات ---
         const BOT_TOKEN = '7611311032:AAFjZ6x6o8yUat7Y-W3H4N8G9h8h8h8h8h8'; 
         const BOT_USER = 'vtik_egypt_bot'; 
         
-        let db = JSON.parse(localStorage.getItem('vtik_v2026_final')) || { 
-            user: null, cash: 0, coins: 200, vids: [], history: [] 
+        let db = JSON.parse(localStorage.getItem('vtik_v2026_mega')) || { 
+            user: null, cash: 0, coins: 500, history: [], comments: ["تطبيق جامد جداً!", "عاش يا بطل"] 
         };
 
         let vCode = `V-${Math.floor(1000 + Math.random() * 8999)}`;
+        let introS = 0, isIntro = false;
 
         function save() { 
-            localStorage.setItem('vtik_v2026_final', JSON.stringify(db)); 
+            localStorage.setItem('vtik_v2026_mega', JSON.stringify(db)); 
             updateUI(); 
         }
 
-        // --- نظام التسجيل ---
+        // --- التسجيل والتحقق ---
         function prepareAuth() {
-            const name = document.getElementById('regName').value.trim();
-            if(name.length < 3) return alert("يرجى كتابة اسم صحيح (3 أحرف على الأقل)");
-            
+            if(!document.getElementById('regName').value) return alert("اكتب اسمك أولاً");
             document.getElementById('inputSection').style.display = 'none';
             document.getElementById('verifyArea').style.display = 'block';
             document.getElementById('vCodeLabel').innerText = vCode;
-            
             startChecking();
         }
 
-        function copyCode() {
-            navigator.clipboard.writeText(vCode);
-            alert("تم نسخ الكود! أرسله للبوت الآن");
-        }
-
-        function goToTelegram() {
-            window.open(`https://t.me/${BOT_USER}?start=verify`, "_blank");
-        }
+        function copyCode() { navigator.clipboard.writeText(vCode); alert("تم النسخ!"); }
+        function goToTelegram() { window.open(`https://t.me/${BOT_USER}?start=verify`, "_blank"); }
 
         async function startChecking() {
             const checker = setInterval(async () => {
@@ -153,136 +145,133 @@
                     const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
                     const data = await res.json();
                     const msg = data.result.find(m => m.message && m.message.text && m.message.text.includes(vCode));
-                    
                     if(msg) {
                         clearInterval(checker);
-                        const chosenName = document.getElementById('regName').value;
-                        db.user = { name: chosenName, vtikId: `@${chosenName.replace(/\s+/g, '_')}` };
-                        save();
-                        alert(`تم التفعيل بنجاح يا ${chosenName}!`);
-                        checkLogin();
+                        db.user = { name: document.getElementById('regName').value, vtikId: "@"+document.getElementById('regName').value };
+                        save(); alert("تم التفعيل!"); checkLogin();
                     }
                 } catch(e) {}
             }, 3000);
         }
 
-        function checkLogin() {
-            if(db.user) {
-                document.getElementById('loginPage').style.display = 'none';
-                renderFeed();
-            }
-        }
+        function checkLogin() { if(db.user) { document.getElementById('loginPage').style.display = 'none'; renderFeed(); } }
 
-        // --- المنطق المالي المطور ---
+        // --- نظام المكافآت والتعاملات ---
         function updateUI() {
             document.getElementById('cashBal').innerText = db.cash.toFixed(2);
             document.getElementById('coinBal').innerText = db.coins;
             if(db.user) document.getElementById('displayUser').innerText = db.user.vtikId;
             
-            const hb = document.getElementById('hBody'); hb.innerHTML = '';
-            [...db.history].reverse().slice(0, 10).forEach(h => {
-                hb.innerHTML += `<tr><td>${h.type}</td><td style="color:${h.amt.includes('+')?'var(--neon-green)':'red'}">${h.amt}</td><td>${h.date}</td></tr>`;
+            const hl = document.getElementById('historyList'); hl.innerHTML = '';
+            [...db.history].reverse().slice(0, 5).forEach(h => {
+                hl.innerHTML += `<div style="padding:10px; background:#111; margin-bottom:5px; border-radius:8px; font-size:12px; border-right:3px solid ${h.amt.includes('+')?'var(--neon-green)':'red'}">${h.type} | ${h.amt}</div>`;
             });
+
+            const cl = document.getElementById('commentsList'); cl.innerHTML = '';
+            db.comments.forEach(c => cl.innerHTML += `<div class="comment-item"><b>User:</b> ${c}</div>`);
         }
 
         function giveLike() {
-            db.cash += 1;
-            db.coins += 50;
-            db.history.push({type: "لايك ❤️", amt: "+1ج / +50C", date: new Date().toLocaleTimeString()});
-            save();
+            db.cash += 1; db.coins += 50;
+            db.history.push({type: "لايك ❤️", amt: "+1ج / +50C", date: "الآن"});
+            save(); alert("ربحت 1 جنيه و 50 كوينز!");
         }
 
         function exchangeCoins() {
-            if(db.coins < 100) return alert("الحد الأدنى للتحويل 100 كوينز");
-            let amount = Math.floor(db.coins / 100) * 10;
-            db.coins %= 100;
-            db.cash += amount;
-            db.history.push({type: "تحويل عملات", amt: `+${amount}ج`, date: "الآن"});
+            if(db.coins < 100) return alert("أقل مبلغ للتحويل 100 كوينز");
+            let win = Math.floor(db.coins / 100) * 10;
+            db.coins %= 100; db.cash += win;
+            db.history.push({type: "تحويل", amt: `+${win}ج`, date: "الآن"});
             save();
         }
 
         function processFinance(type) {
-            let amt = type === 'إيداع' ? document.getElementById('amtD').value : document.getElementById('amtW').value;
-            let phone = type === 'إيداع' ? document.getElementById('phoneD').value : document.getElementById('phoneW').value;
-            if(!amt || !phone) return alert("أكمل البيانات");
-
-            let val = parseFloat(amt);
-            if(type === 'إيداع') db.cash += val;
-            else {
-                if(val > db.cash) return alert("رصيدك غير كافٍ");
-                db.cash -= val;
-            }
-            db.history.push({type: type, amt: `${type==='إيداع'?'+':'-'}${val}ج (${phone})`, date: "الآن"});
-            save();
-            document.querySelectorAll('.form-panel').forEach(p => p.style.display='none');
+            let amt = type==='إيداع'?document.getElementById('amtD').value : document.getElementById('amtW').value;
+            let val = parseFloat(amt); if(!val) return;
+            if(type==='سحب' && val > db.cash) return alert("رصيد غير كافٍ");
+            type==='إيداع' ? db.cash += val : db.cash -= val;
+            db.history.push({type: type, amt: `${type==='إيداع'?'+':'-'}${val}ج`, date: "الآن"});
+            save(); alert("تمت العملية بنجاح");
         }
 
-        // --- لعبة المجرة ---
+        function addComment() {
+            const txt = document.getElementById('newComment').value; if(!txt) return;
+            db.comments.push(txt); document.getElementById('newComment').value = ''; save();
+        }
+
+        function shareVideo() { alert("تم نسخ رابط الفيديو للمشاركة!"); }
+        function openComments() { document.getElementById('commentSheet').classList.add('active'); }
+        function closeComments() { document.getElementById('commentSheet').classList.remove('active'); }
+
+        // --- الجالاكسي المطور ---
         let canvas = document.getElementById('galaxyCanvas'), ctx = canvas.getContext('2d'), points = [], animId, rotX=0, rotY=0;
 
         function openGalaxy() {
             document.getElementById('galaxyGame').style.display = 'block';
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            initG(); animateG();
+            isIntro = true; introS = 0; initG(); animateG();
         }
 
         function initG() {
             points = [];
             for(let i=0; i<150; i++) {
                 let phi = Math.acos(-1 + (2 * i) / 150), th = Math.sqrt(150 * Math.PI) * phi;
-                let col = i < 50 ? "#C8102E" : (i < 100 ? "#FFFFFF" : "#000000");
-                points.push({ val: Math.floor(Math.random()*700)+5, x: 180*Math.cos(th)*Math.sin(phi), y: 180*Math.sin(th)*Math.sin(phi), z: 180*Math.cos(phi), color: col });
+                points.push({ val: Math.floor(Math.random()*500)+10, x: 180*Math.cos(th)*Math.sin(phi), y: 180*Math.sin(th)*Math.sin(phi), z: 180*Math.cos(phi), color: i%2===0?'#fe2c55':'#25f4ee' });
             }
         }
 
         function animateG() {
             ctx.fillStyle='black'; ctx.fillRect(0,0,canvas.width, canvas.height);
+            if(isIntro) { introS += 0.015; if(introS >= 1) { introS = 1; isIntro = false; } }
             rotX += 0.005; rotY += 0.005;
             points.sort((a,b)=> b.z - a.z).forEach(p => {
                 let y1 = p.y*Math.cos(rotX) - p.z*Math.sin(rotX), z1 = p.y*Math.sin(rotX) + p.z*Math.cos(rotX);
                 let x2 = p.x*Math.cos(rotY) - z1*Math.sin(rotY), z2 = p.x*Math.sin(rotY) + z1*Math.cos(rotY);
-                let per = 400/(400-z2);
+                
+                // تأثير البدء من اللانهاية
+                let depthOffset = 1500 * (1 - introS);
+                let per = 400 / (400 - (z2 - depthOffset));
                 let sx = x2*per + canvas.width/2, sy = y1*per + canvas.height/2;
-                ctx.shadowBlur=15; ctx.shadowColor="gold";
-                ctx.beginPath(); ctx.arc(sx, sy, 10*per, 0, Math.PI*2);
-                ctx.fillStyle=p.color; ctx.fill(); ctx.shadowBlur=0;
-                p.lx=sx; p.ly=sy;
+
+                if(per > 0) {
+                    ctx.beginPath(); ctx.arc(sx, sy, Math.max(0, 10*per*introS), 0, Math.PI*2);
+                    ctx.fillStyle = p.color; ctx.fill();
+                }
             });
             animId = requestAnimationFrame(animateG);
         }
 
         canvas.onclick = () => {
+            if(isIntro) return;
             let win = points[Math.floor(Math.random()*points.length)];
-            let bonus = 2; // المكافأة التي طلبتها
-            db.coins += win.val;
-            db.cash += bonus;
-            db.history.push({type: "مكافأة جالاكسي", amt: `+${win.val}C / +${bonus}ج`, date: "الآن"});
-            save();
-            alert(`فزت بـ ${win.val} كوينز + ${bonus} جنيه رصيد إضافي!`);
-            closeGalaxy();
+            db.coins += win.val; db.cash += 2;
+            db.history.push({type: "جالاكسي 🎡", amt: `+${win.val}C / +2ج`, date: "الآن"});
+            save(); alert(`ربحت ${win.val} كوينز + 2 جنيه رصيد!`);
+            document.getElementById('galaxyGame').style.display='none'; cancelAnimationFrame(animId);
         };
 
-        // --- الملاحة ---
-        function showPage(id) { document.getElementById(id).style.display='block'; }
-        function closeAll() { document.querySelectorAll('.page').forEach(p => p.style.display='none'); }
-        function toggleF(id) { document.querySelectorAll('.form-panel').forEach(p => p.style.display='none'); document.getElementById(id).style.display='block'; }
-        function closeGalaxy() { document.getElementById('galaxyGame').style.display='none'; cancelAnimationFrame(animId); }
-
+        // --- التغذية ---
         function renderFeed() {
             const feed = document.getElementById('mainFeed'); feed.innerHTML = '';
-            const vids = db.vids.length > 0 ? db.vids : [{url: 'https://www.w3schools.com/html/mov_bbb.mp4'}];
+            const vids = [{url:'https://www.w3schools.com/html/mov_bbb.mp4'}, {url:'https://www.w3schools.com/html/movie.mp4'}];
             vids.forEach(v => {
-                feed.innerHTML += `<div class="video-container">
+                feed.innerHTML += `
+                <div class="video-container">
                     <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
                     <div class="side-icons">
-                        <button class="icon-btn" onclick="giveLike()">❤️</button>
+                        <button class="icon-btn" onclick="giveLike()">❤️</button><span>1.5K</span>
+                        <button class="icon-btn" onclick="openComments()">💬</button><span>200</span>
+                        <button class="icon-btn" onclick="shareVideo()">🚀</button><span>شير</span>
                     </div>
                 </div>`;
             });
-            const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? e.target.play() : e.target.pause()), {threshold:0.8});
+            const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting?e.target.play():e.target.pause()), {threshold:0.7});
             document.querySelectorAll('video').forEach(v => obs.observe(v));
         }
 
+        function showPage(id) { closeAll(); document.getElementById(id).style.display='block'; }
+        function closeAll() { document.querySelectorAll('.page').forEach(p => p.style.display='none'); }
+        
         checkLogin(); updateUI();
     </script>
 </body>
