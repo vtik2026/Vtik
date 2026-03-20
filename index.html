@@ -3,40 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Auto Auth 2026</title>
+    <title>VTIK - Telegram Auth</title>
     <style>
         :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; --black: #000; }
         body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
 
-        /* شاشة الدخول التلقائي */
+        /* شاشة الدخول - لا يوجد بها أي إدخال نصي */
         #loginPage { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: #111; padding: 40px 20px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #222; box-shadow: 0 0 20px rgba(37, 244, 238, 0.05); }
-        .v-code-box { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 2px dashed var(--gold); margin: 20px 0; font-family: monospace; }
-        .tg-btn { background: #0088cc; color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .login-card { background: #111; padding: 40px 20px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #222; }
+        .v-code-badge { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 2px dashed var(--gold); margin: 25px 0; }
+        .tg-link-btn { background: #0088cc; color: white; border: none; padding: 18px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; text-decoration: none; display: block; }
 
-        /* الواجهة الرئيسية */
+        /* التطبيق الرئيسي */
         #mainApp { display: none; height: 100%; }
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* البروفايل */
+        /* البروفايل والمعرف التلقائي */
         .page { position: fixed; inset: 0; background: #000; display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
         .wallet-card { background: linear-gradient(145deg, #151515, #000); padding: 30px; border-radius: 25px; margin: 20px; border: 1px solid #333; text-align: center; }
-        .id-badge { background: #222; color: var(--gold); padding: 5px 15px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 10px; }
-        
-        /* أزرار الإجراءات */
-        .input-box { width: 90%; padding: 14px; margin: 10px auto; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; display: block; text-align: center; font-size: 16px; }
-        .btn-action { width: 90%; margin: 8px auto; padding: 14px; border-radius: 12px; border: none; font-weight: bold; display: block; cursor: pointer; }
+        .user-id { color: var(--gold); font-family: monospace; font-size: 14px; background: #222; padding: 5px 12px; border-radius: 10px; }
 
         /* الجالاكسي */
         #galaxyGame { position: fixed; inset: 0; background: #000; z-index: 6000; display: none; }
         #winPopup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 7000; display: none; pointer-events: none; }
-        .confetti { position: absolute; width: 6px; height: 6px; z-index: 6500; animation: fall 3s linear forwards; }
-        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-
-        nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: rgba(0,0,0,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 2000; }
-        .nav-icon { font-size: 24px; cursor: pointer; }
+        
+        nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 2000; }
     </style>
 </head>
 <body>
@@ -44,89 +37,78 @@
     <div id="loginPage">
         <div class="login-card">
             <h1 style="color:var(--gold); margin:0;">VTIK 🦋</h1>
-            <p style="color:#777; font-size:13px;">تأكيد الهوية عبر تيليجرام</p>
+            <p style="color:#666; font-size:12px; margin-top:5px;">اضغط على الزر لتفعيل حسابك تلقائياً</p>
             
-            <div class="v-code-box">
-                <span style="display:block; font-size:10px; color:var(--cyan); margin-bottom:5px;">كود التفعيل الخاص بك</span>
-                <b id="displayCode" style="color:var(--gold); font-size:32px; letter-spacing:3px;">----</b>
+            <div class="v-code-badge">
+                <span style="display:block; font-size:10px; color:var(--cyan); margin-bottom:8px;">كود التفعيل اللحظي</span>
+                <b id="activeCode" style="color:var(--gold); font-size:35px; letter-spacing:4px;">----</b>
             </div>
 
-            <button class="tg-btn" onclick="openTelegram()">إرسال الكود للبوت ✈️</button>
-            <div style="margin-top:20px;">
-                <small style="color:var(--cyan); animation: fade 1.5s infinite alternate;">بانتظار تفعيل الرابط...</small>
+            <a id="tgLink" href="#" target="_blank" class="tg-link-btn">تفعيل عبر تيليجرام ✈️</a>
+            
+            <div style="margin-top:25px;">
+                <small style="color:var(--cyan); opacity: 0.6;">بانتظار إشارة التفعيل من البوت...</small>
             </div>
         </div>
     </div>
 
     <div id="mainApp">
         <div id="mainFeed"></div>
-        <div onclick="openGalaxy()" style="position:fixed; bottom:85px; left:20px; width:60px; height:60px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; z-index:3000; box-shadow:0 0 15px rgba(255,215,0,0.4);">🎡</div>
+        <div onclick="openGalaxy()" style="position:fixed; bottom:85px; left:20px; width:60px; height:60px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; z-index:3000;">🎡</div>
 
         <div id="profilePage" class="page">
             <div class="wallet-card">
-                <div class="id-badge" id="userIdBadge">ID: --2026--</div>
-                <h2 id="userNameText" style="margin:5px 0 15px 0;">اسم المستخدم</h2>
-                <div style="font-size:38px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> <small style="font-size:14px;">EGP</small></div>
-                <div style="color:var(--gold); margin-top:5px;">🪙 <span id="coinBal">0</span> Coins</div>
+                <div style="margin-bottom:10px;"><span class="user-id" id="displayID">ID: --2026--</span></div>
+                <h2 id="displayName" style="margin:10px 0;">المستخدم</h2>
+                <div style="font-size:38px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> EGP</div>
+                <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
             </div>
 
             <div style="padding:0 20px;">
-                <input type="number" id="exAmount" class="input-box" placeholder="أدخل عدد الكوينز للتحويل">
-                <button onclick="processExchange()" class="btn-action" style="background:var(--gold)">💱 تحويل (1 كوين = 0.10 جنيه)</button>
+                <input type="number" id="exQty" style="width:90%; padding:15px; background:#111; border:1px solid #333; color:white; border-radius:10px; text-align:center; display:block; margin:auto;" placeholder="كم كوينز تريد تحويلها؟">
+                <button onclick="handleEx()" style="width:90%; margin:10px auto; padding:15px; background:var(--gold); border:none; border-radius:12px; font-weight:bold; display:block;">💱 تحويل الرصيد (الحد الأدنى 100)</button>
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
-                    <button onclick="toggleF('dF')" class="btn-action" style="background:var(--cyan); width:100%;">📥 إيداع</button>
-                    <button onclick="toggleF('wF')" class="btn-action" style="background:var(--red); color:white; width:100%;">📤 سحب</button>
-                </div>
-
-                <div id="dF" style="display:none; background:#111; padding:15px; border-radius:15px; margin-top:10px;">
-                    <input type="number" class="input-box" placeholder="المبلغ">
-                    <button onclick="alert('تم الطلب')" class="btn-action" style="background:#333; color:white;">تأكيد الإيداع</button>
-                </div>
-
-                <button onclick="userLogout()" class="btn-action" style="background:transparent; border:1px solid #444; color:#666; margin-top:40px;">تسجيل الخروج</button>
+                <button onclick="logout()" style="width:90%; margin:40px auto; padding:12px; background:transparent; border:1px solid #444; color:#555; border-radius:10px; display:block;">تسجيل الخروج 🚪</button>
             </div>
         </div>
 
         <nav>
-            <div class="nav-icon" onclick="hidePages()">🏠</div>
-            <div class="nav-icon" onclick="showPage('profilePage')">👤</div>
+            <div onclick="hidePages()" style="font-size:24px;">🏠</div>
+            <div onclick="document.getElementById('profilePage').style.display='block'" style="font-size:24px;">👤</div>
         </nav>
     </div>
 
     <div id="galaxyGame">
         <canvas id="galaxyCanvas"></canvas>
         <div id="winPopup">
-            <h1 id="winText" style="font-size:80px; color:var(--gold); margin:0; text-shadow:0 0 40px #000;">+0</h1>
-            <p style="color:var(--cyan); font-size:24px; font-weight:bold;">BONUS +2 EGP</p>
+            <h1 id="winVal" style="font-size:80px; color:var(--gold); margin:0;">+0</h1>
+            <p style="color:var(--cyan); font-size:24px;">BONUS +2 EGP</p>
         </div>
     </div>
 
     <script>
         const BOT_TOKEN = '7611311032:AAFjZ6x6o8yUat7Y-W3H4N8G9h8h8h8h8h8';
-        let db = JSON.parse(localStorage.getItem('vtik_auto_v5')) || { user:null, cash:0, coins:500, seq: Math.floor(100+Math.random()*899) };
-        let authCode = `V-${Math.floor(1000 + Math.random() * 9000)}`;
+        let db = JSON.parse(localStorage.getItem('vtik_v6_fixed')) || { user:null, cash:0, coins:450, seq: Math.floor(100+Math.random()*899) };
+        let code = `V-${Math.floor(1000 + Math.random() * 9000)}`;
 
-        function save() { localStorage.setItem('vtik_auto_v5', JSON.stringify(db)); updateUI(); }
+        function save() { localStorage.setItem('vtik_v6_fixed', JSON.stringify(db)); updateUI(); }
 
-        // --- التفعيل التلقائي ---
-        function openTelegram() { window.open(`https://t.me/vtik_egypt_bot?start=${authCode}`); }
+        // --- نظام التفعيل الصامت ---
+        function startAuth() {
+            document.getElementById('activeCode').innerText = code;
+            document.getElementById('tgLink').href = `https://t.me/vtik_egypt_bot?start=${code}`;
 
-        function checkAuth() {
-            document.getElementById('displayCode').innerText = authCode;
-            const poller = setInterval(async () => {
+            const check = setInterval(async () => {
                 try {
                     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
                     const d = await r.json();
-                    const msg = d.result.find(m => m.message?.text?.includes(authCode));
-                    if(msg) {
-                        clearInterval(poller);
-                        const fullName = msg.message.from.first_name || "User";
-                        const firstTwo = fullName.substring(0,2).toUpperCase();
-                        // توليد ID: أول حرفين + 2026 + تسلسل
-                        db.user = { 
-                            name: fullName, 
-                            vtikId: `${firstTwo}2026${db.seq}` 
+                    const entry = d.result.find(m => m.message?.text?.includes(code));
+                    if(entry) {
+                        clearInterval(check);
+                        const name = entry.message.from.first_name || "User";
+                        db.user = {
+                            name: name,
+                            vtikId: `${name.substring(0,2).toUpperCase()}2026${db.seq}`
                         };
                         save(); location.reload();
                     }
@@ -140,31 +122,28 @@
             if(db.user) {
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('userNameText').innerText = db.user.name;
-                document.getElementById('userIdBadge').innerText = `ID: ${db.user.vtikId}`;
+                document.getElementById('displayName').innerText = db.user.name;
+                document.getElementById('displayID').innerText = `ID: ${db.user.vtikId}`;
             }
         }
 
-        function userLogout() { if(confirm("خروج؟")) { db.user = null; save(); location.reload(); } }
+        function logout() { if(confirm("هل تريد تسجيل الخروج؟")) { db.user = null; save(); location.reload(); } }
 
-        // --- التحويل المرن ---
-        function processExchange() {
-            const amt = parseInt(document.getElementById('exAmount').value);
-            if(amt >= 100 && amt <= db.coins) {
-                db.coins -= amt;
-                db.cash += (amt * 0.1);
-                save(); alert(`تم تحويل ${amt} كوينز بنجاح!`);
-            } else { alert("أدخل رقم صحيح (100 فأكثر)"); }
+        function handleEx() {
+            const v = parseInt(document.getElementById('exQty').value);
+            if(v >= 100 && v <= db.coins) {
+                db.coins -= v; db.cash += (v * 0.1); save(); alert("تم التحويل!");
+            } else { alert("تأكد من الرصيد (أقل شيء 100 كوين)"); }
         }
 
         // --- الجالاكسي ---
-        let cvs=document.getElementById('galaxyCanvas'), ctx=cvs.getContext('2d'), pts=[], anim, intro=0;
+        let cvs=document.getElementById('galaxyCanvas'), ctx=cvs.getContext('2d'), pts=[], intro=0, anim;
         function openGalaxy() {
             document.getElementById('galaxyGame').style.display='block';
             cvs.width=innerWidth; cvs.height=innerHeight; intro=0; pts=[];
-            for(let i=0; i<150; i++){
+            for(let i=0;i<150;i++){
                 let phi=Math.acos(-1+(2*i)/150), th=Math.sqrt(150*Math.PI)*phi;
-                pts.push({v:Math.floor(Math.random()*900)+10, x:180*Math.cos(th)*Math.sin(phi), y:180*Math.sin(th)*Math.sin(phi), z:180*Math.cos(phi), c:i%2===0?'#fe2c55':'#25f4ee'});
+                pts.push({v:Math.floor(Math.random()*850)+15, x:180*Math.cos(th)*Math.sin(phi), y:180*Math.sin(th)*Math.sin(phi), z:180*Math.cos(phi), c:i%2===0?'#fe2c55':'#25f4ee'});
             }
             loop();
         }
@@ -185,37 +164,19 @@
             if(intro<1) return; cancelAnimationFrame(anim);
             const w=pts[Math.floor(Math.random()*pts.length)];
             db.coins+=w.v; db.cash+=2; save();
-            document.getElementById('winText').innerText=`+${w.v} C`;
+            document.getElementById('winVal').innerText=`+${w.v} C`;
             document.getElementById('winPopup').style.display='block';
-            for(let i=0;i<60;i++) spawnC();
             setTimeout(()=>{
                 document.getElementById('galaxyGame').style.display='none';
                 document.getElementById('winPopup').style.display='none';
             }, 1800);
-        };
-        function spawnC(){
-            const c=document.createElement('div'); c.className='confetti';
-            c.style.left=Math.random()*100+'vw'; c.style.backgroundColor=Math.random()>0.5?'var(--gold)':'white';
-            document.getElementById('galaxyGame').appendChild(c); setTimeout(()=>c.remove(),3000);
         }
 
-        function showPage(id){ hidePages(); document.getElementById(id).style.display='block'; }
-        function hidePages(){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
-        function toggleF(id){ const e=document.getElementById(id); e.style.display=e.style.display==='none'?'block':'none'; }
+        function hidePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
 
-        function loadVids(){
-            document.getElementById('mainFeed').innerHTML = `
-            <div class="video-container">
-                <video src="https://www.w3schools.com/html/mov_bbb.mp4" loop playsinline autoplay muted></video>
-                <div style="position:absolute; right:15px; bottom:120px; display:flex; flex-direction:column; gap:20px;">
-                    <button onclick="db.cash+=1; save();" style="background:none; border:none; font-size:35px;">❤️</button>
-                    <button onclick="alert('تم النسخ')" style="background:none; border:none; font-size:35px;">🚀</button>
-                </div>
-            </div>`;
-        }
-
-        if(!db.user) checkAuth();
-        updateUI(); loadVids();
+        if(!db.user) startAuth();
+        updateUI();
+        document.getElementById('mainFeed').innerHTML = `<div class="video-container"><video src="https://www.w3schools.com/html/mov_bbb.mp4" loop playsinline autoplay muted></video></div>`;
     </script>
 </body>
-</html>
+        </html>
