@@ -3,171 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Auto ID 2026</title>
+    <title>VTIK - The Galaxy Edition 2026</title>
     <style>
-        :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; }
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; --black: #000; --glass: rgba(255, 255, 255, 0.1); }
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
 
-        /* شاشة الدخول بالاسم فقط */
-        #loginPage { 
-            position: fixed; inset: 0; background: #000; z-index: 9999; 
-            display: flex; align-items: center; justify-content: center; text-align: center; 
-        }
-        .login-box { width: 85%; max-width: 350px; }
-        .input-name { 
-            width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #333; 
-            background: #111; color: white; font-size: 18px; text-align: center; margin-bottom: 20px; 
-            outline: none; box-sizing: border-box;
-        }
-        .input-name:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(37, 244, 238, 0.2); }
-        .start-btn { 
-            width: 100%; padding: 18px; border-radius: 50px; border: none; 
-            background: var(--red); color: white; font-weight: bold; font-size: 18px; cursor: pointer; 
-        }
+        /* شاشة الدخول */
+        #loginPage { position: fixed; inset: 0; background: radial-gradient(circle at center, #111, #000); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { width: 85%; max-width: 350px; text-align: center; }
+        .input-name { width: 100%; padding: 18px; border-radius: 15px; border: 1px solid #333; background: #111; color: white; font-size: 18px; text-align: center; margin-bottom: 20px; outline: none; }
+        .start-btn { width: 100%; padding: 18px; border-radius: 50px; border: none; background: var(--red); color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
 
         /* التطبيق الرئيسي */
         #mainApp { display: none; height: 100%; }
-        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-card { width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; }
+        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        .video-card { width: 100vw; height: 100vh; scroll-snap-align: start; position: relative; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* صفحة البروفايل */
-        .page { position: fixed; inset: 0; background: #000; display: none; z-index: 1000; padding-bottom: 80px; }
-        .profile-info { padding: 50px 20px; text-align: center; border-bottom: 1px solid #111; }
-        .user-id-tag { 
-            display: inline-block; margin-top: 10px; padding: 5px 15px; 
-            background: #111; color: var(--gold); border: 1px solid #222; 
-            border-radius: 20px; font-family: monospace; font-size: 14px; 
-        }
+        /* أزرار التفاعل الجانبية */
+        .side-actions { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+        .action-btn { background: none; border: none; color: white; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .action-btn span { font-size: 30px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+        .action-label { font-size: 12px; margin-top: 5px; }
+
+        /* الصفحات (البروفايل، الرفع) */
+        .page { position: fixed; inset: 0; background: #000; display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
+        .header-section { padding: 40px 20px; text-align: center; border-bottom: 1px solid #111; background: linear-gradient(180deg, #0a0a0a, #000); }
+        .id-badge { display: inline-block; padding: 5px 15px; background: #1a1a1a; color: var(--gold); border: 1px solid #333; border-radius: 20px; font-family: monospace; font-size: 13px; margin-top: 10px; }
 
         /* المحفظة */
-        .wallet-section { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: #111; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #1a1a1a; }
+        .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .stat-card { background: #0e0e0e; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #1a1a1a; }
 
-        nav { 
-            position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(0,0,0,0.9); 
-            display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 2000; 
-        }
-        .nav-btn { font-size: 24px; color: #555; cursor: pointer; }
-        .nav-btn.active { color: white; }
+        /* الجالاكسي */
+        #galaxyGame { position: fixed; inset: 0; background: #000; z-index: 8000; display: none; }
+        #winPopup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; display: none; }
+
+        /* شريط التنقل السفلي */
+        nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(0,0,0,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 2000; backdrop-filter: blur(10px); }
+        .nav-icon { font-size: 24px; color: #555; cursor: pointer; transition: 0.3s; }
+        .nav-icon.active { color: white; text-shadow: 0 0 10px #fff; }
+        .upload-center { background: linear-gradient(45deg, var(--cyan), var(--red)); width: 45px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 24px; }
+
+        /* معرض الفيديوهات في البروفايل */
+        .video-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; padding: 2px; }
+        .grid-item { background: #111; aspect-ratio: 9/16; overflow: hidden; position: relative; }
+        .grid-item video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
         <div class="login-box">
-            <h1 style="color:var(--gold); margin-bottom:10px;">VTIK 🦋</h1>
-            <p style="color:#666; margin-bottom:30px;">أدخل اسمك للبدء</p>
-            <input type="text" id="userNameInput" class="input-name" placeholder="اكتب اسمك هنا..." maxlength="15">
-            <button onclick="loginAndGenerateID()" class="start-btn">دخول وتوليد المعرف</button>
+            <div style="font-size: 70px; margin-bottom: 20px;">🦋</div>
+            <h1 style="color:var(--gold); margin:0;">VTIK</h1>
+            <p style="color:#555; margin-bottom: 35px;">اكتب اسمك وسنولد لك هويتك</p>
+            <input type="text" id="nameInput" class="input-name" placeholder="الاسم الكريم..." maxlength="12">
+            <button onclick="doLogin()" class="start-btn">بدء الرحلة 🚀</button>
         </div>
     </div>
 
     <div id="mainApp">
         <div id="mainFeed"></div>
 
+        <div id="uploadPage" class="page">
+            <div class="header-section"><h2>رفع فيديو جديد</h2></div>
+            <div style="padding: 40px 20px; text-align: center;">
+                <label for="videoFile" style="background:#1a1a1a; padding:40px; border-radius:20px; display:block; border:2px dashed #333; cursor:pointer;">
+                    <span style="font-size:40px; display:block;">📂</span> اختر فيديو من جهازك
+                    <input type="file" id="videoFile" accept="video/*" style="display:none;" onchange="handleUpload(event)">
+                </label>
+                <div id="upStatus" style="margin-top:20px; color:var(--cyan);"></div>
+            </div>
+        </div>
+
         <div id="profilePage" class="page">
-            <div class="profile-info">
-                <h2 id="displayUserName" style="margin:0;">اسم المستخدم</h2>
-                <div id="displayUserID" class="user-id-tag">ID: --2026--</div>
-            </div>
-
-            <div class="wallet-section">
-                <div class="card">
-                    <div style="font-size:12px; color:#555;">الرصيد</div>
-                    <div style="font-size:22px; font-weight:bold; color:var(--cyan);"><span id="cashVal">0.00</span> EGP</div>
+            <div class="header-section">
+                <h2 id="pName">--</h2>
+                <div id="pID" class="id-badge">ID: --2026--</div>
+                
+                <div class="wallet-grid">
+                    <div class="stat-card">
+                        <div style="font-size:11px; color:#666;">كاش</div>
+                        <div style="color:var(--cyan); font-weight:bold;"><span id="pCash">0.00</span> EGP</div>
+                    </div>
+                    <div class="stat-card">
+                        <div style="font-size:11px; color:#666;">كوينز</div>
+                        <div style="color:var(--gold); font-weight:bold;"><span id="pCoins">0</span> 🪙</div>
+                    </div>
                 </div>
-                <div class="card">
-                    <div style="font-size:12px; color:#555;">الكوينز</div>
-                    <div style="font-size:22px; font-weight:bold; color:var(--gold);"><span id="coinVal">0</span> 🪙</div>
-                </div>
             </div>
+            
+            <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid #111;">فيديوهاتي</div>
+            <div id="myVideoGrid" class="video-grid"></div>
+            
+            <button onclick="logout()" style="width:100%; padding:20px; background:none; border:none; color:#333; font-size:13px; margin-top:20px;">تسجيل الخروج</button>
+        </div>
 
-            <button onclick="logout()" style="width:80%; margin:40px auto; padding:15px; background:none; border:1px solid #222; color:#444; border-radius:15px; display:block;">تسجيل الخروج</button>
+        <div id="galaxyGame">
+            <canvas id="galaxyCanvas"></canvas>
+            <div id="winPopup">
+                <h1 id="winVal" style="font-size:80px; color:var(--gold); margin:0;">+0</h1>
+                <p style="color:var(--cyan); font-size:20px;">BONUS +2 EGP</p>
+            </div>
+            <button onclick="closeGalaxy()" style="position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.5); border:none; color:white; padding:10px 20px; border-radius:10px;">إغلاق</button>
         </div>
 
         <nav>
-            <div class="nav-btn active" onclick="showFeed()">🏠</div>
-            <div class="nav-btn" onclick="showProfile()">👤</div>
+            <div class="nav-icon active" onclick="navTo('home')">🏠</div>
+            <div class="upload-center" onclick="navTo('upload')">+</div>
+            <div onclick="openGalaxy()" style="font-size:24px; cursor:pointer;">🎡</div>
+            <div class="nav-icon" onclick="navTo('profile')">👤</div>
         </nav>
     </div>
 
     <script>
-        // استرجاع البيانات المخزنة
-        let db = JSON.parse(localStorage.getItem('vtik_db_v8')) || { user: null, cash: 0, coins: 150 };
+        // داتابيز محلية
+        let db = JSON.parse(localStorage.getItem('vtik_mega_db')) || { 
+            user: null, cash: 0, coins: 500, seq: Math.floor(100+Math.random()*899), 
+            videos: [
+                {url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: 120, user: 'VTIK Admin'}
+            ] 
+        };
 
-        function loginAndGenerateID() {
-            const name = document.getElementById('userNameInput').value.trim();
-            if (name.length < 2) {
-                alert("يرجى كتابة اسم صحيح");
-                return;
-            }
+        function save() { localStorage.setItem('vtik_mega_db', JSON.stringify(db)); refreshUI(); }
 
-            // توليد الـ ID أوتوماتيكياً (أول حرفين + 2026 + رقم عشوائي 4 أرقام)
-            const prefix = name.substring(0, 2).toUpperCase();
-            const randomNum = Math.floor(1000 + Math.random() * 9000);
-            const generatedID = `${prefix}2026${randomNum}`;
-
-            db.user = {
-                name: name,
-                id: generatedID
-            };
-
-            saveAndRefresh();
+        function doLogin() {
+            const name = document.getElementById('nameInput').value.trim();
+            if(name.length < 2) return alert("الاسم قصير جداً");
+            
+            const prefix = name.substring(0,2).toUpperCase();
+            db.user = { name: name, id: `${prefix}2026${db.seq}` };
+            save();
         }
 
-        function saveAndRefresh() {
-            localStorage.setItem('vtik_db_v8', JSON.stringify(db));
-            updateUI();
-        }
-
-        function updateUI() {
-            if (db.user) {
+        function refreshUI() {
+            if(db.user) {
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
-                
-                document.getElementById('displayUserName').innerText = db.user.name;
-                document.getElementById('displayUserID').innerText = `ID: ${db.user.id}`;
-                document.getElementById('cashVal').innerText = db.cash.toFixed(2);
-                document.getElementById('coinVal').innerText = db.coins;
-                
+                document.getElementById('pName').innerText = db.user.name;
+                document.getElementById('pID').innerText = `ID: ${db.user.id}`;
+                document.getElementById('pCash').innerText = db.cash.toFixed(2);
+                document.getElementById('pCoins').innerText = db.coins;
                 renderFeed();
+                renderProfileGrid();
             }
         }
 
         function renderFeed() {
-            document.getElementById('mainFeed').innerHTML = `
+            const feed = document.getElementById('mainFeed');
+            feed.innerHTML = db.videos.map((vid, idx) => `
                 <div class="video-card">
-                    <video src="https://www.w3schools.com/html/mov_bbb.mp4" loop playsinline autoplay muted></video>
-                    <div style="position:absolute; right:20px; bottom:120px; display:flex; flex-direction:column; gap:25px; font-size:30px;">
-                        <span>❤️</span>
-                        <span>🚀</span>
+                    <video src="${vid.url}" loop onclick="togglePlay(this)" playsinline></video>
+                    <div class="side-actions">
+                        <div class="action-btn" onclick="addLike(${idx})"><span>❤️</span><div class="action-label">${vid.likes}</div></div>
+                        <div class="action-btn" onclick="alert('تم نسخ الرابط')"><span>🚀</span><div class="action-label">مشاركة</div></div>
                     </div>
-                </div>`;
+                    <div style="position:absolute; bottom:85px; left:15px; text-shadow:0 0 5px #000;">
+                        <b>@${vid.user}</b>
+                        <p style="font-size:14px; margin:5px 0;">VTIK Experience 2026 🦋</p>
+                    </div>
+                </div>
+            `).join('');
+            // تشغيل أول فيديو تلقائياً
+            setTimeout(() => { if(feed.querySelector('video')) feed.querySelector('video').play(); }, 500);
         }
 
-        function showProfile() {
-            document.getElementById('profilePage').style.display = 'block';
-            document.querySelectorAll('.nav-btn')[1].classList.add('active');
-            document.querySelectorAll('.nav-btn')[0].classList.remove('active');
+        function renderProfileGrid() {
+            const myVids = db.videos.filter(v => v.user === db.user.name);
+            document.getElementById('myVideoGrid').innerHTML = myVids.map(v => `
+                <div class="grid-item"><video src="${v.url}" muted></video></div>
+            `).join('');
         }
 
-        function showFeed() {
-            document.getElementById('profilePage').style.display = 'none';
-            document.querySelectorAll('.nav-btn')[0].classList.add('active');
-            document.querySelectorAll('.nav-btn')[1].classList.remove('active');
+        function handleUpload(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            document.getElementById('upStatus').innerText = "جاري المعالجة...";
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                db.videos.unshift({ url: event.target.result, likes: 0, user: db.user.name });
+                db.coins += 50; // مكافأة رفع فيديو
+                save();
+                document.getElementById('upStatus').innerText = "تم الرفع بنجاح! +50 كوين";
+                setTimeout(() => navTo('home'), 1500);
+            };
+            reader.readAsDataURL(file);
         }
 
-        function logout() {
-            if (confirm("هل تريد الخروج؟ سيتم مسح بيانات الدخول.")) {
-                db.user = null;
-                localStorage.setItem('vtik_db_v8', JSON.stringify(db));
-                location.reload();
+        function addLike(idx) {
+            db.videos[idx].likes++;
+            db.cash += 0.01; // مكافأة اللايك
+            save();
+        }
+
+        function togglePlay(v) { v.paused ? v.play() : v.pause(); }
+
+        function navTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
+            if(page === 'profile') document.getElementById('profilePage').style.display = 'block';
+            if(page === 'upload') document.getElementById('uploadPage').style.display = 'block';
+            // تحديث أيقونة النشط
+            if(page === 'home') document.querySelectorAll('.nav-icon')[0].classList.add('active');
+            if(page === 'profile') document.querySelectorAll('.nav-icon')[1].classList.add('active');
+        }
+
+        // --- الجالاكسي المحدث ---
+        let cvs = document.getElementById('galaxyCanvas'), ctx = cvs.getContext('2d'), pts = [], anim, intro = 0;
+        function openGalaxy() {
+            document.getElementById('galaxyGame').style.display = 'block';
+            cvs.width = innerWidth; cvs.height = innerHeight; pts = []; intro = 0;
+            for(let i=0; i<150; i++) {
+                let phi = Math.acos(-1+(2*i)/150), th = Math.sqrt(150*Math.PI)*phi;
+                pts.push({v:Math.floor(Math.random()*700)+50, x:180*Math.cos(th)*Math.sin(phi), y:180*Math.sin(th)*Math.sin(phi), z:180*Math.cos(phi), c:i%2===0? '#fe2c55':'#25f4ee'});
             }
+            gLoop();
+        }
+        function gLoop() {
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
+            intro = Math.min(1, intro + 0.02);
+            let r = Date.now() * 0.0008;
+            pts.forEach(p => {
+                let d = 1200 * (1-intro), x = p.x*Math.cos(r)-p.z*Math.sin(r), z = p.x*Math.sin(r)+p.z*Math.cos(r)-d, per = 400/(400-z);
+                if(per > 0) {
+                    ctx.beginPath(); ctx.arc(x*per+cvs.width/2, p.y*per+cvs.height/2, 6*per*intro, 0, Math.PI*2);
+                    ctx.fillStyle = p.c; ctx.fill();
+                }
+            });
+            anim = requestAnimationFrame(gLoop);
+        }
+        cvs.onclick = () => {
+            if(intro < 1) return;
+            cancelAnimationFrame(anim);
+            const prize = pts[Math.floor(Math.random()*pts.length)];
+            db.coins += prize.v; db.cash += 2; save();
+            document.getElementById('winVal').innerText = `+${prize.v} C`;
+            document.getElementById('winPopup').style.display = 'block';
+            setTimeout(closeGalaxy, 2000);
+        };
+        function closeGalaxy() { 
+            document.getElementById('galaxyGame').style.display = 'none'; 
+            document.getElementById('winPopup').style.display = 'none'; 
         }
 
-        // تشغيل الفحص عند التحميل
-        updateUI();
+        function logout() { if(confirm("خروج؟")) { db.user = null; save(); location.reload(); } }
+
+        refreshUI();
     </script>
 </body>
 </html>
