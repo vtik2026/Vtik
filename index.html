@@ -1,36 +1,196 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VTIK - Telegram Auth</title>
+    <style>
+        :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #000; --tg-blue: #0088cc; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--black); color: white; font-family: sans-serif; overflow: hidden; }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+        /* شاشة تسجيل الدخول */
+        #loginPage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .login-card { 
+            background: #111; padding: 30px; border-radius: 25px; width: 85%; 
+            max-width: 350px; text-align: center; border: 1px solid #333; 
+        }
+        .login-input { 
+            width: 100%; padding: 15px; margin: 20px 0; background: #222; 
+            border: 1px solid #444; color: white; border-radius: 12px; text-align: center; font-size: 18px;
+        }
+        .tg-connect-btn {
+            background: var(--tg-blue); color: white; border: none; padding: 15px; 
+            border-radius: 12px; width: 100%; font-weight: bold; display: flex; 
+            align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+        }
+        .tg-icon { width: 25px; height: 25px; fill: white; }
 
-<title>VTIK</title>
+        /* نظام الفيديو والتعليقات (يوتيوب ستايل) */
+        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .video-container { 
+            position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; 
+            background: #000; display: flex; align-items: center; justify-content: center;
+            transition: all 0.4s ease-in-out;
+        }
+        /* وضعية التوسط المصغر */
+        .video-container.mini-mode { height: 40vh; }
+        video { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
+        .mini-mode video { width: auto; max-width: 100%; height: 100%; object-fit: contain; }
 
-<link rel="stylesheet" href="css/style.css">
+        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+        .mini-mode .side-icons { display: none; }
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        /* لوحة التعليقات */
+        #commentPanel {
+            position: fixed; bottom: -65vh; left: 0; width: 100%; height: 60vh;
+            background: #151515; border-radius: 20px 20px 0 0; z-index: 5000;
+            transition: bottom 0.4s ease; display: flex; flex-direction: column; border-top: 1px solid #333;
+        }
+        #commentPanel.active { bottom: 0; }
+        .comments-list { flex: 1; overflow-y: auto; padding: 15px; }
+        .comment-item { margin-bottom: 12px; font-size: 14px; border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .comment-user { color: var(--tiktok-blue); font-size: 12px; display: block; margin-bottom: 3px; }
 
+        .input-area { padding: 15px; background: #000; display: flex; gap: 10px; }
+        .input-area input { flex: 1; padding: 12px; background: #222; border: none; color: white; border-radius: 20px; outline: none; }
+        .send-btn { background: var(--tiktok-blue); border: none; width: 40px; height: 40px; border-radius: 50%; font-weight: bold; }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; z-index: 4000; border-top: 0.5px solid #222; }
+    </style>
 </head>
-
 <body>
 
-<div class="login-box">
+    <div id="loginPage">
+        <div class="login-card">
+            <h2 style="color: var(--gold);">تسجيل جديد</h2>
+            <p style="font-size: 12px; color: #888;">أدخل اسمك واضغط على أيقونة تيليجرام</p>
+            <input type="text" id="userNameInput" class="login-input" placeholder="اكتب اسمك هنا">
+            
+            <button class="tg-connect-btn" onclick="startTelegramAuth()">
+                <svg class="tg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.88.03-.24.36-.49.99-.75 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.46-1.73 4.96-1.74.11 0 .36.03.52.16.13.11.17.26.19.37.02.12.02.24.01.37z"/></svg>
+                اتمام التسجيل عبر تيليجرام
+            </button>
+        </div>
+    </div>
 
-<img src="images/logo.png" class="logo">
+    <div id="mainFeed"></div>
 
-<h2>VTIK</h2>
+    <div id="commentPanel">
+        <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+            <span>التعليقات</span>
+            <button onclick="closeComments()" style="background:none; border:none; color:white; font-size:22px;">✕</button>
+        </div>
+        <div class="comments-list" id="commentsList"></div>
+        <div class="input-area">
+            <input type="text" id="commentInput" placeholder="أضف تعليقك بصفتك @VtikID...">
+            <button class="send-btn" onclick="sendComment()">▲</button>
+        </div>
+    </div>
 
-<input id="email" placeholder="Enter your email">
+    <nav class="nav-bar">
+        <button style="background:none; border:none; color:white; font-size:24px;" onclick="location.reload()">🏠</button>
+        <div style="width:45px; height:30px; background:white; border-radius:8px; display:flex; align-items:center; justify-content:center; color:black; font-weight:bold;" id="upBtn">➕</div>
+        <button style="background:none; border:none; color:white; font-size:24px;" onclick="alert('معرفك: ' + db.user.vtikId)">👤</button>
+    </nav>
 
-<button onclick="login()">Login</button>
+    <script>
+        let db = JSON.parse(localStorage.getItem('vtik_tg_v26')) || { user: null, vids: [], comments: {} };
 
-<p id="msg"></p>
+        function save() { localStorage.setItem('vtik_tg_v26', JSON.stringify(db)); }
 
-</div>
+        // --- عملية التسجيل عبر تيليجرام ---
+        function startTelegramAuth() {
+            const name = document.getElementById('userNameInput').value.trim();
+            if(!name) return alert("برجاء كتابة اسمك أولاً!");
 
-<script src="js/supabase.js"></script>
-<script src="js/auth.js"></script>
+            // 1. توليد المعرف المطلوب
+            const vtikId = `${name}202601@vtik`;
+            
+            // 2. حفظ البيانات محلياً
+            db.user = { name: name, vtikId: vtikId };
+            save();
 
+            // 3. التوجيه لتيليجرام (ضع رابط البوت أو حسابك هنا)
+            const telegramLink = "https://t.me/your_bot_or_username"; // استبدل هذا برابطك
+            window.open(telegramLink, '_blank');
+
+            // 4. إغلاق شاشة الدخول وبدء التطبيق
+            checkStatus();
+        }
+
+        function checkStatus() {
+            if(db.user) {
+                document.getElementById('loginPage').style.display = 'none';
+                renderFeed();
+            }
+        }
+
+        // --- نظام الفيديوهات والتعليقات ---
+        let activeVidId = null;
+        function openComments(vidId) {
+            activeVidId = vidId;
+            document.getElementById(`con_${vidId}`).classList.add('mini-mode');
+            document.getElementById('commentPanel').classList.add('active');
+            document.getElementById('mainFeed').style.overflow = 'hidden';
+            displayComments();
+        }
+
+        function closeComments() {
+            document.querySelectorAll('.video-container').forEach(c => c.classList.remove('mini-mode'));
+            document.getElementById('commentPanel').classList.remove('active');
+            document.getElementById('mainFeed').style.overflowY = 'scroll';
+        }
+
+        function sendComment() {
+            const input = document.getElementById('commentInput');
+            if(!input.value.trim()) return;
+            if(!db.comments[activeVidId]) db.comments[activeVidId] = [];
+            db.comments[activeVidId].push({ sender: db.user.vtikId, text: input.value });
+            input.value = ''; save(); displayComments();
+        }
+
+        function displayComments() {
+            const list = document.getElementById('commentsList');
+            list.innerHTML = '';
+            const items = db.comments[activeVidId] || [];
+            items.reverse().forEach(c => {
+                list.innerHTML += `<div class="comment-item"><span class="comment-user">${c.sender}</span>${c.text}</div>`;
+            });
+        }
+
+        function renderFeed() {
+            const feed = document.getElementById('mainFeed');
+            const vids = db.vids.length > 0 ? db.vids : [{url: 'https://www.w3schools.com/html/mov_bbb.mp4', id: 'v1'}];
+            feed.innerHTML = '';
+            vids.forEach((v, i) => {
+                const vidId = v.id || `v${i}`;
+                feed.innerHTML += `
+                <div class="video-container" id="con_${vidId}">
+                    <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                    <div class="side-icons">
+                        <button style="background:none; border:none; color:white; font-size:30px;" onclick="alert('Liked')">❤️</button>
+                        <button style="background:none; border:none; color:white; font-size:30px;" onclick="openComments('${vidId}')">💬</button>
+                    </div>
+                </div>`;
+            });
+            initObs();
+        }
+
+        function initObs() {
+            const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? e.target.play() : e.target.pause()), {threshold:0.8});
+            document.querySelectorAll('video').forEach(v => obs.observe(v));
+        }
+
+        document.getElementById('upBtn').onclick = () => {
+            let i = document.createElement('input'); i.type='file'; i.accept='video/*';
+            i.onchange = e => { db.vids.push({url: URL.createObjectURL(e.target.files[0]), id: 'v'+Date.now()}); save(); renderFeed(); };
+            i.click();
+        };
+
+        checkStatus();
+    </script>
 </body>
 </html>
