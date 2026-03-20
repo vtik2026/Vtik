@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Telegram Auth</title>
+    <title>VTIK - Live Sync</title>
     <style>
-        :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; --black: #000; }
+        :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; }
         body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
 
-        /* شاشة الدخول - لا يوجد بها أي إدخال نصي */
-        #loginPage { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .login-card { background: #111; padding: 40px 20px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid #222; }
-        .v-code-badge { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 2px dashed var(--gold); margin: 25px 0; }
-        .tg-link-btn { background: #0088cc; color: white; border: none; padding: 18px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; text-decoration: none; display: block; }
+        /* شاشة الدخول - تظهر دائماً إذا انتهت الجلسة */
+        #loginPage { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .tg-pulse-btn { 
+            background: #0088cc; color: white; border: none; padding: 20px 40px; border-radius: 50px; 
+            font-weight: bold; cursor: pointer; font-size: 18px; box-shadow: 0 0 20px rgba(0, 136, 204, 0.4);
+        }
 
         /* التطبيق الرئيسي */
         #mainApp { display: none; height: 100%; }
@@ -20,163 +21,108 @@
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* البروفايل والمعرف التلقائي */
+        /* البروفايل والمعرف المتغير */
         .page { position: fixed; inset: 0; background: #000; display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
-        .wallet-card { background: linear-gradient(145deg, #151515, #000); padding: 30px; border-radius: 25px; margin: 20px; border: 1px solid #333; text-align: center; }
-        .user-id { color: var(--gold); font-family: monospace; font-size: 14px; background: #222; padding: 5px 12px; border-radius: 10px; }
+        .wallet-card { background: #111; padding: 40px 20px; border-radius: 30px; margin: 20px; border: 1px solid #222; text-align: center; }
+        .user-tag { color: var(--gold); font-family: monospace; font-size: 14px; display: block; margin-top: 10px; }
 
-        /* الجالاكسي */
-        #galaxyGame { position: fixed; inset: 0; background: #000; z-index: 6000; display: none; }
-        #winPopup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 7000; display: none; pointer-events: none; }
-        
-        nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 2000; }
+        nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 2000; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
-        <div class="login-card">
-            <h1 style="color:var(--gold); margin:0;">VTIK 🦋</h1>
-            <p style="color:#666; font-size:12px; margin-top:5px;">اضغط على الزر لتفعيل حسابك تلقائياً</p>
-            
-            <div class="v-code-badge">
-                <span style="display:block; font-size:10px; color:var(--cyan); margin-bottom:8px;">كود التفعيل اللحظي</span>
-                <b id="activeCode" style="color:var(--gold); font-size:35px; letter-spacing:4px;">----</b>
-            </div>
-
-            <a id="tgLink" href="#" target="_blank" class="tg-link-btn">تفعيل عبر تيليجرام ✈️</a>
-            
-            <div style="margin-top:25px;">
-                <small style="color:var(--cyan); opacity: 0.6;">بانتظار إشارة التفعيل من البوت...</small>
-            </div>
+        <div>
+            <span style="font-size: 50px; display:block; margin-bottom:10px;">🦋</span>
+            <h2 style="margin-bottom:40px;">جلسة VTIK منتهية</h2>
+            <button onclick="requestTelegramAccess()" class="tg-pulse-btn">تفعيل الدخول عبر تيليجرام ✈️</button>
+            <p style="font-size: 11px; color: #444; margin-top: 20px;">يجب التفعيل في كل مرة يتم فيها إنهاء جلسة تيليجرام</p>
         </div>
     </div>
 
     <div id="mainApp">
         <div id="mainFeed"></div>
-        <div onclick="openGalaxy()" style="position:fixed; bottom:85px; left:20px; width:60px; height:60px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; z-index:3000;">🎡</div>
+        <div onclick="openGalaxy()" style="position:fixed; bottom:90px; left:20px; width:55px; height:55px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:25px; z-index:3000;">🎡</div>
 
         <div id="profilePage" class="page">
             <div class="wallet-card">
-                <div style="margin-bottom:10px;"><span class="user-id" id="displayID">ID: --2026--</span></div>
-                <h2 id="displayName" style="margin:10px 0;">المستخدم</h2>
-                <div style="font-size:38px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> EGP</div>
-                <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
-            </div>
-
-            <div style="padding:0 20px;">
-                <input type="number" id="exQty" style="width:90%; padding:15px; background:#111; border:1px solid #333; color:white; border-radius:10px; text-align:center; display:block; margin:auto;" placeholder="كم كوينز تريد تحويلها؟">
-                <button onclick="handleEx()" style="width:90%; margin:10px auto; padding:15px; background:var(--gold); border:none; border-radius:12px; font-weight:bold; display:block;">💱 تحويل الرصيد (الحد الأدنى 100)</button>
+                <h2 id="uNameDisplay" style="margin:0;">المستخدم</h2>
+                <span id="uIDDisplay" class="user-tag">--2026--</span>
                 
-                <button onclick="logout()" style="width:90%; margin:40px auto; padding:12px; background:transparent; border:1px solid #444; color:#555; border-radius:10px; display:block;">تسجيل الخروج 🚪</button>
+                <div style="margin-top:30px;">
+                    <div style="font-size:40px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> EGP</div>
+                    <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
+                </div>
+            </div>
+            <div style="padding: 0 20px;">
+                <button onclick="logoutForce()" style="width:100%; padding:15px; background:#222; color:#777; border:none; border-radius:15px;">إنهاء الجلسة الحالية</button>
             </div>
         </div>
 
         <nav>
-            <div onclick="hidePages()" style="font-size:24px;">🏠</div>
-            <div onclick="document.getElementById('profilePage').style.display='block'" style="font-size:24px;">👤</div>
+            <div onclick="hidePages()" style="font-size:26px;">🏠</div>
+            <div onclick="document.getElementById('profilePage').style.display='block'" style="font-size:26px;">👤</div>
         </nav>
-    </div>
-
-    <div id="galaxyGame">
-        <canvas id="galaxyCanvas"></canvas>
-        <div id="winPopup">
-            <h1 id="winVal" style="font-size:80px; color:var(--gold); margin:0;">+0</h1>
-            <p style="color:var(--cyan); font-size:24px;">BONUS +2 EGP</p>
-        </div>
     </div>
 
     <script>
         const BOT_TOKEN = '7611311032:AAFjZ6x6o8yUat7Y-W3H4N8G9h8h8h8h8h8';
-        let db = JSON.parse(localStorage.getItem('vtik_v6_fixed')) || { user:null, cash:0, coins:450, seq: Math.floor(100+Math.random()*899) };
-        let code = `V-${Math.floor(1000 + Math.random() * 9000)}`;
+        
+        // استخدام sessionStorage بدلاً من localStorage لجعل الجلسة تنتهي بإغلاق المتصفح أو التحديث
+        let session = JSON.parse(sessionStorage.getItem('vtik_active_session'));
+        // الرصيد يظل في localStorage لأنه مرتبط بالحساب وليس بالجلسة
+        let wallet = JSON.parse(localStorage.getItem('vtik_wallet')) || { cash:0, coins:300, seq: Math.floor(100+Math.random()*899) };
 
-        function save() { localStorage.setItem('vtik_v6_fixed', JSON.stringify(db)); updateUI(); }
+        function requestTelegramAccess() {
+            let tempCode = `AUTH-${Math.floor(1000+Math.random()*8999)}`;
+            window.open(`https://t.me/vtik_egypt_bot?start=${tempCode}`);
 
-        // --- نظام التفعيل الصامت ---
-        function startAuth() {
-            document.getElementById('activeCode').innerText = code;
-            document.getElementById('tgLink').href = `https://t.me/vtik_egypt_bot?start=${code}`;
-
-            const check = setInterval(async () => {
+            const poller = setInterval(async () => {
                 try {
                     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
                     const d = await r.json();
-                    const entry = d.result.find(m => m.message?.text?.includes(code));
-                    if(entry) {
-                        clearInterval(check);
-                        const name = entry.message.from.first_name || "User";
-                        db.user = {
-                            name: name,
-                            vtikId: `${name.substring(0,2).toUpperCase()}2026${db.seq}`
+                    const msg = d.result.find(m => m.message?.text?.includes(tempCode));
+                    
+                    if(msg) {
+                        clearInterval(poller);
+                        const teleName = msg.message.from.first_name || "User";
+                        
+                        // إنشاء الجلسة المؤقتة
+                        session = {
+                            name: teleName,
+                            id: `${teleName.substring(0,2).toUpperCase()}2026${wallet.seq}`,
+                            active: true
                         };
-                        save(); location.reload();
+                        
+                        sessionStorage.setItem('vtik_active_session', JSON.stringify(session));
+                        location.reload();
                     }
                 } catch(e){}
             }, 3000);
         }
 
-        function updateUI() {
-            document.getElementById('cashBal').innerText = db.cash.toFixed(2);
-            document.getElementById('coinBal').innerText = db.coins;
-            if(db.user) {
+        function checkAuth() {
+            if(session && session.active) {
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('displayName').innerText = db.user.name;
-                document.getElementById('displayID').innerText = `ID: ${db.user.vtikId}`;
+                
+                document.getElementById('uNameDisplay').innerText = session.name;
+                document.getElementById('uIDDisplay').innerText = `ID: ${session.id}`;
+                document.getElementById('cashBal').innerText = wallet.cash.toFixed(2);
+                document.getElementById('coinBal').innerText = wallet.coins;
             }
         }
 
-        function logout() { if(confirm("هل تريد تسجيل الخروج؟")) { db.user = null; save(); location.reload(); } }
-
-        function handleEx() {
-            const v = parseInt(document.getElementById('exQty').value);
-            if(v >= 100 && v <= db.coins) {
-                db.coins -= v; db.cash += (v * 0.1); save(); alert("تم التحويل!");
-            } else { alert("تأكد من الرصيد (أقل شيء 100 كوين)"); }
+        function logoutForce() {
+            sessionStorage.clear(); // مسح الجلسة المؤقتة
+            location.reload();
         }
 
-        // --- الجالاكسي ---
-        let cvs=document.getElementById('galaxyCanvas'), ctx=cvs.getContext('2d'), pts=[], intro=0, anim;
-        function openGalaxy() {
-            document.getElementById('galaxyGame').style.display='block';
-            cvs.width=innerWidth; cvs.height=innerHeight; intro=0; pts=[];
-            for(let i=0;i<150;i++){
-                let phi=Math.acos(-1+(2*i)/150), th=Math.sqrt(150*Math.PI)*phi;
-                pts.push({v:Math.floor(Math.random()*850)+15, x:180*Math.cos(th)*Math.sin(phi), y:180*Math.sin(th)*Math.sin(phi), z:180*Math.cos(phi), c:i%2===0?'#fe2c55':'#25f4ee'});
-            }
-            loop();
-        }
-        function loop(){
-            ctx.fillStyle='#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
-            intro=Math.min(1, intro+0.02);
-            let r=Date.now()*0.001;
-            pts.forEach(p=>{
-                let d=1500*(1-intro), x=p.x*Math.cos(r)-p.z*Math.sin(r), z=p.x*Math.sin(r)+p.z*Math.cos(r)-d, per=400/(400-z);
-                if(per>0){
-                    ctx.beginPath(); ctx.arc(x*per+cvs.width/2, p.y*per+cvs.height/2, 7*per*intro, 0, Math.PI*2);
-                    ctx.fillStyle=p.c; ctx.fill();
-                }
-            });
-            anim=requestAnimationFrame(loop);
-        }
-        cvs.onclick=()=>{
-            if(intro<1) return; cancelAnimationFrame(anim);
-            const w=pts[Math.floor(Math.random()*pts.length)];
-            db.coins+=w.v; db.cash+=2; save();
-            document.getElementById('winVal').innerText=`+${w.v} C`;
-            document.getElementById('winPopup').style.display='block';
-            setTimeout(()=>{
-                document.getElementById('galaxyGame').style.display='none';
-                document.getElementById('winPopup').style.display='none';
-            }, 1800);
-        }
+        // تشغيل الفحص
+        checkAuth();
 
-        function hidePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
-
-        if(!db.user) startAuth();
-        updateUI();
+        // محتوى افتراضي
         document.getElementById('mainFeed').innerHTML = `<div class="video-container"><video src="https://www.w3schools.com/html/mov_bbb.mp4" loop playsinline autoplay muted></video></div>`;
     </script>
 </body>
-        </html>
+    </html>
