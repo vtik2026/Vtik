@@ -3,39 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK PRO - Ultra Edition</title>
+    <title>VTIK EGYPT - 2026</title>
     <style>
         :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; --black: #000; }
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
 
-        /* تسجيل الدخول */
-        #loginPage { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        /* شاشة الدخول - ثابتة بدون سكرول */
+        #loginPage { 
+            position: fixed; inset: 0; background: #000; z-index: 9999; 
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; /* منع السكرول تماماً هنا */
+        }
         .login-card { background: #111; padding: 30px; border-radius: 25px; width: 85%; text-align: center; border: 1px solid #333; }
         .tg-btn { background: #0088cc; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; }
         
-        /* الفيديوهات والواجهة */
+        /* الفيد الرئيسي - يظهر فقط بعد التسجيل */
+        #mainContent { display: none; height: 100%; }
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
         .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 100; }
         .icon-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; font-size: 24px; backdrop-filter: blur(5px); }
-        .side-icons span { font-size: 11px; }
-
-        /* أنيميشن القلب */
-        @keyframes heartFly { 0% { transform: scale(0); opacity: 1; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: translateY(-100px) scale(1); opacity: 0; } }
-        .heart-anim { position: absolute; font-size: 80px; color: var(--red); pointer-events: none; z-index: 1000; animation: heartFly 0.8s ease-out forwards; }
 
         /* البروفايل */
         .page { position: fixed; inset: 0; background: #000; display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
         .wallet-card { background: linear-gradient(135deg, #1a1a1a, #050505); padding: 30px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; }
-        .btn-action { width: 90%; margin: 5px auto; padding: 12px; border-radius: 10px; border: none; font-weight: bold; display: block; }
-        .input-box { width: 90%; padding: 12px; margin: 5px auto; background: #222; border: 1px solid #444; color: white; border-radius: 8px; display: block; text-align: center; }
+        .input-box { width: 90%; padding: 12px; margin: 8px auto; background: #222; border: 1px solid #444; color: white; border-radius: 8px; display: block; text-align: center; }
+        .btn-action { width: 90%; margin: 5px auto; padding: 12px; border-radius: 10px; border: none; font-weight: bold; display: block; cursor: pointer; }
 
-        /* الجالاكسي والاحتفال */
+        /* أنيميشن الجالاكسي */
         #galaxyGame { position: fixed; inset: 0; background: #000; z-index: 6000; display: none; }
-        #winPopup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 7000; display: none; }
-        .confetti { position: absolute; width: 8px; height: 8px; z-index: 6500; animation: fall 3s linear forwards; }
+        #winPopup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 7000; display: none; pointer-events: none; }
+        .confetti { position: absolute; width: 8px; height: 8px; z-index: 6500; animation: fall 2.5s linear forwards; }
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
         nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 2000; }
@@ -45,105 +45,87 @@
 
     <div id="loginPage">
         <div class="login-card">
-            <h2 style="color:var(--gold)">VTIK EGYPT 🦋</h2>
-            <div id="inputBoxArea">
-                <input type="text" id="regName" class="input-box" placeholder="أدخل اسمك للملف الشخصي">
-                <button class="tg-btn" onclick="requestNewToken()">توليد كود التفعيل 🔑</button>
+            <h2 style="color:var(--gold); margin-bottom: 20px;">VTIK 🦋</h2>
+            <div id="step1">
+                <input type="text" id="regName" class="input-box" placeholder="اكتب اسمك للملف الشخصي">
+                <button class="tg-btn" onclick="generateCode()">طلب كود التفعيل 🔑</button>
             </div>
-            <div id="verifyArea" style="display:none; margin-top:15px;">
-                <p>أرسل هذا الكود للبوت لتسجيل الدخول:</p>
-                <div style="background:#222; padding:15px; border-radius:10px; border:1px dashed var(--gold); margin:10px 0;">
-                   <b id="vCode" style="color:var(--gold); font-size:24px;"></b>
+            <div id="step2" style="display:none;">
+                <p style="font-size: 14px;">أرسل الكود التالي للبوت:</p>
+                <div style="background:#222; padding:15px; border-radius:10px; border:1px dashed var(--gold); margin:15px 0;">
+                   <b id="vCodeDisp" style="color:var(--gold); font-size:28px; letter-spacing: 2px;"></b>
                 </div>
-                <button class="tg-btn" onclick="window.open('https://t.me/vtik_egypt_bot')">فتح تيليجرام الآن ✈️</button>
-                <p style="font-size:10px; color:var(--cyan); margin-top:10px;">بانتظار تأكيد الرسالة من تيليجرام...</p>
+                <button class="tg-btn" onclick="window.open('https://t.me/vtik_egypt_bot')">فتح تيليجرام ✈️</button>
+                <p style="font-size:11px; color:var(--cyan); margin-top:15px; animation: pulse 1s infinite alternate;">بانتظار التأكيد من تيليجرام...</p>
             </div>
         </div>
     </div>
 
-    <div id="mainFeed"></div>
-    <div class="galaxy-btn" onclick="openGalaxy()" style="position:fixed; bottom:80px; left:20px; width:60px; height:60px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; z-index:3000; box-shadow:0 0 15px var(--gold);">🎡</div>
+    <div id="mainContent">
+        <div id="mainFeed"></div>
+        
+        <div class="galaxy-btn" onclick="openGalaxy()" style="position:fixed; bottom:80px; left:20px; width:60px; height:60px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; z-index:3000; box-shadow:0 0 15px var(--gold);">🎡</div>
 
-    <div id="profilePage" class="page">
-        <div class="wallet-card">
-            <h3 id="userDisplay" style="color:var(--gold)">@User</h3>
-            <div style="font-size:35px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> EGP</div>
-            <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
-        </div>
-
-        <div style="padding:0 20px;">
-            <input type="number" id="exCoins" class="input-box" placeholder="أدخل عدد الكوينز للتحويل">
-            <button onclick="handleExchange()" class="btn-action" style="background:var(--gold)">💱 تحويل الرصيد (100 كوين = 10ج)</button>
-            
-            <hr style="border:0.5px solid #222; margin:20px 0;">
-            
-            <button onclick="toggleF('dF')" class="btn-action" style="background:var(--cyan)">📥 إيداع مبلغ</button>
-            <div id="dF" style="display:none; padding-bottom:10px;">
-                <input type="number" id="amtD" class="input-box" placeholder="المبلغ">
-                <input type="text" id="phoneD" class="input-box" placeholder="رقم المرسل">
-                <button onclick="finance('إيداع')" class="btn-action" style="background:#222; color:white">تأكيد العملية</button>
+        <div id="profilePage" class="page">
+            <div class="wallet-card">
+                <h3 id="userDisplay" style="color:var(--gold)">@User</h3>
+                <div style="font-size:35px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> EGP</div>
+                <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
             </div>
 
-            <button onclick="toggleF('wF')" class="btn-action" style="background:var(--red); color:white;">📤 سحب كاش</button>
-            <div id="wF" style="display:none; padding-bottom:10px;">
-                <input type="number" id="amtW" class="input-box" placeholder="المبلغ">
-                <input type="text" id="phoneW" class="input-box" placeholder="رقم المحفظة">
-                <button onclick="finance('سحب')" class="btn-action" style="background:#222; color:white">طلب سحب</button>
-            </div>
+            <div style="padding:0 20px;">
+                <input type="number" id="exCoins" class="input-box" placeholder="أدخل عدد الكوينز (حد أدنى 100)">
+                <button onclick="exchange()" class="btn-action" style="background:var(--gold)">💱 تحويل الرصيد (1 كوين = 0.1ج)</button>
+                
+                <hr style="border:0.1px solid #222; margin:20px 0;">
+                
+                <button onclick="toggleF('dF')" class="btn-action" style="background:var(--cyan)">📥 إيداع</button>
+                <div id="dF" style="display:none"><input type="number" id="amtD" class="input-box" placeholder="المبلغ"><button onclick="finance('إيداع')" class="btn-action" style="background:#333; color:white">تأكيد</button></div>
 
-            <button onclick="logout()" class="btn-action" style="background:#444; color:white; margin-top:30px; border:1px solid #666;">🚪 تسجيل الخروج من VTIK</button>
+                <button onclick="toggleF('wF')" class="btn-action" style="background:var(--red); color:white;">📤 سحب</button>
+                <div id="wF" style="display:none"><input type="number" id="amtW" class="input-box" placeholder="المبلغ"><button onclick="finance('سحب')" class="btn-action" style="background:#333; color:white">تأكيد</button></div>
+
+                <button onclick="logout()" class="btn-action" style="background:#222; color:#777; margin-top:40px; border:1px solid #333;">🚪 تسجيل الخروج</button>
+            </div>
         </div>
+
+        <nav>
+            <span onclick="closePages()" style="font-size:24px;">🏠</span>
+            <span onclick="document.getElementById('profilePage').style.display='block'" style="font-size:24px;">👤</span>
+        </nav>
     </div>
 
     <div id="galaxyGame">
-        <div class="target-ring"></div>
         <canvas id="galaxyCanvas"></canvas>
         <div id="winPopup">
-            <h1 id="winVal" style="font-size:60px; color:var(--gold); margin:0; text-shadow: 0 0 20px black;">+0</h1>
-            <p style="color:var(--cyan); font-size:24px; text-shadow: 0 0 10px black;">+2 EGP Bonus!</p>
+            <h1 id="winVal" style="font-size:70px; color:var(--gold); margin:0; text-shadow: 0 0 30px black;">+0</h1>
+            <p style="color:var(--cyan); font-size:22px;">+2 EGP Bonus!</p>
         </div>
     </div>
 
-    <nav>
-        <span onclick="location.reload()" style="font-size:24px; cursor:pointer;">🏠</span>
-        <span onclick="document.getElementById('profilePage').style.display='block'" style="font-size:24px; cursor:pointer;">👤</span>
-    </nav>
-
     <script>
         const BOT_TOKEN = '7611311032:AAFjZ6x6o8yUat7Y-W3H4N8G9h8h8h8h8h8';
-        let db = JSON.parse(localStorage.getItem('vtik_v4')) || { user:null, cash:0, coins:250 };
-        let currentCode = "";
+        let db = JSON.parse(localStorage.getItem('vtik_final_v1')) || { user:null, cash:0, coins:300 };
+        let activeCode = "";
 
-        function save() { localStorage.setItem('vtik_v4', JSON.stringify(db)); updateUI(); }
+        function save() { localStorage.setItem('vtik_final_v1', JSON.stringify(db)); updateUI(); }
 
-        // --- نظام تسجيل الخروج الصارم ---
-        function logout() {
-            if(confirm("هل تريد تسجيل الخروج؟ ستحتاج لإرسال كود تفعيل جديد من تيليجرام للدخول مرة أخرى.")) {
-                db.user = null; // مسح بيانات المستخدم فقط مع الحفاظ على الرصيد (أو مسحه حسب رغبتك)
-                localStorage.setItem('vtik_v4', JSON.stringify(db));
-                location.reload(); // إعادة التحميل ستظهر شاشة الدخول فوراً
-            }
-        }
-
-        function requestNewToken() {
+        // --- الدخول والتفعيل ---
+        function generateCode() {
             const name = document.getElementById('regName').value.trim();
-            if(name.length < 2) return alert("من فضلك ادخل اسمك أولاً");
-            
-            currentCode = `V-${Math.floor(1000 + Math.random() * 9000)}`;
-            document.getElementById('vCode').innerText = currentCode;
-            document.getElementById('inputBoxArea').style.display = 'none';
-            document.getElementById('verifyArea').style.display = 'block';
+            if(name.length < 2) return alert("الاسم قصير جداً");
+            activeCode = `V-${Math.floor(1000 + Math.random() * 9000)}`;
+            document.getElementById('vCodeDisp').innerText = activeCode;
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
 
-            // فحص تيليجرام (Polling)
-            const checkInt = setInterval(async () => {
+            const check = setInterval(async () => {
                 try {
                     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
                     const d = await r.json();
-                    if(d.result.some(m => m.message?.text?.includes(currentCode))) {
-                        clearInterval(checkInt);
-                        db.user = { name: name };
-                        save();
-                        alert("تم التحقق بنجاح! أهلاً بك.");
+                    if(d.result.some(m => m.message?.text?.includes(activeCode))) {
+                        clearInterval(check);
+                        db.user = { name: name }; save();
                         location.reload();
                     }
                 } catch(e) {}
@@ -156,40 +138,26 @@
             if(db.user) {
                 document.getElementById('userDisplay').innerText = "@" + db.user.name;
                 document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
             }
         }
 
-        // --- نظام اللايك ---
-        function doLike(btn) {
-            const heart = document.createElement('div');
-            heart.innerHTML = '❤️'; heart.className = 'heart-anim';
-            heart.style.left = '50%'; heart.style.top = '50%';
-            btn.parentElement.parentElement.appendChild(heart);
-            db.cash += 1; db.coins += 50; save();
-            setTimeout(() => heart.remove(), 800);
+        function logout() { if(confirm("هل تريد الخروج؟")) { db.user = null; save(); location.reload(); } }
+
+        // --- المالية ---
+        function exchange() {
+            const v = parseInt(document.getElementById('exCoins').value);
+            if(v >= 100 && v <= db.coins) {
+                db.coins -= v; db.cash += (v * 0.1); save();
+                alert("تم التحويل!");
+            } else { alert("تأكد من الرقم (الحد الأدنى 100)"); }
         }
 
-        // --- التحويل المرن (كل كوين = 0.1 جنيه) ---
-        function handleExchange() {
-            const val = parseInt(document.getElementById('exCoins').value);
-            if(isNaN(val) || val < 100) return alert("الحد الأدنى للتحويل 100 كوينز");
-            if(val > db.coins) return alert("ليس لديك كوينز كافية");
-            
-            let cashEarned = val * 0.1;
-            db.coins -= val;
-            db.cash += cashEarned;
-            save();
-            alert(`تم تحويل ${val} كوينز بنجاح!`);
-        }
+        function finance(t) { alert("تم طلب الـ " + t); document.querySelectorAll('[id$="F"]').forEach(f=>f.style.display='none'); }
+        function toggleF(id) { const e=document.getElementById(id); e.style.display=e.style.display==='none'?'block':'none'; }
+        function closePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
 
-        function finance(type) {
-            const a = type==='إيداع'?document.getElementById('amtD').value : document.getElementById('amtW').value;
-            if(!a) return;
-            type==='إيداع' ? db.cash += parseFloat(a) : db.cash -= parseFloat(a);
-            save(); alert("تم تنفيذ العملية بنجاح (Simulation)");
-        }
-
-        // --- الجالاكسي الفاخر ---
+        // --- الجالاكسي المطور ---
         let cvs = document.getElementById('galaxyCanvas'), ctx = cvs.getContext('2d'), pts = [], anim, intro=0;
 
         function openGalaxy() {
@@ -198,74 +166,61 @@
             intro=0; pts = [];
             for(let i=0; i<150; i++) {
                 let phi = Math.acos(-1 + (2*i)/150), th = Math.sqrt(150*Math.PI)*phi;
-                pts.push({ v:Math.floor(Math.random()*750)+5, x:180*Math.cos(th)*Math.sin(phi), y:180*Math.sin(th)*Math.sin(phi), z:180*Math.cos(phi), c:i%2===0?`var(--red)`:`var(--cyan)` });
+                pts.push({ v:Math.floor(Math.random()*800)+10, x:180*Math.cos(th)*Math.sin(phi), y:180*Math.sin(th)*Math.sin(phi), z:180*Math.cos(phi), c:i%2===0?'#fe2c55':'#25f4ee' });
             }
-            loopG();
+            drawG();
         }
 
-        function loopG() {
+        function drawG() {
             ctx.fillStyle = '#000'; ctx.fillRect(0,0,cvs.width, cvs.height);
-            intro = Math.min(1, intro + 0.02);
-            let rot = Date.now()*0.001;
+            intro = Math.min(1, intro + 0.025);
+            let r = Date.now()*0.0008;
             pts.forEach(p => {
-                let depth = 1200 * (1 - intro);
-                let x = p.x*Math.cos(rot) - p.z*Math.sin(rot);
-                let z = p.x*Math.sin(rot) + p.z*Math.cos(rot) - depth;
-                let per = 400/(400-z);
-                let sx = x*per + cvs.width/2, sy = p.y*per + cvs.height/2;
+                let d = 1500 * (1 - intro);
+                let x = p.x*Math.cos(r) - p.z*Math.sin(r);
+                let z = p.x*Math.sin(r) + p.z*Math.cos(r) - d;
+                let per = 450/(450-z);
                 if(per>0) {
-                    ctx.beginPath(); ctx.arc(sx, sy, 8*per*intro, 0, Math.PI*2);
-                    ctx.fillStyle = p.c.includes('red')?'#fe2c55':'#25f4ee'; ctx.fill();
+                    ctx.beginPath(); ctx.arc(x*per + cvs.width/2, p.y*per + cvs.height/2, 7*per*intro, 0, Math.PI*2);
+                    ctx.fillStyle = p.c; ctx.fill();
                 }
             });
-            anim = requestAnimationFrame(loopG);
+            anim = requestAnimationFrame(drawG);
         }
 
         cvs.onclick = () => {
             if(intro < 1) return;
             cancelAnimationFrame(anim);
-            const win = pts[Math.floor(Math.random()*pts.length)];
-            db.coins += win.v; db.cash += 2; save();
-            
-            document.getElementById('winVal').innerText = `+${win.v} C`;
+            const w = pts[Math.floor(Math.random()*pts.length)];
+            db.coins += w.v; db.cash += 2; save();
+            document.getElementById('winVal').innerText = `+${w.v} C`;
             document.getElementById('winPopup').style.display = 'block';
-            for(let i=0; i<60; i++) spawnConfetti();
-            
+            for(let i=0; i<70; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti'; c.style.left = Math.random()*100+'vw';
+                c.style.backgroundColor = Math.random()>0.5?'var(--gold)':'white';
+                document.getElementById('galaxyGame').appendChild(c);
+                setTimeout(()=>c.remove(), 2500);
+            }
             setTimeout(() => {
-                document.getElementById('galaxyGame').style.display = 'none';
-                document.getElementById('winPopup').style.display = 'none';
-            }, 1500);
+                document.getElementById('galaxyGame').style.display='none';
+                document.getElementById('winPopup').style.display='none';
+            }, 1800);
         };
-
-        function spawnConfetti() {
-            const c = document.createElement('div');
-            c.className = 'confetti';
-            c.style.left = Math.random()*100+'vw';
-            c.style.top = '-10px';
-            c.style.backgroundColor = ['#FFD700', '#25f4ee', '#fe2c55'][Math.floor(Math.random()*3)];
-            document.getElementById('galaxyGame').appendChild(c);
-            setTimeout(() => c.remove(), 3000);
-        }
 
         function renderFeed() {
             const f = document.getElementById('mainFeed');
-            f.innerHTML = `
-            <div class="video-container">
+            f.innerHTML = `<div class="video-container">
                 <video src="https://www.w3schools.com/html/mov_bbb.mp4" loop playsinline autoplay muted></video>
                 <div class="side-icons">
-                    <button class="icon-btn" onclick="doLike(this)">❤️</button><span>12K</span>
-                    <button class="icon-btn" onclick="alert('قريباً...')">💬</button><span>150</span>
-                    <button class="icon-btn" onclick="alert('تم النسخ')">🚀</button><span>شير</span>
+                    <button class="icon-btn" onclick="db.cash+=1; db.coins+=50; save(); alert('لايك +1ج');">❤️</button>
+                    <button class="icon-btn" onclick="alert('قريباً')">💬</button>
+                    <button class="icon-btn" onclick="alert('تم النسخ')">🚀</button>
                 </div>
             </div>`;
         }
 
-        function toggleF(id) { 
-            const el = document.getElementById(id); 
-            el.style.display = el.style.display === 'none' ? 'block' : 'none'; 
-        }
-
-        renderFeed(); updateUI();
+        updateUI(); renderFeed();
     </script>
 </body>
 </html>
