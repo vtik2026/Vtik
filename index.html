@@ -3,194 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Telegram Auth</title>
+    <title>VTIK - Egypt Galaxy Elite</title>
     <style>
-        :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #000; --tg-blue: #0088cc; }
+        :root { 
+            --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #000; 
+            --gray: #121212; --flag-red: #C8102E; --flag-white: #FFFFFF; --flag-black: #000000; --neon-green: #39FF14;
+        }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--black); color: white; font-family: sans-serif; overflow: hidden; }
 
         /* شاشة تسجيل الدخول */
-        #loginPage {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center;
-        }
-        .login-card { 
-            background: #111; padding: 30px; border-radius: 25px; width: 85%; 
-            max-width: 350px; text-align: center; border: 1px solid #333; 
-        }
-        .login-input { 
-            width: 100%; padding: 15px; margin: 20px 0; background: #222; 
-            border: 1px solid #444; color: white; border-radius: 12px; text-align: center; font-size: 18px;
-        }
-        .tg-connect-btn {
-            background: var(--tg-blue); color: white; border: none; padding: 15px; 
-            border-radius: 12px; width: 100%; font-weight: bold; display: flex; 
-            align-items: center; justify-content: center; gap: 10px; cursor: pointer;
-        }
-        .tg-icon { width: 25px; height: 25px; fill: white; }
+        #loginPage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: #111; padding: 30px; border-radius: 25px; width: 85%; text-align: center; border: 1px solid #333; box-shadow: 0 0 20px rgba(255,215,0,0.1); }
+        .tg-btn { background: #0088cc; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; }
 
-        /* نظام الفيديو والتعليقات (يوتيوب ستايل) */
+        /* النظام الرئيسي */
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-container { 
-            position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; 
-            background: #000; display: flex; align-items: center; justify-content: center;
-            transition: all 0.4s ease-in-out;
-        }
-        /* وضعية التوسط المصغر */
+        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; transition: 0.4s; }
         .video-container.mini-mode { height: 40vh; }
         video { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
         .mini-mode video { width: auto; max-width: 100%; height: 100%; object-fit: contain; }
 
-        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
-        .mini-mode .side-icons { display: none; }
+        /* المحفظة والبروفايل */
+        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
+        .wallet-card { background: linear-gradient(145deg, #1a1a1a, #000); padding: 25px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; }
+        .form-panel { background: #111; padding: 15px; border-radius: 15px; margin: 10px 20px; display: none; border: 1px solid #222; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 8px; text-align: center; box-sizing: border-box; }
 
-        /* لوحة التعليقات */
-        #commentPanel {
-            position: fixed; bottom: -65vh; left: 0; width: 100%; height: 60vh;
-            background: #151515; border-radius: 20px 20px 0 0; z-index: 5000;
-            transition: bottom 0.4s ease; display: flex; flex-direction: column; border-top: 1px solid #333;
-        }
-        #commentPanel.active { bottom: 0; }
-        .comments-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .comment-item { margin-bottom: 12px; font-size: 14px; border-bottom: 1px solid #222; padding-bottom: 8px; }
-        .comment-user { color: var(--tiktok-blue); font-size: 12px; display: block; margin-bottom: 3px; }
+        /* لعبة المجرة */
+        #galaxyGame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 6000; display: none; }
+        .target-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 4px solid #fff; border-radius: 50%; pointer-events: none; box-shadow: 0 0 20px var(--gold); z-index: 5; }
 
-        .input-area { padding: 15px; background: #000; display: flex; gap: 10px; }
-        .input-area input { flex: 1; padding: 12px; background: #222; border: none; color: white; border-radius: 20px; outline: none; }
-        .send-btn { background: var(--tiktok-blue); border: none; width: 40px; height: 40px; border-radius: 50%; font-weight: bold; }
+        /* القائمة السفلية */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 2000; }
+        .galaxy-btn { position: fixed; bottom: 80px; left: 20px; width: 55px; height: 55px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; z-index: 3000; box-shadow: 0 0 15px var(--gold); animation: pulse 2s infinite; }
 
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; z-index: 4000; border-top: 0.5px solid #222; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
+        @keyframes explosion { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -400px) scale(6); } }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
         <div class="login-card">
-            <h2 style="color: var(--gold);">تسجيل جديد</h2>
-            <p style="font-size: 12px; color: #888;">أدخل اسمك واضغط على أيقونة تيليجرام</p>
-            <input type="text" id="userNameInput" class="login-input" placeholder="اكتب اسمك هنا">
-            
-            <button class="tg-connect-btn" onclick="startTelegramAuth()">
-                <svg class="tg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.88.03-.24.36-.49.99-.75 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.46-1.73 4.96-1.74.11 0 .36.03.52.16.13.11.17.26.19.37.02.12.02.24.01.37z"/></svg>
+            <h2 style="color: var(--gold);">VTIK LOGIN</h2>
+            <input type="text" id="regName" placeholder="اكتب اسمك هنا">
+            <button class="tg-btn" onclick="startAuth()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.88.03-.24.36-.49.99-.75 3.88-1.69 6.47-2.8 7.77-3.32 3.7-1.47 4.46-1.73 4.96-1.74.11 0 .36.03.52.16.13.11.17.26.19.37.02.12.02.24.01.37z"/></svg>
                 اتمام التسجيل عبر تيليجرام
             </button>
         </div>
     </div>
 
     <div id="mainFeed"></div>
+    <div class="galaxy-btn" onclick="openGalaxy()">🎡</div>
 
-    <div id="commentPanel">
-        <div style="padding:15px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-            <span>التعليقات</span>
-            <button onclick="closeComments()" style="background:none; border:none; color:white; font-size:22px;">✕</button>
+    <div id="profilePage" class="page">
+        <div style="padding:20px; text-align:center;"><h3>محفظتي 💰</h3></div>
+        <div class="wallet-card">
+            <div id="userBadge" style="font-size:12px; color:var(--gold); margin-bottom:10px;">@vtik</div>
+            <div style="font-size:32px; font-weight:bold; color:var(--tiktok-blue);"><span id="cashBal">0.00</span> EGP</div>
+            <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
         </div>
-        <div class="comments-list" id="commentsList"></div>
-        <div class="input-area">
-            <input type="text" id="commentInput" placeholder="أضف تعليقك بصفتك @VtikID...">
-            <button class="send-btn" onclick="sendComment()">▲</button>
+
+        <div style="display:flex; flex-direction:column; gap:10px; padding:0 20px;">
+            <button onclick="toggleF('dF')" style="background:var(--tiktok-blue); padding:15px; border-radius:12px; border:none; font-weight:bold;">📥 شحن رصيد</button>
+            <button onclick="toggleF('wF')" style="background:var(--tiktok-red); padding:15px; border-radius:12px; border:none; color:white; font-weight:bold;">📤 سحب كاش</button>
+        </div>
+
+        <div id="dF" class="form-panel">
+            <input type="number" id="amtD" placeholder="المبلغ">
+            <input type="text" id="phoneD" placeholder="رقم الهاتف المرسل منه">
+            <button onclick="process('dep')" style="width:100%; padding:10px; background:var(--tiktok-blue); border:none; border-radius:8px;">تأكيد الإيداع</button>
+        </div>
+
+        <div id="wF" class="form-panel">
+            <input type="number" id="amtW" placeholder="المبلغ">
+            <input type="text" id="phoneW" placeholder="رقم المحفظة المستلمة">
+            <button onclick="process('wit')" style="width:100%; padding:10px; background:var(--tiktok-red); color:white; border:none; border-radius:8px;">طلب سحب</button>
         </div>
     </div>
 
+    <div id="galaxyGame">
+        <div class="target-ring"></div>
+        <button style="position:absolute; top:20px; right:20px; color:white; background:rgba(0,0,0,0.5); border:none; width:40px; height:40px; border-radius:50%; z-index:100;" onclick="closeGalaxy()">✕</button>
+        <canvas id="galaxyCanvas"></canvas>
+    </div>
+
     <nav class="nav-bar">
-        <button style="background:none; border:none; color:white; font-size:24px;" onclick="location.reload()">🏠</button>
+        <button style="background:none; border:none; color:white; font-size:24px;" onclick="closeAll()">🏠</button>
         <div style="width:45px; height:30px; background:white; border-radius:8px; display:flex; align-items:center; justify-content:center; color:black; font-weight:bold;" id="upBtn">➕</div>
-        <button style="background:none; border:none; color:white; font-size:24px;" onclick="alert('معرفك: ' + db.user.vtikId)">👤</button>
+        <button style="background:none; border:none; color:white; font-size:24px;" onclick="showPage('profilePage')">👤</button>
     </nav>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('vtik_tg_v26')) || { user: null, vids: [], comments: {} };
+        let db = JSON.parse(localStorage.getItem('vtik_v2026_final')) || { 
+            user: null, cash: 0, coins: 150, vids: [], history: [] 
+        };
 
-        function save() { localStorage.setItem('vtik_tg_v26', JSON.stringify(db)); }
+        function save() { localStorage.setItem('vtik_v2026_final', JSON.stringify(db)); updateUI(); }
 
-        // --- عملية التسجيل عبر تيليجرام ---
-        function startTelegramAuth() {
-            const name = document.getElementById('userNameInput').value.trim();
-            if(!name) return alert("برجاء كتابة اسمك أولاً!");
-
-            // 1. توليد المعرف المطلوب
-            const vtikId = `${name}202601@vtik`;
-            
-            // 2. حفظ البيانات محلياً
-            db.user = { name: name, vtikId: vtikId };
+        // --- التسجيل ---
+        function startAuth() {
+            const name = document.getElementById('regName').value.trim();
+            if(!name) return alert("من فضلك اكتب اسمك");
+            db.user = { name, vtikId: `${name}202601@vtik` };
             save();
-
-            // 3. التوجيه لتيليجرام (ضع رابط البوت أو حسابك هنا)
-            const telegramLink = "https://t.me/your_bot_or_username"; // استبدل هذا برابطك
-            window.open(telegramLink, '_blank');
-
-            // 4. إغلاق شاشة الدخول وبدء التطبيق
-            checkStatus();
+            window.open("https://t.me/YourBotLink", "_blank"); // ضع رابطك هنا
+            checkLogin();
         }
 
-        function checkStatus() {
+        function checkLogin() {
             if(db.user) {
                 document.getElementById('loginPage').style.display = 'none';
                 renderFeed();
             }
         }
 
-        // --- نظام الفيديوهات والتعليقات ---
-        let activeVidId = null;
-        function openComments(vidId) {
-            activeVidId = vidId;
-            document.getElementById(`con_${vidId}`).classList.add('mini-mode');
-            document.getElementById('commentPanel').classList.add('active');
-            document.getElementById('mainFeed').style.overflow = 'hidden';
-            displayComments();
+        // --- المحفظة ---
+        function toggleF(id) { 
+            document.querySelectorAll('.form-panel').forEach(p => p.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
         }
 
-        function closeComments() {
-            document.querySelectorAll('.video-container').forEach(c => c.classList.remove('mini-mode'));
-            document.getElementById('commentPanel').classList.remove('active');
-            document.getElementById('mainFeed').style.overflowY = 'scroll';
+        function process(type) {
+            let amt = type === 'dep' ? document.getElementById('amtD').value : document.getElementById('amtW').value;
+            let phone = type === 'dep' ? document.getElementById('phoneD').value : document.getElementById('phoneW').value;
+            
+            if(!amt || !phone) return alert("يرجى إكمال البيانات");
+            
+            alert(`تم استلام طلبك لـ ${type === 'dep' ? 'إيداع' : 'سحب'} مبلغ ${amt} EGP من الرقم ${phone}. سيتم المراجعة.`);
+            toggleF('none');
         }
 
-        function sendComment() {
-            const input = document.getElementById('commentInput');
-            if(!input.value.trim()) return;
-            if(!db.comments[activeVidId]) db.comments[activeVidId] = [];
-            db.comments[activeVidId].push({ sender: db.user.vtikId, text: input.value });
-            input.value = ''; save(); displayComments();
+        function updateUI() {
+            document.getElementById('cashBal').innerText = db.cash.toFixed(2);
+            document.getElementById('coinBal').innerText = db.coins;
+            if(db.user) document.getElementById('userBadge').innerText = db.user.vtikId;
         }
 
-        function displayComments() {
-            const list = document.getElementById('commentsList');
-            list.innerHTML = '';
-            const items = db.comments[activeVidId] || [];
-            items.reverse().forEach(c => {
-                list.innerHTML += `<div class="comment-item"><span class="comment-user">${c.sender}</span>${c.text}</div>`;
+        // --- لعبة المجرة (التعديل الجديد) ---
+        let canvas = document.getElementById('galaxyCanvas'), ctx = canvas.getContext('2d'), points = [], stars = [], isSpinning = false, animId;
+        let rotX = 0, rotY = 0, introScale = 0.1, isIntro = true;
+
+        function openGalaxy() {
+            document.getElementById('galaxyGame').style.display = 'block';
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            isIntro = true; introScale = 0.1;
+            initGalaxy(); animateGalaxy();
+        }
+
+        function initGalaxy() {
+            points = []; stars = [];
+            for(let i=0; i<300; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5});
+            for(let i=0; i<150; i++) {
+                let phi = Math.acos(-1 + (2 * i) / 150), theta = Math.sqrt(150 * Math.PI) * phi;
+                let color = i < 50 ? "#C8102E" : (i < 100 ? "#FFFFFF" : "#000000");
+                points.push({ val: Math.floor(Math.random()*700)+5, x: 180*Math.cos(theta)*Math.sin(phi), y: 180*Math.sin(theta)*Math.sin(phi), z: 180*Math.cos(phi), color: color });
+            }
+        }
+
+        function animateGalaxy() {
+            ctx.fillStyle = 'black'; ctx.fillRect(0,0,canvas.width, canvas.height);
+            ctx.fillStyle = 'white'; stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s));
+            
+            if(isIntro) {
+                introScale += 0.05;
+                if(introScale >= 1) { introScale = 1; isIntro = false; }
+            }
+
+            let speed = isSpinning ? 0.3 : 0.005;
+            rotX += speed; rotY += speed;
+
+            points.sort((a,b)=> b.z - a.z).forEach(p => {
+                let y1 = p.y*Math.cos(rotX) - p.z*Math.sin(rotX), z1 = p.y*Math.sin(rotX) + p.z*Math.cos(rotX);
+                let x2 = p.x*Math.cos(rotY) - z1*Math.sin(rotY), z2 = p.x*Math.sin(rotY) + z1*Math.cos(rotY);
+                let per = (400/(400-z2)) * introScale;
+                let sx = x2*per + canvas.width/2, sy = y1*per + canvas.height/2;
+
+                ctx.shadowBlur = 15; ctx.shadowColor = "gold";
+                ctx.beginPath(); ctx.arc(sx, sy, 10*per, 0, Math.PI*2);
+                ctx.fillStyle = p.color; ctx.fill();
+                ctx.shadowBlur = 0;
+
+                if(!isIntro && z2 > 0) {
+                    ctx.fillStyle = "white"; ctx.font = "bold 10px Arial";
+                    ctx.fillText(p.val, sx-5, sy+5);
+                }
+                p.lx = sx; p.ly = sy;
             });
+            animId = requestAnimationFrame(animateGalaxy);
         }
+
+        canvas.onclick = () => {
+            if(isSpinning || isIntro) return;
+            isSpinning = true;
+            setTimeout(() => {
+                isSpinning = false;
+                let win = points[0], minD = 9999;
+                points.forEach(p => {
+                    let d = Math.sqrt((p.lx-canvas.width/2)**2 + (p.ly-canvas.height/2)**2);
+                    if(d < minD) { minD = d; win = p; }
+                });
+                db.coins += win.val; save(); alert("مبروك فزت بـ " + win.val);
+            }, 2000);
+        };
+
+        // --- الملاحة ---
+        function showPage(id) { document.getElementById(id).style.display = 'block'; }
+        function closeAll() { 
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById('galaxyGame').style.display = 'none';
+        }
+        function closeGalaxy() { document.getElementById('galaxyGame').style.display = 'none'; cancelAnimationFrame(animId); }
 
         function renderFeed() {
             const feed = document.getElementById('mainFeed');
-            const vids = db.vids.length > 0 ? db.vids : [{url: 'https://www.w3schools.com/html/mov_bbb.mp4', id: 'v1'}];
+            const vids = db.vids.length > 0 ? db.vids : [{url: 'https://www.w3schools.com/html/mov_bbb.mp4'}];
             feed.innerHTML = '';
-            vids.forEach((v, i) => {
-                const vidId = v.id || `v${i}`;
-                feed.innerHTML += `
-                <div class="video-container" id="con_${vidId}">
-                    <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div class="side-icons">
-                        <button style="background:none; border:none; color:white; font-size:30px;" onclick="alert('Liked')">❤️</button>
-                        <button style="background:none; border:none; color:white; font-size:30px;" onclick="openComments('${vidId}')">💬</button>
-                    </div>
-                </div>`;
+            vids.forEach(v => {
+                feed.innerHTML += `<div class="video-container"><video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video></div>`;
             });
-            initObs();
-        }
-
-        function initObs() {
-            const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? e.target.play() : e.target.pause()), {threshold:0.8});
+            const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? e.target.play() : e.target.pause()), {threshold: 0.8});
             document.querySelectorAll('video').forEach(v => obs.observe(v));
         }
 
-        document.getElementById('upBtn').onclick = () => {
-            let i = document.createElement('input'); i.type='file'; i.accept='video/*';
-            i.onchange = e => { db.vids.push({url: URL.createObjectURL(e.target.files[0]), id: 'v'+Date.now()}); save(); renderFeed(); };
-            i.click();
-        };
-
-        checkStatus();
+        checkLogin(); updateUI();
     </script>
 </body>
 </html>
