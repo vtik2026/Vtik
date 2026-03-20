@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Live Sync</title>
+    <title>VTIK - Live Login</title>
     <style>
         :root { --red: #fe2c55; --cyan: #25f4ee; --gold: #FFD700; }
         body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
 
-        /* شاشة الدخول - تظهر دائماً إذا انتهت الجلسة */
+        /* شاشة الدخول - زر تليجرام فقط */
         #loginPage { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .tg-pulse-btn { 
-            background: #0088cc; color: white; border: none; padding: 20px 40px; border-radius: 50px; 
-            font-weight: bold; cursor: pointer; font-size: 18px; box-shadow: 0 0 20px rgba(0, 136, 204, 0.4);
+        .tg-btn { 
+            background: #0088cc; color: white; border: none; padding: 22px 45px; border-radius: 50px; 
+            font-weight: bold; cursor: pointer; font-size: 18px; box-shadow: 0 5px 20px rgba(0, 136, 204, 0.4);
+            text-decoration: none; display: inline-block;
         }
 
         /* التطبيق الرئيسي */
@@ -21,10 +22,10 @@
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* البروفايل والمعرف المتغير */
+        /* البروفايل */
         .page { position: fixed; inset: 0; background: #000; display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
-        .wallet-card { background: #111; padding: 40px 20px; border-radius: 30px; margin: 20px; border: 1px solid #222; text-align: center; }
-        .user-tag { color: var(--gold); font-family: monospace; font-size: 14px; display: block; margin-top: 10px; }
+        .profile-card { background: linear-gradient(145deg, #111, #000); padding: 40px 20px; border-radius: 30px; margin: 20px; border: 1px solid #222; text-align: center; }
+        .id-text { color: var(--gold); font-family: monospace; font-size: 15px; margin-top: 10px; display: block; }
 
         nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 2000; }
     </style>
@@ -33,10 +34,10 @@
 
     <div id="loginPage">
         <div>
-            <span style="font-size: 50px; display:block; margin-bottom:10px;">🦋</span>
-            <h2 style="margin-bottom:40px;">جلسة VTIK منتهية</h2>
-            <button onclick="requestTelegramAccess()" class="tg-pulse-btn">تفعيل الدخول عبر تيليجرام ✈️</button>
-            <p style="font-size: 11px; color: #444; margin-top: 20px;">يجب التفعيل في كل مرة يتم فيها إنهاء جلسة تيليجرام</p>
+            <span style="font-size: 70px; display:block; margin-bottom:20px;">🦋</span>
+            <h2 style="margin-bottom:35px; letter-spacing: 1px;">VTIK EGYPT</h2>
+            <a id="tgLink" href="#" target="_blank" onclick="startPolling()" class="tg-btn">تسجيل الدخول بتيليجرام 🚀</a>
+            <p id="status" style="margin-top:25px; font-size:12px; color:#555;">اضغط للبدء في تفعيل الجلسة المؤقتة</p>
         </div>
     </div>
 
@@ -45,84 +46,86 @@
         <div onclick="openGalaxy()" style="position:fixed; bottom:90px; left:20px; width:55px; height:55px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:25px; z-index:3000;">🎡</div>
 
         <div id="profilePage" class="page">
-            <div class="wallet-card">
-                <h2 id="uNameDisplay" style="margin:0;">المستخدم</h2>
-                <span id="uIDDisplay" class="user-tag">--2026--</span>
+            <div class="profile-card">
+                <h2 id="uName" style="margin:0;">تحميل...</h2>
+                <span id="uID" class="id-text">--2026--</span>
                 
                 <div style="margin-top:30px;">
                     <div style="font-size:40px; font-weight:bold; color:var(--cyan);"><span id="cashBal">0.00</span> EGP</div>
                     <div style="color:var(--gold);">🪙 <span id="coinBal">0</span> Coins</div>
                 </div>
             </div>
-            <div style="padding: 0 20px;">
-                <button onclick="logoutForce()" style="width:100%; padding:15px; background:#222; color:#777; border:none; border-radius:15px;">إنهاء الجلسة الحالية</button>
+            <div style="padding: 20px;">
+                <button onclick="sessionStorage.clear(); location.reload();" style="width:100%; padding:15px; background:#1a1a1a; color:#fe2c55; border:1px solid #333; border-radius:15px; font-weight:bold;">إنهاء الجلسة والخروج</button>
             </div>
         </div>
 
         <nav>
-            <div onclick="hidePages()" style="font-size:26px;">🏠</div>
-            <div onclick="document.getElementById('profilePage').style.display='block'" style="font-size:26px;">👤</div>
+            <div onclick="hidePages()" style="font-size:26px; cursor:pointer;">🏠</div>
+            <div onclick="document.getElementById('profilePage').style.display='block'" style="font-size:26px; cursor:pointer;">👤</div>
         </nav>
     </div>
 
     <script>
         const BOT_TOKEN = '7611311032:AAFjZ6x6o8yUat7Y-W3H4N8G9h8h8h8h8h8';
         
-        // استخدام sessionStorage بدلاً من localStorage لجعل الجلسة تنتهي بإغلاق المتصفح أو التحديث
-        let session = JSON.parse(sessionStorage.getItem('vtik_active_session'));
-        // الرصيد يظل في localStorage لأنه مرتبط بالحساب وليس بالجلسة
-        let wallet = JSON.parse(localStorage.getItem('vtik_wallet')) || { cash:0, coins:300, seq: Math.floor(100+Math.random()*899) };
+        // استخدام sessionStorage لجعل الجلسة تختفي بمجرد إغلاق التابة أو المتصفح
+        let activeUser = JSON.parse(sessionStorage.getItem('vtik_session'));
+        let wallet = JSON.parse(localStorage.getItem('vtik_wallet_v2')) || { cash:0, coins:250, seq: Math.floor(100+Math.random()*899) };
+        
+        // توليد كود عشوائي جديد تماماً في كل مرة لضمان التفعيل اللحظي
+        let authCode = `V${Math.floor(1000 + Math.random() * 9000)}`;
+        document.getElementById('tgLink').href = `https://t.me/vtik_egypt_bot?start=${authCode}`;
 
-        function requestTelegramAccess() {
-            let tempCode = `AUTH-${Math.floor(1000+Math.random()*8999)}`;
-            window.open(`https://t.me/vtik_egypt_bot?start=${tempCode}`);
+        function startPolling() {
+            document.getElementById('status').innerText = "بانتظار وصول اسمك من تيليجرام...";
+            document.getElementById('status').style.color = "var(--cyan)";
 
-            const poller = setInterval(async () => {
+            const checker = setInterval(async () => {
                 try {
-                    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
+                    // سحب آخر التحديثات فقط (limit 100) لضمان السرعة
+                    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-10`);
                     const d = await r.json();
-                    const msg = d.result.find(m => m.message?.text?.includes(tempCode));
                     
-                    if(msg) {
-                        clearInterval(poller);
-                        const teleName = msg.message.from.first_name || "User";
+                    // البحث عن الكود اللي لسه المستخدم باعتة حالاً
+                    const found = d.result.find(m => m.message?.text?.includes(authCode));
+                    
+                    if(found) {
+                        clearInterval(checker);
+                        const teleName = found.message.from.first_name || "Guest";
                         
-                        // إنشاء الجلسة المؤقتة
-                        session = {
+                        // إنشاء الجلسة في ذاكرة الجلسة المؤقتة
+                        activeUser = {
                             name: teleName,
-                            id: `${teleName.substring(0,2).toUpperCase()}2026${wallet.seq}`,
-                            active: true
+                            id: `${teleName.substring(0,2).toUpperCase()}2026${wallet.seq}`
                         };
                         
-                        sessionStorage.setItem('vtik_active_session', JSON.stringify(session));
-                        location.reload();
+                        sessionStorage.setItem('vtik_session', JSON.stringify(activeUser));
+                        document.getElementById('status').innerText = "تم التحقق بنجاح! جاري الدخول...";
+                        setTimeout(() => location.reload(), 1000);
                     }
-                } catch(e){}
-            }, 3000);
+                } catch(e) {
+                    console.log("خطأ في الاتصال");
+                }
+            }, 2500); // يفحص كل ثانيتين ونص
         }
 
-        function checkAuth() {
-            if(session && session.active) {
+        function renderUI() {
+            if(activeUser) {
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
-                
-                document.getElementById('uNameDisplay').innerText = session.name;
-                document.getElementById('uIDDisplay').innerText = `ID: ${session.id}`;
+                document.getElementById('uName').innerText = activeUser.name;
+                document.getElementById('uID').innerText = `ID: ${activeUser.id}`;
                 document.getElementById('cashBal').innerText = wallet.cash.toFixed(2);
                 document.getElementById('coinBal').innerText = wallet.coins;
             }
         }
 
-        function logoutForce() {
-            sessionStorage.clear(); // مسح الجلسة المؤقتة
-            location.reload();
-        }
+        function hidePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
 
-        // تشغيل الفحص
-        checkAuth();
-
-        // محتوى افتراضي
+        renderUI();
+        // فيديو تجريبي
         document.getElementById('mainFeed').innerHTML = `<div class="video-container"><video src="https://www.w3schools.com/html/mov_bbb.mp4" loop playsinline autoplay muted></video></div>`;
     </script>
 </body>
-    </html>
+                    </html>
