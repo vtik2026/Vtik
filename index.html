@@ -3,251 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK - Secured Wallet & Live</title>
+    <title>VTIK - Pro Version 2026</title>
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* تأثير النبض */
-        @keyframes pulse-animation {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-
         :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #010101; --neon-green: #39FF14; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--black); color: white; font-family: sans-serif; overflow: hidden; }
+
+        /* مؤشر التحميل في الخلفية */
+        #uploadStatus { 
+            position: fixed; top: 10px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0, 255, 0, 0.8); color: black; padding: 8px 20px; 
+            border-radius: 20px; font-weight: bold; z-index: 9999; display: none; 
+            box-shadow: 0 0 15px var(--neon-green);
+        }
 
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .side-icons { 
-            position: absolute; right: 10px; bottom: 100px; 
-            display: flex; flex-direction: column; gap: 18px; z-index: 100; align-items: center; 
-        }
-        .icon-btn { 
-            width: 45px; height: 45px; border-radius: 50%; 
-            background: rgba(0,0,0,0.5); border: none; color: white; 
-            font-size: 20px; backdrop-filter: blur(8px); cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
+        
+        .side-icons { position: absolute; right: 10px; bottom: 100px; display: flex; flex-direction: column; gap: 18px; z-index: 100; }
+        .icon-btn { width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
         .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
-        .user-id-box { margin-top: 30px; text-align: center; }
-        .id-badge { display: inline-block; padding: 6px 18px; background: #111; border: 1px solid #333; color: var(--gold); border-radius: 20px; font-family: monospace; font-size: 14px; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
+        .wallet-card { background: linear-gradient(145deg, #111, #222); padding: 20px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; }
+        
+        .history-table { width: 90%; margin: 10px auto; border-collapse: collapse; background: #0a0a0a; font-size: 12px; }
+        .history-table th, .history-table td { padding: 10px; border-bottom: 1px solid #222; text-align: center; }
+        .clr-up { color: var(--neon-green); }
+        .clr-down { color: var(--tiktok-red); }
 
-        .wallet-card { background: linear-gradient(145deg, #111, #222); padding: 25px; border-radius: 20px; margin: 15px 20px 20px 20px; border: 1px solid #333; text-align: center; position: relative;}
-        .market-icon { position: absolute; top: 15px; left: 15px; font-size: 24px; cursor: pointer; background: rgba(255,255,255,0.1); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #444; }
-
-        #pGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 10px; }
-        .profile-vid-item { position: relative; width: 100%; aspect-ratio: 9/16; background: #111; }
-        .profile-vid-item video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-        .del-vid-btn { position: absolute; top: 5px; right: 5px; background: var(--tiktok-red); border: none; color: white; font-size: 12px; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; z-index: 10; font-weight: bold; }
-
-        .mic-tabs { display: flex; border-bottom: 1px solid #222; margin-bottom: 20px; }
-        .tab-link { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #888; }
-        .tab-link.active { color: var(--tiktok-blue); border-bottom: 2px solid var(--tiktok-blue); }
-        .tab-pane { display: none; padding: 20px; text-align: center; }
-        .tab-pane.active { display: block; }
-
-        .seats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 15px; background: #0a0a0a; border-radius: 15px; margin: 20px; border: 1px solid #222; }
-        .seat { aspect-ratio: 1/1; border-radius: 50%; border: 1.5px solid #333; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #111; transition: 0.3s; }
-        .seat.busy { border-color: var(--tiktok-blue); box-shadow: 0 0 10px var(--tiktok-blue); }
-        .seat-num { position: absolute; bottom: -5px; background: #222; font-size: 10px; padding: 2px 6px; border-radius: 10px; color: #aaa; }
-
-        .btn-group { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
-        .btn-action { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .btn-action:active { transform: scale(0.96); }
-
-        .form-panel { background: #111; padding: 20px; border-radius: 15px; margin: 10px 20px; border: 1px dashed #444; display: none; }
-        input { width: 100%; padding: 12px; margin-bottom: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 10px; text-align: center; box-sizing: border-box; font-size: 16px; }
-
-        #marketPage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; display: none; padding: 20px; overflow-y: auto; box-sizing: border-box; }
-        .history-table { width: 100%; margin-top: 15px; border-collapse: collapse; background: #0a0a0a; font-size: 13px; text-align: center; border-radius: 10px; overflow: hidden; }
-        .history-table th { background: #1a1a1a; padding: 12px; color: #888; border-bottom: 1px solid #333; }
-        .history-table td { padding: 12px; border-bottom: 1px solid #111; }
-
-        .galaxy-btn { position: fixed; bottom: 80px; left: 20px; width: 55px; height: 55px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; z-index: 3000; box-shadow: 0 0 15px var(--gold); animation: pulse-animation 2s infinite; cursor: pointer; }
-        #galaxyGame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 6000; display: none; }
-        .target-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; border: 3px solid white; border-radius: 50%; pointer-events: none; box-shadow: 0 0 20px white; }
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 2000; }
+        .form-panel { background: #111; padding: 15px; border-radius: 15px; margin: 10px 20px; display: none; border: 1px solid #444; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
+        .btn-action { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div style="position: fixed; top: 20px; right: 20px; z-index: 4000;">
-    <button style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 45px; height: 45px; border-radius: 50%; font-size: 20px; backdrop-filter: blur(5px); cursor: pointer;" onclick="showPage('micPage')">🎙️</button>
-</div>
+<div id="uploadStatus">جاري رفع الفيديو... ⏳</div>
 
 <div id="mainFeed"></div>
 
-<div class="galaxy-btn" onclick="openGalaxy()">🎡</div>
-
 <nav class="nav-bar">
-    <button style="background:none; border:none; color:white; font-size:24px; cursor:pointer;" onclick="closePages()">🏠</button>
-    <div style="width:45px; height:30px; background:linear-gradient(to right, var(--tiktok-blue), var(--tiktok-red)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:black; cursor:pointer;" id="upBtn">➕</div>
-    <button style="background:none; border:none; color:white; font-size:24px; cursor:pointer;" onclick="showPage('profilePage')">👤</button>
+    <button onclick="closePages()" style="background:none; border:none; color:white; font-size:24px;">🏠</button>
+    <div style="width:45px; height:30px; background:linear-gradient(to right, var(--tiktok-blue), var(--tiktok-red)); border-radius:8px; cursor:pointer;" id="upBtn"></div>
+    <button onclick="showPage('profilePage')" style="background:none; border:none; color:white; font-size:24px;">👤</button>
 </nav>
 
-<div id="micPage" class="page">... (نفس المحتوى) ...</div>
 <div id="profilePage" class="page">
-    <div class="user-id-box"><div id="displayUserID" class="id-badge">ID: --2026--</div></div>
+    <div style="text-align:center; padding: 20px;">
+        <div id="displayUserID" style="color:var(--gold); font-family:monospace;">ID: ----</div>
+    </div>
+
     <div class="wallet-card">
-        <div class="market-icon" onclick="document.getElementById('marketPage').style.display='block'">🛒</div>
-        <div style="color:var(--tiktok-blue); font-size:32px; font-weight:bold;"><span id="cashBal">0</span> EGP</div>
-        <div style="color:var(--gold); font-size:22px;">🪙 <span id="coinBal">0</span> Coins</div>
+        <h2 id="cashBal">0.00</h2><p>رصيد الكاش (EGP)</p>
+        <h3 id="coinBal" style="color:var(--gold)">0</h3><p>العملات الذهبية</p>
     </div>
-    <div class="btn-group">
-        <button class="btn-action" style="background:var(--tiktok-blue);" onclick="toggleF('dF')">📥 شحن الرصيد</button>
-        <button class="btn-action" style="background:var(--tiktok-red); color:white;" onclick="toggleF('wF')">📤 سحب كاش</button>
-        <button class="btn-action" style="background:var(--gold);" onclick="toggleF('eF')">💱 تحويل Coins</button>
+
+    <div style="padding: 0 20px;">
+        <button class="btn-action" style="background:var(--tiktok-blue)" onclick="toggleF('dF')">إيداع</button>
+        <button class="btn-action" style="background:var(--tiktok-red); color:white" onclick="toggleF('wF')">سحب</button>
+        <button class="btn-action" style="background:var(--gold)" onclick="toggleF('eF')">تحويل العملات</button>
+        <button class="btn-action" style="background:#333; color:white" onclick="showPage('historyPage')">سجل العمليات 📋</button>
     </div>
-    <div id="dF" class="form-panel"><input type="number" id="inD_amt" placeholder="المبلغ المشحون"><button class="btn-action" onclick="doF('dep')">تأكيد</button></div>
-    <div id="wF" class="form-panel"><input type="number" id="inW_amt" placeholder="المبلغ للسحب"><button class="btn-action" onclick="doF('wit')">تأكيد</button></div>
-    <div id="eF" class="form-panel"><input type="number" id="inE" placeholder="عدد الكوينز"><button class="btn-action" onclick="doF('exc')">تأكيد</button></div>
-    <h4 style="margin: 20px 20px 5px 20px;">فيديوهاتي:</h4>
-    <div id="pGrid"></div>
+
+    <div id="dF" class="form-panel">
+        <input type="number" id="inD_phone" placeholder="رقم محفظة الإرسال">
+        <input type="number" id="inD_amt" placeholder="المبلغ">
+        <button class="btn-action" onclick="doAction('dep')">تأكيد الإيداع</button>
+    </div>
+
+    <div id="wF" class="form-panel">
+        <input type="number" id="inW_phone" placeholder="رقم محفظة الاستلام">
+        <input type="number" id="inW_amt" placeholder="المبلغ المراد سحبه">
+        <button class="btn-action" onclick="doAction('wit')">تأكيد السحب</button>
+    </div>
+
+    <div id="eF" class="form-panel">
+        <input type="number" id="inE" placeholder="عدد العملات للتحويل">
+        <button class="btn-action" onclick="doAction('exc')">تحويل إلى كاش</button>
+    </div>
+</div>
+
+<div id="historyPage" class="page">
+    <h3 style="text-align:center; margin: 20px;">سجل النشاطات</h3>
+    <table class="history-table">
+        <thead><tr><th>العملية</th><th>القيمة</th><th>التاريخ</th></tr></thead>
+        <tbody id="hBody"></tbody>
+    </table>
+    <button class="btn-action" style="background:#222; color:white; width:80%; margin:20px 10%" onclick="showPage('profilePage')">رجوع</button>
 </div>
 
 <script>
-    // 1. إعدادات Supabase الجديدة
     const SUPABASE_URL = "https://etnolailfekdqaatfmmt.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. إعدادات Agora
-    const APP_ID = "0bb96702ca37476ca672af7e33ad4127";
-    let agoraClient = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
-    let localAudioTrack = null, isBroadcasting = false;
-
-    // 3. تهيئة البيانات (مع الحفاظ على المحفظة محلياً مؤقتاً)
-    let db = JSON.parse(localStorage.getItem('vtik_pro_v20')) || { 
+    let db = JSON.parse(localStorage.getItem('vtik_final_db')) || {
         cash: 0, coins: 0, vids: [], history: [],
-        userID: "VT2026" + Math.floor(1000 + Math.random() * 9000),
-        seats: Array(8).fill(null)
+        userID: "VT" + Math.floor(1000 + Math.random() * 9000)
     };
 
-    function save() { localStorage.setItem('vtik_pro_v20', JSON.stringify(db)); render(); }
-
-    // 4. وظائف Supabase (جلب ورفع)
-    async function fetchVids() {
-        const { data, error } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
-        if (!error) { db.vids = data; render(); }
+    function save() { 
+        localStorage.setItem('vtik_final_db', JSON.stringify(db)); 
+        updateUI(); 
     }
 
-    document.getElementById('upBtn').onclick = () => {
-        let i = document.createElement('input'); i.type = 'file'; i.accept = "video/*";
-        i.onchange = async e => {
-            const file = e.target.files[0];
-            if (!file) return;
-            alert("بدأ الرفع... انتظر قليلاً");
-            const fName = `${Date.now()}_${file.name}`;
-            const { data: upData, error: upErr } = await sb.storage.from('videos').upload(fName, file);
-            if (upErr) return alert("خطأ في الرفع: " + upErr.message);
-            const { data: urlData } = sb.storage.from('videos').getPublicUrl(fName);
-            const { error: dbErr } = await sb.from('vtik_videos').insert([{ url: urlData.publicUrl, user_id: db.userID }]);
-            if (!dbErr) { alert("تم النشر!"); fetchVids(); }
+    // سجل العمليات
+    function addLog(type, amt, status='up') {
+        const entry = {
+            type: type,
+            amt: amt,
+            status: status,
+            date: new Date().toLocaleString('ar-EG', {hour:'2-digit', minute:'2-digit'})
         };
-        i.click();
+        db.history.unshift(entry);
+        save();
+    }
+
+    // رفع الفيديو في الخلفية
+    document.getElementById('upBtn').onclick = () => {
+        let input = document.createElement('input');
+        input.type = 'file'; input.accept = "video/*";
+        input.onchange = async e => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            // إظهار اللودر واستكمال استخدام التطبيق
+            document.getElementById('uploadStatus').style.display = 'block';
+            
+            const fName = `${Date.now()}_${file.name}`;
+            const { data, error } = await sb.storage.from('videos').upload(fName, file);
+            
+            if (!error) {
+                const { data: urlData } = sb.storage.from('videos').getPublicUrl(fName);
+                await sb.from('vtik_videos').insert([{ url: urlData.publicUrl, user_id: db.userID }]);
+                addLog("رفع فيديو", "ناجح", "up");
+                fetchVids();
+            }
+            document.getElementById('uploadStatus').style.display = 'none';
+        };
+        input.click();
     };
 
-    async function deleteVid(id, index) {
-        if(confirm("حذف؟")) {
-            await sb.from('vtik_videos').delete().eq('id', id);
-            fetchVids();
+    async function fetchVids() {
+        const { data } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
+        if (data) { db.vids = data; updateUI(); }
+    }
+
+    function doAction(t) {
+        if(t === 'dep') {
+            let a = parseFloat(document.getElementById('inD_amt').value);
+            let p = document.getElementById('inD_phone').value;
+            if(!a || !p) return;
+            db.cash += a;
+            addLog(`إيداع (${p})`, `+${a}`, 'up');
+        } else if(t === 'wit') {
+            let a = parseFloat(document.getElementById('inW_amt').value);
+            let p = document.getElementById('inW_phone').value;
+            if(a > db.cash || !p) return alert("الرصيد لا يكفي أو البيانات ناقصة");
+            db.cash -= a;
+            addLog(`سحب (${p})`, `-${a}`, 'down');
+        } else if(t === 'exc') {
+            let c = parseInt(document.getElementById('inE').value);
+            if(c > db.coins) return;
+            db.coins -= c; db.cash += (c / 100);
+            addLog("تحويل عملات", `+${c/100} كاش`, 'up');
         }
+        document.querySelectorAll('.form-panel').forEach(p => p.style.display='none');
     }
 
-    // 5. نظام البث و Agora
-    async function initAgora() {
-        if (agoraClient.connectionState === "DISCONNECTED") {
-            await agoraClient.join(APP_ID, "vtik_live", null, null);
-            agoraClient.on("user-published", async (u, mt) => {
-                await agoraClient.subscribe(u, mt);
-                if (mt === "audio") u.audioTrack.play();
-            });
-        }
-    }
-
-    async function toggleAgoraLive() {
-        try {
-            if (!isBroadcasting) {
-                await initAgora(); await agoraClient.setClientRole("host");
-                localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                await agoraClient.publish([localAudioTrack]);
-                isBroadcasting = true; document.getElementById('streamStatus').innerText = "بث مباشر 🎤";
-            } else {
-                if(localAudioTrack) { localAudioTrack.stop(); localAudioTrack.close(); }
-                await agoraClient.unpublish(); isBroadcasting = false;
-                document.getElementById('streamStatus').innerText = "وضع الاستماع";
-            }
-        } catch(e) { alert("افتح المايك"); }
-    }
-
-    // 6. الـ Render والواجهة
-    function render() {
+    function updateUI() {
         document.getElementById('displayUserID').innerText = "ID: " + db.userID;
         document.getElementById('cashBal').innerText = db.cash.toFixed(2);
         document.getElementById('coinBal').innerText = db.coins;
 
-        // الفيد الرئيسي
+        // تحديث الفيد
         const feed = document.getElementById('mainFeed'); feed.innerHTML = '';
         db.vids.forEach(v => {
-            feed.innerHTML += `<div class="video-container">
-                <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                <div class="side-icons"><button class="icon-btn" onclick="db.coins+=10;save()">❤️</button></div>
-            </div>`;
+            feed.innerHTML += `
+                <div class="video-container">
+                    <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                    <div class="side-icons">
+                        <button class="icon-btn" onclick="db.coins+=5; addLog('لايك فيديو','+5 عملة','up');">❤️</button>
+                        <button class="icon-btn" onclick="addLog('مشاركة','رابط','up')">🔗</button>
+                    </div>
+                </div>`;
         });
 
-        // البروفايل
-        const pGrid = document.getElementById('pGrid'); pGrid.innerHTML = '';
-        db.vids.filter(v => v.user_id === db.userID).forEach(v => {
-            pGrid.innerHTML += `<div class="profile-vid-item">
-                <button class="del-vid-btn" onclick="deleteVid(${v.id})">×</button>
-                <video src="${v.url}" muted></video>
-            </div>`;
+        // تحديث جدول السجل
+        const hb = document.getElementById('hBody'); hb.innerHTML = '';
+        db.history.forEach(h => {
+            hb.innerHTML += `<tr><td>${h.type}</td><td class="${h.status=='up'?'clr-up':'clr-down'}">${h.amt}</td><td>${h.date}</td></tr>`;
         });
-        initObs();
     }
 
-    // 7. بقية الوظائف (المحفظة، التنقل، لعبة العجلة)
     function showPage(id) { 
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
         document.getElementById(id).style.display = 'block'; 
-        if(id === 'micPage') initAgora();
     }
     function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); }
-    function toggleF(id) { document.getElementById(id).style.display = document.getElementById(id).style.display==='block'?'none':'block'; }
-    
-    function doF(t) {
-        let amt = parseFloat(document.querySelector(`#in${t.charAt(0).toUpperCase()}D_amt, #inW_amt, #inE`)?.value || 0);
-        if(t==='dep') db.cash+=amt;
-        else if(t==='wit' && db.cash>=amt) db.cash-=amt;
-        else if(t==='exc' && db.coins>=amt) { db.coins-=amt; db.cash+=(amt/100); }
-        save();
+    function toggleF(id) { 
+        const p = document.getElementById(id);
+        p.style.display = p.style.display === 'block' ? 'none' : 'block';
     }
 
-    // لعبة العجلة (Galaxy)
-    let canvas = document.getElementById('galaxyCanvas'), ctx = canvas.getContext('2d'), points = [], isSpinning = false, animId, rx=0, ry=0;
-    function openGalaxy() { document.getElementById('galaxyGame').style.display='block'; canvas.width=window.innerWidth; canvas.height=window.innerHeight; initS(); animS(); }
-    function initS() { points=[]; for(let i=0; i<100; i++){ points.push({ val:Math.floor(Math.random()*500), x:Math.random()*400-200, y:Math.random()*400-200, z:Math.random()*400-200, c:`hsl(${Math.random()*360},70%,50%)` }); } }
-    function animS() {
-        ctx.fillStyle='black'; ctx.fillRect(0,0,canvas.width,canvas.height);
-        let cx=canvas.width/2, cy=canvas.height/2; rx+=isSpinning?0.1:0.01; ry+=isSpinning?0.1:0.01;
-        points.forEach(p => {
-            let y1=p.y*Math.cos(rx)-p.z*Math.sin(rx), z1=p.y*Math.sin(rx)+p.z*Math.cos(rx);
-            let x2=p.x*Math.cos(ry)-z1*Math.sin(ry), z2=p.x*Math.sin(ry)+z1*Math.cos(ry);
-            let per=300/(300-z2), sx=x2*per+cx, sy=y1*per+cy;
-            ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(sx,sy,Math.max(1,5*per),0,7); ctx.fill();
-        });
-        animId=requestAnimationFrame(animS);
-    }
-    canvas.onclick=()=>{ if(isSpinning) return; isSpinning=true; setTimeout(()=>{ isSpinning=false; let w=50; db.coins+=w; save(); alert("فزت بـ "+w); }, 2000); };
-    function closeGalaxy(){ document.getElementById('galaxyGame').style.display='none'; cancelAnimationFrame(animId); }
-
-    function initObs(){ const obs=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?e.target.play():e.target.pause()),{threshold:0.7}); document.querySelectorAll('video').forEach(v=>obs.observe(v)); }
-
-    // التشغيل المبدئي
+    // التشغيل
     fetchVids();
+    initObs();
+
+    function initObs(){
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => e.isIntersecting ? e.target.play() : e.target.pause());
+        }, {threshold: 0.7});
+        setTimeout(() => document.querySelectorAll('video').forEach(v => obs.observe(v)), 1000);
+    }
 </script>
 </body>
 </html>
