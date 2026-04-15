@@ -3,37 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK - Pro Version 2026</title>
-    <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+    <title>VTIK - Fixed Version</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
         :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #010101; --neon-green: #39FF14; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--black); color: white; font-family: sans-serif; overflow: hidden; }
-
-        /* مؤشر التحميل في الخلفية */
-        #uploadStatus { 
-            position: fixed; top: 10px; left: 50%; transform: translateX(-50%); 
-            background: rgba(0, 255, 0, 0.8); color: black; padding: 8px 20px; 
-            border-radius: 20px; font-weight: bold; z-index: 9999; display: none; 
-            box-shadow: 0 0 15px var(--neon-green);
-        }
-
+        #uploadStatus { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: var(--neon-green); color: black; padding: 8px 20px; border-radius: 20px; font-weight: bold; z-index: 9999; display: none; }
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        
         .side-icons { position: absolute; right: 10px; bottom: 100px; display: flex; flex-direction: column; gap: 18px; z-index: 100; }
-        .icon-btn { width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-
+        .icon-btn { width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; font-size: 20px; }
         .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
         .wallet-card { background: linear-gradient(145deg, #111, #222); padding: 20px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; }
-        
-        .history-table { width: 90%; margin: 10px auto; border-collapse: collapse; background: #0a0a0a; font-size: 12px; }
+        .history-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 12px; }
         .history-table th, .history-table td { padding: 10px; border-bottom: 1px solid #222; text-align: center; }
         .clr-up { color: var(--neon-green); }
         .clr-down { color: var(--tiktok-red); }
-
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 2000; }
         .form-panel { background: #111; padding: 15px; border-radius: 15px; margin: 10px 20px; display: none; border: 1px solid #444; }
         input { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
@@ -42,8 +28,7 @@
 </head>
 <body>
 
-<div id="uploadStatus">جاري رفع الفيديو... ⏳</div>
-
+<div id="uploadStatus">جاري الرفع... ⏳</div>
 <div id="mainFeed"></div>
 
 <nav class="nav-bar">
@@ -53,44 +38,37 @@
 </nav>
 
 <div id="profilePage" class="page">
-    <div style="text-align:center; padding: 20px;">
-        <div id="displayUserID" style="color:var(--gold); font-family:monospace;">ID: ----</div>
-    </div>
-
     <div class="wallet-card">
+        <div id="displayUserID" style="color:var(--gold); margin-bottom:10px;">ID: ----</div>
         <h2 id="cashBal">0.00</h2><p>رصيد الكاش (EGP)</p>
         <h3 id="coinBal" style="color:var(--gold)">0</h3><p>العملات الذهبية</p>
     </div>
-
     <div style="padding: 0 20px;">
         <button class="btn-action" style="background:var(--tiktok-blue)" onclick="toggleF('dF')">إيداع</button>
         <button class="btn-action" style="background:var(--tiktok-red); color:white" onclick="toggleF('wF')">سحب</button>
         <button class="btn-action" style="background:var(--gold)" onclick="toggleF('eF')">تحويل العملات</button>
         <button class="btn-action" style="background:#333; color:white" onclick="showPage('historyPage')">سجل العمليات 📋</button>
     </div>
-
     <div id="dF" class="form-panel">
-        <input type="number" id="inD_phone" placeholder="رقم محفظة الإرسال">
+        <input type="number" id="inD_phone" placeholder="رقم المحفظة">
         <input type="number" id="inD_amt" placeholder="المبلغ">
         <button class="btn-action" onclick="doAction('dep')">تأكيد الإيداع</button>
     </div>
-
     <div id="wF" class="form-panel">
         <input type="number" id="inW_phone" placeholder="رقم محفظة الاستلام">
-        <input type="number" id="inW_amt" placeholder="المبلغ المراد سحبه">
+        <input type="number" id="inW_amt" placeholder="المبلغ">
         <button class="btn-action" onclick="doAction('wit')">تأكيد السحب</button>
     </div>
-
     <div id="eF" class="form-panel">
-        <input type="number" id="inE" placeholder="عدد العملات للتحويل">
-        <button class="btn-action" onclick="doAction('exc')">تحويل إلى كاش</button>
+        <input type="number" id="inE" placeholder="عدد العملات">
+        <button class="btn-action" onclick="doAction('exc')">تحويل</button>
     </div>
 </div>
 
 <div id="historyPage" class="page">
     <h3 style="text-align:center; margin: 20px;">سجل النشاطات</h3>
     <table class="history-table">
-        <thead><tr><th>العملية</th><th>القيمة</th><th>التاريخ</th></tr></thead>
+        <thead><tr><th>العملية</th><th>القيمة</th><th>الوقت</th></tr></thead>
         <tbody id="hBody"></tbody>
     </table>
     <button class="btn-action" style="background:#222; color:white; width:80%; margin:20px 10%" onclick="showPage('profilePage')">رجوع</button>
@@ -101,42 +79,31 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let db = JSON.parse(localStorage.getItem('vtik_final_db')) || {
+    let db = JSON.parse(localStorage.getItem('vtik_db_v2')) || {
         cash: 0, coins: 0, vids: [], history: [],
         userID: "VT" + Math.floor(1000 + Math.random() * 9000)
     };
 
-    function save() { 
-        localStorage.setItem('vtik_final_db', JSON.stringify(db)); 
-        updateUI(); 
+    function save() {
+        localStorage.setItem('vtik_db_v2', JSON.stringify(db));
+        updateUI();
     }
 
-    // سجل العمليات
     function addLog(type, amt, status='up') {
-        const entry = {
-            type: type,
-            amt: amt,
-            status: status,
-            date: new Date().toLocaleString('ar-EG', {hour:'2-digit', minute:'2-digit'})
-        };
-        db.history.unshift(entry);
+        db.history.unshift({ type, amt, status, date: new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) });
         save();
     }
 
-    // رفع الفيديو في الخلفية
+    // الرفع
     document.getElementById('upBtn').onclick = () => {
         let input = document.createElement('input');
         input.type = 'file'; input.accept = "video/*";
         input.onchange = async e => {
             const file = e.target.files[0];
             if(!file) return;
-
-            // إظهار اللودر واستكمال استخدام التطبيق
             document.getElementById('uploadStatus').style.display = 'block';
-            
-            const fName = `${Date.now()}_${file.name}`;
+            const fName = Date.now() + "_" + file.name;
             const { data, error } = await sb.storage.from('videos').upload(fName, file);
-            
             if (!error) {
                 const { data: urlData } = sb.storage.from('videos').getPublicUrl(fName);
                 await sb.from('vtik_videos').insert([{ url: urlData.publicUrl, user_id: db.userID }]);
@@ -157,20 +124,15 @@
         if(t === 'dep') {
             let a = parseFloat(document.getElementById('inD_amt').value);
             let p = document.getElementById('inD_phone').value;
-            if(!a || !p) return;
-            db.cash += a;
-            addLog(`إيداع (${p})`, `+${a}`, 'up');
+            if(a > 0 && p) { db.cash += a; addLog(`إيداع (${p})`, `+${a}`, 'up'); }
         } else if(t === 'wit') {
             let a = parseFloat(document.getElementById('inW_amt').value);
             let p = document.getElementById('inW_phone').value;
-            if(a > db.cash || !p) return alert("الرصيد لا يكفي أو البيانات ناقصة");
-            db.cash -= a;
-            addLog(`سحب (${p})`, `-${a}`, 'down');
+            if(a <= db.cash && p) { db.cash -= a; addLog(`سحب (${p})`, `-${a}`, 'down'); }
+            else { alert("رصيد غير كافٍ"); }
         } else if(t === 'exc') {
             let c = parseInt(document.getElementById('inE').value);
-            if(c > db.coins) return;
-            db.coins -= c; db.cash += (c / 100);
-            addLog("تحويل عملات", `+${c/100} كاش`, 'up');
+            if(c <= db.coins) { db.coins -= c; db.cash += (c/100); addLog("تحويل", `+${c/100}`, 'up'); }
         }
         document.querySelectorAll('.form-panel').forEach(p => p.style.display='none');
     }
@@ -180,46 +142,35 @@
         document.getElementById('cashBal').innerText = db.cash.toFixed(2);
         document.getElementById('coinBal').innerText = db.coins;
 
-        // تحديث الفيد
-        const feed = document.getElementById('mainFeed'); feed.innerHTML = '';
-        db.vids.forEach(v => {
-            feed.innerHTML += `
-                <div class="video-container">
-                    <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                    <div class="side-icons">
-                        <button class="icon-btn" onclick="db.coins+=5; addLog('لايك فيديو','+5 عملة','up');">❤️</button>
-                        <button class="icon-btn" onclick="addLog('مشاركة','رابط','up')">🔗</button>
-                    </div>
-                </div>`;
-        });
+        const feed = document.getElementById('mainFeed');
+        feed.innerHTML = db.vids.map(v => `
+            <div class="video-container">
+                <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                <div class="side-icons">
+                    <button class="icon-btn" onclick="reward()">❤️</button>
+                    <button class="icon-btn" onclick="addLog('مشاركة','رابط','up')">🔗</button>
+                </div>
+            </div>`).join('');
 
-        // تحديث جدول السجل
-        const hb = document.getElementById('hBody'); hb.innerHTML = '';
-        db.history.forEach(h => {
-            hb.innerHTML += `<tr><td>${h.type}</td><td class="${h.status=='up'?'clr-up':'clr-down'}">${h.amt}</td><td>${h.date}</td></tr>`;
-        });
+        const hb = document.getElementById('hBody');
+        hb.innerHTML = db.history.map(h => `<tr><td>${h.type}</td><td class="${h.status=='up'?'clr-up':'clr-down'}">${h.amt}</td><td>${h.date}</td></tr>`).join('');
+        
+        initObs();
     }
 
-    function showPage(id) { 
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
-        document.getElementById(id).style.display = 'block'; 
-    }
-    function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); }
-    function toggleF(id) { 
-        const p = document.getElementById(id);
-        p.style.display = p.style.display === 'block' ? 'none' : 'block';
-    }
-
-    // التشغيل
-    fetchVids();
-    initObs();
+    function reward() { db.coins += 5; addLog('لايك', '+5 عملة', 'up'); }
+    function showPage(id) { document.querySelectorAll('.page').forEach(p => p.style.display='none'); document.getElementById(id).style.display='block'; }
+    function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display='none'); }
+    function toggleF(id) { let p = document.getElementById(id); p.style.display = (p.style.display==='block'?'none':'block'); }
 
     function initObs(){
         const obs = new IntersectionObserver(entries => {
-            entries.forEach(e => e.isIntersecting ? e.target.play() : e.target.pause());
+            entries.forEach(e => { if(e.isIntersecting) e.target.play().catch(()=>{}); else e.target.pause(); });
         }, {threshold: 0.7});
-        setTimeout(() => document.querySelectorAll('video').forEach(v => obs.observe(v)), 1000);
+        document.querySelectorAll('video').forEach(v => obs.observe(v));
     }
+
+    fetchVids();
 </script>
 </body>
 </html>
