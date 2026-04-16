@@ -73,19 +73,20 @@
     </table>
     <button class="btn-action" style="background:#222; color:white; width:80%; margin:20px 10%" onclick="showPage('profilePage')">رجوع</button>
 </div>
-
 <script>
+    // 1. الإعدادات الأساسية
     const SUPABASE_URL = "https://etnolailfekdqaatfmmt.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let db = JSON.parse(localStorage.getItem('vtik_db_v2')) || {
+    // قاعدة البيانات المحلية (v3 لضمان التحديث)
+    let db = JSON.parse(localStorage.getItem('vtik_db_v3')) || {
         cash: 0, coins: 0, vids: [], history: [],
         userID: "VT" + Math.floor(1000 + Math.random() * 9000)
     };
 
     function save() {
-        localStorage.setItem('vtik_db_v2', JSON.stringify(db));
+        localStorage.setItem('vtik_db_v3', JSON.stringify(db));
         updateUI();
     }
 
@@ -94,32 +95,64 @@
         save();
     }
 
-    // الرفع
+    // 2. وظيفة الرفع (تم تصحيح اسم المجلد VIDEOS)
     document.getElementById('upBtn').onclick = () => {
         let input = document.createElement('input');
         input.type = 'file'; input.accept = "video/*";
         input.onchange = async e => {
             const file = e.target.files[0];
             if(!file) return;
+
+            document.getElementById('uploadStatus').innerText = "جاري الرفع... ⏳";
             document.getElementById('uploadStatus').style.display = 'block';
-            const fName = Date.now() + "_" + file.name;
-            const { data, error } = await sb.storage.from('videos').upload(fName, file);
-            if (!error) {
-                const { data: urlData } = sb.storage.from('videos').getPublicUrl(fName);
-                await sb.from('vtik_videos').insert([{ url: urlData.publicUrl, user_id: db.userID }]);
-                addLog("رفع فيديو", "ناجح", "up");
-                fetchVids();
+            
+            const fName = `${Date.now()}_${file.name}`;
+
+            // الرفع لمجلد VIDEOS الكبير كما في صورتك
+            const { data: upData, error: upError } = await sb.storage.from('VIDEOS').upload(fName, file);
+            
+            if (upError) {
+                alert("خطأ في الرفع: " + upError.message);
+                document.getElementById('uploadStatus').style.display = 'none';
+                return;
             }
+
+            // الحصول على الرابط العام
+            const { data: urlData } = sb.storage.from('VIDEOS').getPublicUrl(fName);
+            const videoUrl = urlData.publicUrl;
+
+            // التسجيل في جدول vtik_videos
+            const { error: dbError } = await sb.from('vtik_videos').insert([
+                { url: videoUrl, user_id: db.userID }
+            ]);
+            
+            if (dbError) {
+                alert("خطأ في التسجيل بالجدول: " + dbError.message);
+            } else {
+                addLog("رفع فيديو", "ناجح ✅", "up");
+                fetchVids(); // تحديث القائمة فوراً
+            }
+            
             document.getElementById('uploadStatus').style.display = 'none';
         };
         input.click();
     };
 
+    // 3. جلب الفيديوهات من السيرفر
     async function fetchVids() {
-        const { data } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
-        if (data) { db.vids = data; updateUI(); }
+        try {
+            const { data, error } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            if (data) { 
+                db.vids = data; 
+                updateUI(); 
+            }
+        } catch (err) {
+            console.error("فشل جلب الفيديوهات:", err.message);
+        }
     }
 
+    // 4. العمليات المالية (إيداع/سحب/تحويل)
     function doAction(t) {
         if(t === 'dep') {
             let a = parseFloat(document.getElementById('inD_amt').value);
@@ -137,27 +170,35 @@
         document.querySelectorAll('.form-panel').forEach(p => p.style.display='none');
     }
 
+    // 5. تحديث واجهة المستخدم
     function updateUI() {
         document.getElementById('displayUserID').innerText = "ID: " + db.userID;
         document.getElementById('cashBal').innerText = db.cash.toFixed(2);
         document.getElementById('coinBal').innerText = db.coins;
 
         const feed = document.getElementById('mainFeed');
-        feed.innerHTML = db.vids.map(v => `
-            <div class="video-container">
-                <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                <div class="side-icons">
-                    <button class="icon-btn" onclick="reward()">❤️</button>
-                    <button class="icon-btn" onclick="addLog('مشاركة','رابط','up')">🔗</button>
-                </div>
-            </div>`).join('');
+        if (db.vids.length === 0) {
+            feed.innerHTML = '<div style="text-align:center; padding-top:40vh;">لا توجد فيديوهات. ارفع أول فيديو!</div>';
+        } else {
+            feed.innerHTML = db.vids.map(v => `
+                <div class="video-container">
+                    <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+                    <div class="side-icons">
+                        <button class="icon-btn" onclick="reward()">❤️</button>
+                        <button class="icon-btn" onclick="addLog('مشاركة','رابط','up')">🔗</button>
+                    </div>
+                </div>`).join('');
+        }
 
         const hb = document.getElementById('hBody');
-        hb.innerHTML = db.history.map(h => `<tr><td>${h.type}</td><td class="${h.status=='up'?'clr-up':'clr-down'}">${h.amt}</td><td>${h.date}</td></tr>`).join('');
+        hb.innerHTML = db.history.map(h => `
+            <tr><td>${h.type}</td><td class="${h.status=='up'?'clr-up':'clr-down'}">${h.amt}</td><td>${h.date}</td></tr>
+        `).join('');
         
         initObs();
     }
 
+    // تشغيل عند التحميل
     function reward() { db.coins += 5; addLog('لايك', '+5 عملة', 'up'); }
     function showPage(id) { document.querySelectorAll('.page').forEach(p => p.style.display='none'); document.getElementById(id).style.display='block'; }
     function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display='none'); }
@@ -170,7 +211,7 @@
         document.querySelectorAll('video').forEach(v => obs.observe(v));
     }
 
-    fetchVids();
+    window.onload = fetchVids;
 </script>
 </body>
 </html>
