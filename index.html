@@ -3,53 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK - Ultimate Version</title>
+    <title>VTIK - Shorts Style</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #010101; --neon-green: #39FF14; }
+        :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #010101; --white: #ffffff; }
         body, html { margin: 0; padding: 0; height: 100%; background: var(--black); color: white; font-family: sans-serif; overflow: hidden; }
         
-        /* تصميم شريط النسبة المئوية */
-        #uploadStatus { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 5px; 
-            background: #333; z-index: 10000; display: none; 
-        }
-        #uploadBar { height: 100%; width: 0%; background: var(--neon-green); transition: width 0.3s; }
-        #percentText { 
-            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); padding: 5px 15px; border-radius: 20px;
-            font-size: 12px; z-index: 10001; display: none;
-        }
+        /* شريط النسبة المئوية */
+        #uploadStatus { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #333; z-index: 10000; display: none; }
+        #uploadBar { height: 100%; width: 0%; background: #39FF14; transition: width 0.3s; }
 
         #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; }
+        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .side-icons { position: absolute; right: 10px; bottom: 100px; display: flex; flex-direction: column; gap: 18px; z-index: 100; }
-        .icon-btn { width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; font-size: 20px; }
-        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
-        .wallet-card { background: linear-gradient(145deg, #111, #222); padding: 20px; border-radius: 20px; margin: 20px; border: 1px solid #333; text-align: center; }
-        .history-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 12px; }
-        .history-table th, .history-table td { padding: 10px; border-bottom: 1px solid #222; text-align: center; }
-        .clr-up { color: var(--neon-green); }
-        .clr-down { color: var(--tiktok-red); }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 2000; }
-        .form-panel { background: #111; padding: 15px; border-radius: 15px; margin: 10px 20px; display: none; border: 1px solid #444; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
-        .btn-action { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+
+        /* الأيقونات الجانبية */
+        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; align-items: center; }
+        .icon-group { text-align: center; }
+        .icon-btn { width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; }
+        .icon-group span { font-size: 12px; margin-top: 4px; display: block; }
+
+        /* نافذة التعليقات (مثل يوتيوب شورتس) */
+        .comments-panel { position: fixed; bottom: -100%; left: 0; width: 100%; height: 60%; background: #1a1a1a; border-radius: 20px 20px 0 0; z-index: 3000; transition: 0.3s; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .comments-panel.open { bottom: 0; }
+        .comments-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .comments-list { flex: 1; overflow-y: auto; margin: 15px 0; }
+        .comment-item { margin-bottom: 12px; font-size: 14px; background: #222; padding: 8px; border-radius: 8px; }
+        .comment-input-area { display: flex; gap: 10px; border-top: 1px solid #333; padding-top: 10px; }
+        .comment-input-area input { flex: 1; background: #333; border: none; color: white; padding: 10px; border-radius: 20px; outline: none; }
+
+        /* الصفحات الأخرى */
+        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 4000; overflow-y: auto; padding-bottom: 80px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 5000; }
         
-        /* شبكة الفيديوهات في البروفايل */
-        #myVidsGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
-        .thumb-box { position: relative; aspect-ratio: 9/16; background: #111; overflow: hidden; border-radius: 5px; }
-        .thumb-box video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        .del-btn { position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 3px; font-size: 10px; padding: 2px 5px; cursor: pointer; }
+        /* البروفايل */
+        #myVidsGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+        .thumb-box { position: relative; aspect-ratio: 9/16; background: #111; }
+        .thumb-box video { width: 100%; height: 100%; object-fit: cover; }
+        .del-btn { position: absolute; top: 5px; right: 5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="uploadStatus"><div id="uploadBar"></div></div>
-<div id="percentText">جاري المعالجة... 0%</div>
-
 <div id="mainFeed"></div>
+
+<div id="commentPanel" class="comments-panel">
+    <div class="comments-header">
+        <span>التعليقات</span>
+        <button onclick="toggleComments()" style="background:none; border:none; color:white; font-size:20px;">✕</button>
+    </div>
+    <div id="commentsList" class="comments-list"></div>
+    <div class="comment-input-area">
+        <input type="text" id="newComment" placeholder="إضافة تعليق...">
+        <button onclick="sendComment()" style="background:var(--tiktok-blue); border:none; border-radius:50%; width:40px; height:40px;">⬆️</button>
+    </div>
+</div>
 
 <nav class="nav-bar">
     <button onclick="closePages()" style="background:none; border:none; color:white; font-size:24px;">🏠</button>
@@ -58,30 +67,12 @@
 </nav>
 
 <div id="profilePage" class="page">
-    <div class="wallet-card">
-        <div id="displayUserID" style="color:var(--gold); margin-bottom:10px;">ID: ----</div>
-        <h2 id="cashBal">0.00</h2><p>رصيد الكاش (EGP)</p>
-        <h3 id="coinBal" style="color:var(--gold)">0</h3><p>العملات الذهبية</p>
+    <div style="text-align:center; padding: 40px 20px; background: #111;">
+        <div id="pUserID" style="color:var(--gold); font-weight:bold;">ID: ----</div>
+        <h2 id="cashBal">0.00</h2><p>رصيد الكاش</p>
     </div>
-    <div style="padding: 0 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button class="btn-action" style="background:var(--tiktok-blue)" onclick="toggleF('dF')">إيداع</button>
-        <button class="btn-action" style="background:var(--tiktok-red); color:white" onclick="toggleF('wF')">سحب</button>
-        <button class="btn-action" style="background:var(--gold)" onclick="toggleF('eF')">تحويل</button>
-        <button class="btn-action" style="background:#333; color:white" onclick="showPage('historyPage')">السجل</button>
-    </div>
-    
-    <div id="dF" class="form-panel"><input type="number" id="inD_amt" placeholder="المبلغ"><button class="btn-action" onclick="doAction('dep')">تأكيد</button></div>
-    <div id="wF" class="form-panel"><input type="number" id="inW_amt" placeholder="المبلغ"><button class="btn-action" onclick="doAction('wit')">تأكيد</button></div>
-    <div id="eF" class="form-panel"><input type="number" id="inE" placeholder="عدد العملات"><button class="btn-action" onclick="doAction('exc')">تحويل</button></div>
-
-    <h4 style="margin: 20px 15px 10px;">فيديوهاتي</h4>
+    <h4 style="padding: 15px;">فيديوهاتي</h4>
     <div id="myVidsGrid"></div>
-</div>
-
-<div id="historyPage" class="page">
-    <h3 style="text-align:center; margin: 20px;">سجل العمليات</h3>
-    <table class="history-table"><thead><tr><th>العملية</th><th>القيمة</th><th>الوقت</th></tr></thead><tbody id="hBody"></tbody></table>
-    <button class="btn-action" style="background:#222; color:white; width:80%; margin:20px 10%" onclick="showPage('profilePage')">رجوع</button>
 </div>
 
 <script>
@@ -89,121 +80,100 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let db = JSON.parse(localStorage.getItem('vtik_db_v4')) || {
-        cash: 0, coins: 0, vids: [], history: [],
-        userID: "VT" + Math.floor(1000 + Math.random() * 9000)
-    };
+    let db = JSON.parse(localStorage.getItem('vtik_v5')) || { cash: 0, vids: [], userID: "VT"+Math.floor(1000+Math.random()*9000) };
+    let currentVideoId = null;
 
-    function save() { localStorage.setItem('vtik_db_v4', JSON.stringify(db)); updateUI(); }
-    function addLog(t, a, s='up') { db.history.unshift({type:t, amt:a, status:s, date:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}); save(); }
+    // جلب الفيديوهات والتعليقات
+    async function fetchAll() {
+        const { data } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
+        if (data) { db.vids = data; updateUI(); }
+    }
 
-    // الرفع مع النسبة المئوية
+    // الرفع
     document.getElementById('upBtn').onclick = () => {
-        let input = document.createElement('input');
-        input.type = 'file'; input.accept = "video/*";
+        let input = document.createElement('input'); input.type='file'; input.accept="video/*";
         input.onchange = async e => {
-            const file = e.target.files[0];
-            if(!file) return;
+            const file = e.target.files[0]; if(!file) return;
+            document.getElementById('uploadStatus').style.display='block';
+            const fName = Date.now()+".mp4";
 
-            const bar = document.getElementById('uploadBar');
-            const status = document.getElementById('uploadStatus');
-            const text = document.getElementById('percentText');
-
-            status.style.display = 'block';
-            text.style.display = 'block';
-            
-            const fileExt = file.name.split('.').pop();
-            const fName = `${Date.now()}.${fileExt}`;
-
-            // استخدام XMLHttpRequest لمتابعة النسبة المئوية
             const xhr = new XMLHttpRequest();
             xhr.open('POST', `${SUPABASE_URL}/storage/v1/object/videos/${fName}`, true);
             xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_KEY}`);
             xhr.setRequestHeader('apikey', SUPABASE_KEY);
-
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    bar.style.width = percent + '%';
-                    text.innerText = `جاري الرفع... ${percent}%`;
-                }
-            };
-
+            xhr.upload.onprogress = ev => { document.getElementById('uploadBar').style.width = (ev.loaded/ev.total)*100 + '%'; };
             xhr.onload = async () => {
-                if (xhr.status === 200 || xhr.status === 201) {
-                    const { data: urlData } = sb.storage.from('videos').getPublicUrl(fName);
-                    await sb.from('vtik_videos').insert([{ url: urlData.publicUrl, user_id: db.userID }]);
-                    addLog("رفع فيديو", "ناجح ✅");
-                    fetchVids();
-                } else {
-                    alert("فشل الرفع!");
-                }
-                status.style.display = 'none';
-                text.style.display = 'none';
-                bar.style.width = '0%';
+                const { data: u } = sb.storage.from('videos').getPublicUrl(fName);
+                await sb.from('vtik_videos').insert([{ url: u.publicUrl, user_id: db.userID }]);
+                document.getElementById('uploadStatus').style.display='none';
+                fetchAll(); // تحديث فوري
             };
-
             xhr.send(file);
         };
         input.click();
     };
 
-    async function fetchVids() {
-        const { data } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
-        if (data) { db.vids = data; updateUI(); }
+    // التعليقات
+    async function toggleComments(vidId = null) {
+        currentVideoId = vidId;
+        const panel = document.getElementById('commentPanel');
+        if(vidId) {
+            panel.classList.add('open');
+            const { data } = await sb.from('vtik_comments').select('*').eq('video_id', vidId).order('created_at', {ascending: false});
+            document.getElementById('commentsList').innerHTML = data.map(c => `<div class="comment-item"><b>${c.user_id}:</b> ${c.text}</div>`).join('');
+        } else { panel.classList.remove('open'); }
     }
 
-    async function deleteVid(id, url) {
-        if(!confirm("حذف الفيديو نهائياً؟")) return;
-        const fName = url.split('/').pop();
-        await sb.from('vtik_videos').delete().eq('id', id);
-        await sb.storage.from('videos').remove([fName]);
-        fetchVids();
+    async function sendComment() {
+        const text = document.getElementById('newComment').value;
+        if(!text || !currentVideoId) return;
+        await sb.from('vtik_comments').insert([{ video_id: currentVideoId, user_id: db.userID, text: text }]);
+        document.getElementById('newComment').value = '';
+        toggleComments(currentVideoId); // إعادة تحميل
     }
 
     function updateUI() {
-        document.getElementById('displayUserID').innerText = "ID: " + db.userID;
+        document.getElementById('pUserID').innerText = "ID: " + db.userID;
         document.getElementById('cashBal').innerText = db.cash.toFixed(2);
-        document.getElementById('coinBal').innerText = db.coins;
 
         // الهوم
-        const feed = document.getElementById('mainFeed');
-        feed.innerHTML = db.vids.map(v => `
+        document.getElementById('mainFeed').innerHTML = db.vids.map(v => `
             <div class="video-container">
                 <video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
                 <div class="side-icons">
-                    <button class="icon-btn" onclick="reward()">❤️</button>
-                    <button class="icon-btn" onclick="addLog('مشاركة','رابط')">🔗</button>
+                    <div class="icon-group"><button class="icon-btn">❤️</button><span>0</span></div>
+                    <div class="icon-group"><button class="icon-btn" onclick="toggleComments(${v.id})">💬</button><span>0</span></div>
+                    <div class="icon-group"><button class="icon-btn">🔗</button></div>
                 </div>
             </div>`).join('');
 
         // البروفايل
-        const grid = document.getElementById('myVidsGrid');
         const myVids = db.vids.filter(v => v.user_id === db.userID);
-        grid.innerHTML = myVids.map(v => `
+        document.getElementById('myVidsGrid').innerHTML = myVids.map(v => `
             <div class="thumb-box">
                 <video src="${v.url}"></video>
-                <button class="del-btn" onclick="deleteVid(${v.id}, '${v.url}')">X</button>
+                <button class="del-btn" onclick="deleteVid(${v.id},'${v.url}')">✕</button>
             </div>`).join('');
-
-        const hb = document.getElementById('hBody');
-        hb.innerHTML = db.history.map(h => `<tr><td>${h.type}</td><td class="${h.status=='up'?'clr-up':'clr-down'}">${h.amt}</td><td>${h.date}</td></tr>`).join('');
+        
         initObs();
     }
 
-    function reward() { db.coins += 5; addLog('لايك', '+5 عملة'); }
-    function showPage(id) { document.querySelectorAll('.page').forEach(p => p.style.display='none'); document.getElementById(id).style.display='block'; }
-    function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display='none'); }
-    function toggleF(id) { let p = document.getElementById(id); p.style.display = (p.style.display==='block'?'none':'block'); }
+    async function deleteVid(id, url) {
+        if(!confirm("حذف؟")) return;
+        await sb.from('vtik_videos').delete().eq('id', id);
+        await sb.storage.from('videos').remove([url.split('/').pop()]);
+        fetchAll();
+    }
 
+    function showPage(id) { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(id).style.display='block'; }
+    function closePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
     function initObs(){
-        const obs = new IntersectionObserver(entries => {
-            entries.forEach(e => { if(e.isIntersecting) e.target.play().catch(()=>{}); else e.target.pause(); });
-        }, {threshold: 0.7});
+        const obs = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting) e.target.play().catch(()=>{}); else e.target.pause(); })} , {threshold:0.7});
         document.querySelectorAll('video').forEach(v => obs.observe(v));
     }
 
-    window.onload = fetchVids;
+    window.onload = fetchAll;
+    setInterval(fetchAll, 10000); // تحديث تلقائي كل 10 ثوانٍ
 </script>
 </body>
 </html>
