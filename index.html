@@ -109,7 +109,7 @@
             const fName = `${Date.now()}_${file.name}`;
 
             // الرفع لمجلد VIDEOS الكبير كما في صورتك
-            const { data: upData, error: upError } = await sb.storage.from('VIDEOS').upload(fName, file);
+            const { data: upData, error: upError } = await sb.storage.from('videos').upload(fName, file);
             
             if (upError) {
                 alert("خطأ في الرفع: " + upError.message);
