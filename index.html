@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK - Fixed Version</title>
+    <title>VTIK - Final Fixed Version</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #010101; --neon-green: #39FF14; }
@@ -73,20 +73,19 @@
     </table>
     <button class="btn-action" style="background:#222; color:white; width:80%; margin:20px 10%" onclick="showPage('profilePage')">رجوع</button>
 </div>
+
 <script>
-    // 1. الإعدادات الأساسية
     const SUPABASE_URL = "https://etnolailfekdqaatfmmt.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // قاعدة البيانات المحلية (v3 لضمان التحديث)
-    let db = JSON.parse(localStorage.getItem('vtik_db_v3')) || {
+    let db = JSON.parse(localStorage.getItem('vtik_db_final')) || {
         cash: 0, coins: 0, vids: [], history: [],
         userID: "VT" + Math.floor(1000 + Math.random() * 9000)
     };
 
     function save() {
-        localStorage.setItem('vtik_db_v3', JSON.stringify(db));
+        localStorage.setItem('vtik_db_final', JSON.stringify(db));
         updateUI();
     }
 
@@ -95,7 +94,7 @@
         save();
     }
 
-    // 2. وظيفة الرفع (تم تصحيح اسم المجلد VIDEOS)
+    // الرفع مع تنظيف اسم الملف
     document.getElementById('upBtn').onclick = () => {
         let input = document.createElement('input');
         input.type = 'file'; input.accept = "video/*";
@@ -106,10 +105,12 @@
             document.getElementById('uploadStatus').innerText = "جاري الرفع... ⏳";
             document.getElementById('uploadStatus').style.display = 'block';
             
-            const fName = `${Date.now()}_${file.name}`;
+            // حل مشكلة الحروف العربية: ننشئ اسماً جديداً من أرقام فقط
+            const fileExt = file.name.split('.').pop();
+            const cleanFileName = `${Date.now()}.${fileExt}`;
 
-            // الرفع لمجلد VIDEOS الكبير كما في صورتك
-            const { data: upData, error: upError } = await sb.storage.from('videos').upload(fName, file);
+            // الرفع للمجلد (يستخدم اسم videos بالصغير كما في الـ Bucket)
+            const { data: upData, error: upError } = await sb.storage.from('videos').upload(cleanFileName, file);
             
             if (upError) {
                 alert("خطأ في الرفع: " + upError.message);
@@ -118,10 +119,10 @@
             }
 
             // الحصول على الرابط العام
-            const { data: urlData } = sb.storage.from('VIDEOS').getPublicUrl(fName);
+            const { data: urlData } = sb.storage.from('videos').getPublicUrl(cleanFileName);
             const videoUrl = urlData.publicUrl;
 
-            // التسجيل في جدول vtik_videos
+            // التسجيل في الجدول
             const { error: dbError } = await sb.from('vtik_videos').insert([
                 { url: videoUrl, user_id: db.userID }
             ]);
@@ -130,7 +131,7 @@
                 alert("خطأ في التسجيل بالجدول: " + dbError.message);
             } else {
                 addLog("رفع فيديو", "ناجح ✅", "up");
-                fetchVids(); // تحديث القائمة فوراً
+                fetchVids(); 
             }
             
             document.getElementById('uploadStatus').style.display = 'none';
@@ -138,21 +139,16 @@
         input.click();
     };
 
-    // 3. جلب الفيديوهات من السيرفر
     async function fetchVids() {
         try {
             const { data, error } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
             if (error) throw error;
-            if (data) { 
-                db.vids = data; 
-                updateUI(); 
-            }
+            if (data) { db.vids = data; updateUI(); }
         } catch (err) {
             console.error("فشل جلب الفيديوهات:", err.message);
         }
     }
 
-    // 4. العمليات المالية (إيداع/سحب/تحويل)
     function doAction(t) {
         if(t === 'dep') {
             let a = parseFloat(document.getElementById('inD_amt').value);
@@ -170,7 +166,6 @@
         document.querySelectorAll('.form-panel').forEach(p => p.style.display='none');
     }
 
-    // 5. تحديث واجهة المستخدم
     function updateUI() {
         document.getElementById('displayUserID').innerText = "ID: " + db.userID;
         document.getElementById('cashBal').innerText = db.cash.toFixed(2);
@@ -178,7 +173,7 @@
 
         const feed = document.getElementById('mainFeed');
         if (db.vids.length === 0) {
-            feed.innerHTML = '<div style="text-align:center; padding-top:40vh;">لا توجد فيديوهات. ارفع أول فيديو!</div>';
+            feed.innerHTML = '<div style="text-align:center; padding-top:40vh;">لا توجد فيديوهات بعد. ارفع أول فيديو!</div>';
         } else {
             feed.innerHTML = db.vids.map(v => `
                 <div class="video-container">
@@ -198,7 +193,6 @@
         initObs();
     }
 
-    // تشغيل عند التحميل
     function reward() { db.coins += 5; addLog('لايك', '+5 عملة', 'up'); }
     function showPage(id) { document.querySelectorAll('.page').forEach(p => p.style.display='none'); document.getElementById(id).style.display='block'; }
     function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display='none'); }
