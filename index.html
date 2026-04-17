@@ -7,191 +7,33 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --main: #fe2c55; --accent: #25f4ee; --gold: #FFD700; --bg: #000; }
-        * { box-sizing: border-box; font-family: sans-serif; }
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; overflow: hidden; }
-
-        .page { position: fixed; inset: 0; display: none; background: #000; overflow-y: auto; padding-bottom: 80px; }
-        .page.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
-        /* تنسيق شاشة الدخول */
-        #loginPage { text-align: center; z-index: 10000; }
-        .logo { font-size: 60px; font-weight: bold; color: var(--main); margin-bottom: 10px; }
-
-        /* تنسيق الهوم */
-        #homePage.active { display: block; }
-        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-
-        /* شريط التنقل */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: #555; font-size: 24px; cursor: pointer; }
-        .nav-btn.active { color: white; }
-    </style>
-</head>
-<body>
-
-<div id="loginPage" class="page">
-    <div class="logo">VTIK</div>
-    <p style="color: #888; margin-bottom: 30px;">سجل دخولك للمتابعة</p>
-    <div id="telegram-login-box"></div>
-</div>
-
-<div id="homePage" class="page">
-    <div id="mainFeed">
-        <div style="text-align:center; padding-top:50vh; color:#333;">لا يوجد محتوى حالياً.. ارفع أول فيديو!</div>
-    </div>
-</div>
-
-<div id="profilePage" class="page">
-    <div style="padding:40px 20px; text-align:center;">
-        <h3 id="uName">المستخدم</h3>
-        <div style="background:#111; padding:20px; border-radius:15px; margin:20px 0;">
-            <h2 id="coinShow" style="color:var(--gold); margin:0;">0</h2>
-            <p style="font-size:12px; color:#777;">الكوينز</p>
-        </div>
-        <button onclick="logout()" style="width:100%; padding:12px; background:none; border:1px solid #333; color:#666; border-radius:10px;">تسجيل خروج</button>
-    </div>
-</div>
-
-<nav id="navbar" class="nav-bar" style="display:none;">
-    <button class="nav-btn" onclick="showPage('homePage')">🏠</button>
-    <button class="nav-btn" onclick="triggerUpload()" style="background:#fff; color:#000; width:45px; height:30px; border-radius:8px; font-weight:bold;">+</button>
-    <button class="nav-btn" onclick="showPage('profilePage')">👤</button>
-</nav>
-
-<script>
-    const BOT_USERNAME = "VTIKEG_bot"; // اسم بوتك كما في الصورة
-    const SUPABASE_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let user = JSON.parse(localStorage.getItem('vtik_session'));
-
-    // دالة تسجيل الدخول
-    function onTelegramAuth(tgUser) {
-        localStorage.setItem('vtik_session', JSON.stringify(tgUser));
-        // مزامنة مع Supabase
-        sb.from('vtik_users').upsert({
-            user_id: tgUser.id.toString(),
-            username: tgUser.first_name,
-            avatar_url: tgUser.photo_url || ''
-        }).then(() => {
-            location.reload();
-        });
-    }
-
-    window.onload = () => {
-        if (!user) {
-            // إظهار صفحة الدخول وتحميل الزر
-            document.getElementById('loginPage').classList.add('active');
-            const script = document.createElement('script');
-            script.src = "https://telegram.org/js/telegram-widget.js?22";
-            script.setAttribute('data-telegram-login', BOT_USERNAME);
-            script.setAttribute('data-size', 'large');
-            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-            script.setAttribute('data-request-access', 'write');
-            document.getElementById('telegram-login-box').appendChild(script);
-        } else {
-            // إظهار التطبيق
-            document.getElementById('navbar').style.display = 'flex';
-            showPage('homePage');
-            loadContent();
-        }
-    };
-
-    async function loadContent() {
-        // تحديث الاسم والرصيد
-        const { data: u } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
-        if(u) {
-            document.getElementById('uName').innerText = u.username;
-            document.getElementById('coinShow').innerText = u.coins_balance || 0;
-        }
-
-        // جلب الفيديوهات
-        const { data: vids } = await sb.from('vtik_videos').select('*').order('created_at', {ascending: false});
-        if(vids && vids.length > 0) {
-            document.getElementById('mainFeed').innerHTML = vids.map(v => `
-                <div class="video-container">
-                    <video src="https://api.telegram.org/bot8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0/getFile?file_id=${v.url}" loop playsinline controls></video>
-                </div>
-            `).join('');
-        }
-    }
-
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function logout() { localStorage.clear(); location.reload(); }
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK PRO</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --main: #fe2c55; --accent: #25f4ee; --gold: #FFD700; --bg: #000; }
-        * { box-sizing: border-box; font-family: sans-serif; }
-        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; overflow: hidden; }
-
-        .page { position: fixed; inset: 0; display: none; background: var(--bg); overflow-y: auto; padding-bottom: 80px; }
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
+        .page { position: fixed; inset: 0; display: none; overflow-y: auto; padding-bottom: 80px; }
         .page.active { display: block; }
-
-        /* الهوم والفيديوهات */
-        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
-        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; background: #000; }
-
-        /* أيقونات التفاعل */
-        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
-        .icon-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 50px; height: 50px; color: white; font-size: 22px; backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        /* شريط التنقل */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 1000; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; }
         .nav-btn { background: none; border: none; color: #555; font-size: 24px; cursor: pointer; }
         .nav-btn.active { color: white; }
-        .upload-btn { background: white; color: black; width: 45px; height: 30px; border-radius: 8px; font-weight: bold; font-size: 20px; }
-
-        #statusMsg { position: fixed; top: 10px; width: 80%; left: 10%; background: var(--main); padding: 10px; border-radius: 8px; text-align: center; display: none; z-index: 2000; }
+        .video-card { height: 100vh; width: 100vw; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
 <body>
 
-<div id="statusMsg">جاري معالجة الفيديو...</div>
-
-<div id="homePage" class="page active">
-    <div id="mainFeed">
-        <div style="text-align:center; margin-top:50vh; color:#333;">لا توجد فيديوهات بعد.. اضغط (+) للرفع</div>
-    </div>
-</div>
-
+<div id="homePage" class="page active"><div id="mainFeed"></div></div>
 <div id="profilePage" class="page">
     <div style="padding:40px 20px; text-align:center;">
-        <div style="width:80px; height:80px; background:#222; border-radius:50%; margin:0 auto 10px; border:2px solid var(--main); display:flex; align-items:center; justify-content:center; font-size:30px;">👤</div>
-        <h3 id="uName">تحميل...</h3>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <div style="flex:1; background:#111; padding:15px; border-radius:15px;">
-                <h2 id="coinShow" style="color:var(--gold); margin:0;">0</h2>
-                <p style="font-size:11px; color:#777;">الكوينز</p>
-            </div>
-            <div style="flex:1; background:#111; padding:15px; border-radius:15px;">
-                <h2 id="cashShow" style="color:var(--accent); margin:0;">0.00</h2>
-                <p style="font-size:11px; color:#777;">الكاش (EGP)</p>
-            </div>
+        <h2 id="uNameDisplay">جاري التحميل...</h2>
+        <div style="background:#111; padding:20px; border-radius:15px; margin:20px 0;">
+            <h1 id="coinShow" style="color:var(--gold);">0</h1>
+            <p>كوينز</p>
         </div>
-        <button onclick="logout()" style="width:100%; margin-top:30px; padding:12px; background:none; border:1px solid #333; color:#666; border-radius:10px;">خروج</button>
+        <button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:1px solid #333; padding:10px; border-radius:10px;">تسجيل خروج</button>
     </div>
 </div>
 
 <nav class="nav-bar">
     <button class="nav-btn active" onclick="showPage('homePage')">🏠</button>
-    <button class="nav-btn upload-btn" onclick="triggerUpload()">+</button>
+    <button class="nav-btn" onclick="triggerUpload()" style="background:#fff; color:#000; width:45px; height:30px; border-radius:8px; font-weight:bold;">+</button>
     <button class="nav-btn" onclick="showPage('profilePage')">👤</button>
 </nav>
 
@@ -204,81 +46,51 @@
 
     let user = JSON.parse(localStorage.getItem('vtik_session'));
 
-    window.onload = () => {
-        if(user) {
-            loadAppData();
-        } else {
-            // شاشة الدخول إذا لم تكن هناك جلسة
-            document.body.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; text-align:center;"><div><h1>VTIK</h1><p>يرجى إعادة تحميل الصفحة لتسجيل الدخول</p></div></div>';
-        }
-    };
-
-    async function loadAppData() {
-        // تحديث بيانات البروفايل
+    async function loadData() {
+        if(!user) return;
+        
+        // جلب بيانات المستخدم بدقة
         const { data: u } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
         if(u) {
-            document.getElementById('uName').innerText = u.username;
+            document.getElementById('uNameDisplay').innerText = u.username;
             document.getElementById('coinShow').innerText = u.coins_balance || 0;
-            document.getElementById('cashShow').innerText = u.cash_balance || "0.00";
         }
 
         // جلب الفيديوهات
         const { data: vids } = await sb.from('vtik_videos').select('*').order('created_at', {ascending: false});
         if(vids && vids.length > 0) {
-            const feed = document.getElementById('mainFeed');
-            feed.innerHTML = vids.map(v => `
-                <div class="video-container">
+            document.getElementById('mainFeed').innerHTML = vids.map(v => `
+                <div class="video-card">
                     <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" loop playsinline controls></video>
-                    <div class="side-icons">
-                        <button class="icon-btn" onclick="handleLike(this)">❤️</button>
-                        <button class="icon-btn">💬</button>
-                    </div>
                 </div>
             `).join('');
         }
     }
 
     function triggerUpload() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'video/*';
-        input.onchange = async (e) => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'video/*';
+        fileInput.onchange = async (e) => {
             const file = e.target.files[0];
             if(!file) return;
-
-            document.getElementById('statusMsg').style.display = 'block';
             
+            alert("بدأ الرفع.. يرجى الانتظار");
             const fd = new FormData();
             fd.append('chat_id', CHAT_ID);
             fd.append('video', file);
 
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: fd });
-                const data = await res.json();
-                
-                if(data.ok) {
-                    const fileId = data.result.video.file_id;
-                    await sb.from('vtik_videos').insert([{ url: fileId, user_id: user.id.toString() }]);
-                    location.reload();
-                } else {
-                    alert("خطأ في الرفع: " + data.description);
-                }
-            } catch (err) {
-                alert("فشل الاتصال بتليجرام");
-            } finally {
-                document.getElementById('statusMsg').style.display = 'none';
+            const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: fd });
+            const result = await res.json();
+            
+            if(result.ok) {
+                await sb.from('vtik_videos').insert([{ url: result.result.video.file_id, user_id: user.id.toString() }]);
+                location.reload();
+            } else {
+                alert("فشل الرفع: " + result.description);
             }
         };
-        input.click();
-    }
-
-    async function handleLike(btn) {
-        if(btn.style.color === 'red') return;
-        btn.style.color = 'red';
-        
-        let coins = parseInt(document.getElementById('coinShow').innerText) + 1;
-        await sb.from('vtik_users').update({ coins_balance: coins }).eq('user_id', user.id.toString());
-        document.getElementById('coinShow').innerText = coins;
+        fileInput.click();
     }
 
     function showPage(id) {
@@ -287,7 +99,7 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    window.onload = loadData;
 </script>
 </body>
 </html>
