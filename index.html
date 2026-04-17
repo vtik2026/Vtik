@@ -3,64 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK PRO - النسخة المتكاملة</title>
+    <title>VTIK PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --main: #fe2c55; --accent: #25f4ee; --gold: #FFD700; --bg: #000; }
-        * { box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; height: 100%; background: var(--bg); color: white; overflow: hidden; }
-
-        /* شاشة الدخول */
-        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { background: #111; padding: 30px; border-radius: 20px; border: 1px solid #333; width: 100%; max-width: 350px; text-align: center; }
-        .login-input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #444; background: #000; color: white; text-align: center; font-size: 18px; }
-        .login-btn { width: 100%; padding: 12px; background: var(--main); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
-
-        /* الصفحات */
-        .page { position: fixed; inset: 0; display: none; background: var(--bg); overflow-y: auto; padding-bottom: 80px; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
+        .page { position: fixed; inset: 0; display: none; background: #000; overflow-y: auto; padding-bottom: 80px; }
         .page.active { display: block; }
-
-        /* الهوم (فيديوهات) */
-        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
-        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; display: flex; align-items: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-
-        /* أيقونات التفاعل */
-        .side-icons { position: absolute; right: 10px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
-        .icon-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 50%; width: 50px; height: 50px; color: white; font-size: 24px; backdrop-filter: blur(8px); cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        /* المحفظة والبروفايل */
-        .wallet-card { background: linear-gradient(145deg, #111, #050505); padding: 25px; border-radius: 20px; text-align: center; margin: 20px; border: 1px solid #222; }
-        .balance-row { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .bal-box { flex: 1; }
-        .bal-val { font-size: 24px; font-weight: bold; color: var(--gold); }
-        .bal-label { font-size: 12px; color: #777; }
+        /* حل مشكلة الشاشة السوداء */
+        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 
-        .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-        .grid-item { position: relative; aspect-ratio: 9/16; background: #0a0a0a; border: 0.1px solid #111; }
-        .grid-item video { width: 100%; height: 100%; object-fit: cover; }
-        .del-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.7); border: none; color: white; border-radius: 4px; padding: 2px 6px; font-size: 12px; }
-
-        /* التنقل السفلي */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #222; z-index: 1000; }
-        .nav-item { color: #555; font-size: 26px; border: none; background: none; cursor: pointer; }
-        .nav-item.active { color: white; }
-        .plus-btn { background: linear-gradient(to right, var(--accent), var(--main)); width: 50px; height: 32px; border-radius: 10px; border: none; color: black; font-weight: bold; }
-
-        #uploadStatus { position: fixed; top: 15px; width: 80%; left: 10%; background: rgba(0,0,0,0.95); padding: 12px; border-radius: 12px; z-index: 11000; display: none; text-align: center; border: 1px solid var(--accent); }
+        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+        .icon-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 50px; height: 50px; color: white; font-size: 22px; backdrop-filter: blur(10px); cursor: pointer; }
+        
+        #loginPage { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; background: #000; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
 
-<div id="uploadStatus">جاري الرفع... <span id="progress">0%</span></div>
-
-<div id="loginOverlay">
-    <div class="login-card">
-        <h2 style="color:var(--accent); margin:0">VTIK</h2>
-        <p style="color:#666; font-size:13px; margin:10px 0">سجل دخولك بآيدي تليجرام</p>
-        <input type="number" id="tgIDInput" class="login-input" placeholder="Telegram ID">
-        <button class="login-btn" onclick="login()">دخول الحساب</button>
-    </div>
+<div id="loginPage" class="page active">
+    <h1 style="color:var(--main)">VTIK</h1>
+    <p>سجل دخولك عبر تليجرام للمتابعة</p>
+    <div id="telegram-login-container"></div>
 </div>
 
 <div id="homePage" class="page">
@@ -68,175 +35,118 @@
 </div>
 
 <div id="profilePage" class="page">
-    <div class="wallet-card">
-        <div class="balance-row">
-            <div class="bal-box">
-                <div class="bal-val" id="cashBal">0.00</div>
-                <div class="bal-label">كاش (EGP)</div>
-            </div>
-            <div class="bal-box" style="border-right: 1px solid #222;">
-                <div class="bal-val" id="coinBal">0</div>
-                <div class="bal-label">نقاط (Coins)</div>
-            </div>
+    <div style="padding: 20px; text-align: center;">
+        <img id="userAvatar" src="" style="width: 80px; border-radius: 50%; border: 2px solid var(--accent); display: none;">
+        <h3 id="userName">المستخدم</h3>
+        <div style="background: #111; padding: 20px; border-radius: 15px; margin: 10px;">
+            <p>الرصيد الكاش: <span id="cashBal" style="color:var(--gold); font-weight:bold;">0.00</span> EGP</p>
+            <p>الكوينز: <span id="coinBal" style="color:var(--accent); font-weight:bold;">0</span> Coins</p>
         </div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="handleMoney('إيداع')" style="flex:1; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">إيداع</button>
-            <button onclick="handleMoney('سحب')" style="flex:1; padding:12px; background:#222; color:white; border:none; border-radius:10px; font-weight:bold;">سحب</button>
-        </div>
+        <div id="myGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;"></div>
     </div>
-    <h4 style="margin:15px">فيديوهاتي المرفوعة</h4>
-    <div id="myGrid" class="video-grid"></div>
-    <button onclick="logout()" style="width:90%; margin:25px 5%; padding:15px; background:#1a1a1a; color:#f00; border:none; border-radius:10px;">تسجيل الخروج</button>
 </div>
 
 <nav class="nav-bar">
-    <button class="nav-item active" onclick="switchPage('homePage')">🏠</button>
-    <button class="plus-btn" onclick="openFile()">+</button>
-    <button class="nav-item" onclick="switchPage('profilePage')">👤</button>
+    <button onclick="showPage('homePage')">🏠</button>
+    <button onclick="showPage('profilePage')">👤</button>
 </nav>
 
 <script>
     const BOT_TOKEN = "8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0";
-    const CHAT_ID = "-1003614080639"; 
-    const ADMIN_ID = "5812257142";
     const SUPABASE_URL = "https://etnolailfekdqaatfmmt.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let myID = localStorage.getItem('vtik_uid');
-    let userRecord = null;
+    let currentUser = JSON.parse(localStorage.getItem('vtik_user'));
 
-    // دالة تسجيل الدخول وربطها بجدول vtik_users
-    async function login() {
-        const id = document.getElementById('tgIDInput').value;
-        if(id.length < 5) return alert("الآيدي غير صحيح");
+    // وظيفة تسجيل دخول تليجرام الرسمي
+    function onTelegramAuth(user) {
+        localStorage.setItem('vtik_user', JSON.stringify(user));
+        syncUserWithSupabase(user);
+    }
 
-        // البحث عن المستخدم أو إنشاء حساب جديد
-        let { data: user } = await sb.from('vtik_users').select('*').eq('user_id', id).maybeSingle();
-        
-        if (!user) {
-            const { data } = await sb.from('vtik_users').insert([{ user_id: id, cash_balance: 0, coins_balance: 0 }]).select().single();
-            user = data;
-        }
+    async function syncUserWithSupabase(user) {
+        // تحديث أو إنشاء مستخدم في جدول vtik_users
+        const { data, error } = await sb.from('vtik_users').upsert({
+            user_id: user.id.toString(),
+            username: user.first_name,
+            avatar_url: user.photo_url,
+        }, { onConflict: 'user_id' }).select().single();
 
-        localStorage.setItem('vtik_uid', id);
         location.reload();
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    // إعداد الويدجيت
+    window.onload = function() {
+        if (!currentUser) {
+            const script = document.createElement('script');
+            script.src = "https://telegram.org/js/telegram-widget.js?22";
+            script.setAttribute('data-telegram-login', 'YOUR_BOT_USERNAME'); // استبدل YOUR_BOT_USERNAME باسم بوتك (مثلاً vtik_bot)
+            script.setAttribute('data-size', 'large');
+            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+            script.setAttribute('data-request-access', 'write');
+            document.getElementById('telegram-login-container').appendChild(script);
+        } else {
+            showPage('homePage');
+            loadContent();
+        }
+    };
 
-    if(myID) {
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('homePage').classList.add('active');
-        init();
-    }
+    async function loadContent() {
+        // تحديث الأرصدة
+        const { data: userData } = await sb.from('vtik_users').select('*').eq('user_id', currentUser.id.toString()).single();
+        if(userData) {
+            document.getElementById('cashBal').innerText = userData.cash_balance;
+            document.getElementById('coinBal').innerText = userData.coins_balance;
+            document.getElementById('userName').innerText = userData.username;
+            if(userData.avatar_url) {
+                document.getElementById('userAvatar').src = userData.avatar_url;
+                document.getElementById('userAvatar').style.display = 'inline';
+            }
+        }
 
-    async function init() {
-        // جلب بيانات المستخدم الماليّة
-        let { data: user } = await sb.from('vtik_users').select('*').eq('user_id', myID).single();
-        userRecord = user;
-        updateUI();
-
-        // جلب الفيديوهات
-        const { data: videos } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
-        if(videos) render(videos);
-    }
-
-    function render(list) {
-        // الهوم
-        document.getElementById('mainFeed').innerHTML = list.map(v => `
-            <div class="video-container">
-                <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-                <div class="side-icons">
-                    <button class="icon-btn" onclick="earn(this, 'like')">❤️</button>
-                    <button class="icon-btn" onclick="earn(this, 'comment')">💬</button>
-                    <button class="icon-btn" onclick="earn(this, 'share')">🔗</button>
-                    ${myID === ADMIN_ID ? `<button class="icon-btn" style="color:red" onclick="deleteVideo(${v.id})">×</button>` : ''}
+        // جلب الفيديوهات (حل مشكلة الفيديو)
+        const { data: videos } = await sb.from('vtik_videos').select('*');
+        if(videos) {
+            document.getElementById('mainFeed').innerHTML = videos.map(v => `
+                <div class="video-container">
+                    <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" loop playsinline controls></video>
+                    <div class="side-icons">
+                        <button class="icon-btn" onclick="handleAction('${v.id}', 'like', this)">❤️</button>
+                        <button class="icon-btn" onclick="handleAction('${v.id}', 'comment', this)">💬</button>
+                        <button class="icon-btn" onclick="handleAction('${v.id}', 'share', this)">🔗</button>
+                    </div>
                 </div>
-            </div>`).join('');
-
-        // البروفايل
-        const myVids = list.filter(v => v.user_id === myID);
-        document.getElementById('myGrid').innerHTML = myVids.map(v => `
-            <div class="grid-item" id="g-${v.id}">
-                <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" muted></video>
-                <button class="del-btn" onclick="deleteVideo(${v.id})">×</button>
-            </div>`).join('');
-    }
-
-    async function earn(btn, type) {
-        if(btn.style.color) return;
-        btn.style.color = (type === 'like') ? '#fe2c55' : '#25f4ee';
-        
-        let reward = 0.05;
-        let newCash = parseFloat(userRecord.cash_balance) + reward;
-
-        // تحديث في سوبابيز
-        await sb.from('vtik_users').update({ cash_balance: newCash }).eq('user_id', myID);
-        
-        // تسجيل في السجل (History)
-        await sb.from('vtik_history').insert([{ user_id: myID, type: 'ربح', action: type, amount: reward }]);
-
-        userRecord.cash_balance = newCash;
-        updateUI();
-    }
-
-    function updateUI() {
-        if(!userRecord) return;
-        document.getElementById('cashBal').innerText = parseFloat(userRecord.cash_balance).toFixed(2);
-        document.getElementById('coinBal').innerText = userRecord.coins_balance || 0;
-    }
-
-    async function handleMoney(type) {
-        const phone = prompt(`أدخل رقم الهاتف للـ ${type}:`);
-        const amount = prompt(`المبلغ بالجنيه:`);
-        if(!phone || !amount) return;
-
-        const msg = `⚠️ *طلب ${type} جديد*\n👤 *المستخدم:* \`${myID}\`\n📱 *رقم:* \`${phone}\`\n💰 *المبلغ:* \`${amount} EGP\``;
-        
-        [CHAT_ID, ADMIN_ID].forEach(id => {
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ chat_id: id, text: msg, parse_mode: 'Markdown' })
-            });
-        });
-        alert("تم إرسال الطلب بنجاح.");
-    }
-
-    function openFile() {
-        let input = document.createElement('input'); input.type='file'; input.accept="video/*";
-        input.onchange = async e => {
-            const file = e.target.files[0]; if(!file) return;
-            document.getElementById('uploadStatus').style.display = 'block';
-            let fd = new FormData(); fd.append('chat_id', CHAT_ID); fd.append('video', file);
-            let xhr = new XMLHttpRequest();
-            xhr.open('POST', `https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`);
-            xhr.upload.onprogress = ev => { document.getElementById('progress').innerText = Math.round((ev.loaded/ev.total)*100) + "%"; };
-            xhr.onload = async () => {
-                let res = JSON.parse(xhr.responseText);
-                if(res.ok) {
-                    await sb.from('vtik_videos').insert([{ url: res.result.video.file_id, user_id: myID }]);
-                    location.reload();
-                }
-            };
-            xhr.send(fd);
-        };
-        input.click();
-    }
-
-    async function deleteVideo(id) {
-        if(confirm("حذف الفيديو؟")) {
-            await sb.from('vtik_videos').delete().eq('id', id);
-            location.reload();
+            `).join('');
         }
     }
 
-    function switchPage(pId) {
+    // وظيفة الأزرار (لايك، شير، تعليق) وتحديث الكوينز
+    async function handleAction(videoId, type, btn) {
+        if(btn.disabled) return;
+        btn.disabled = true;
+        btn.style.color = 'var(--main)';
+
+        // 1. زيادة الكوينز في جدول vtik_users
+        const { data: user } = await sb.from('vtik_users').select('coins_balance').eq('user_id', currentUser.id.toString()).single();
+        let newCoins = (user.coins_balance || 0) + 1; // زيادة كوين واحد لكل حركة
+        
+        await sb.from('vtik_users').update({ coins_balance: newCoins }).eq('user_id', currentUser.id.toString());
+        
+        // 2. تسجيل العملية في جدول vtik_history
+        await sb.from('vtik_history').insert({
+            user_id: currentUser.id.toString(),
+            type: 'كوينز',
+            action: type,
+            amount: 1
+        });
+
+        document.getElementById('coinBal').innerText = newCoins;
+    }
+
+    function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pId).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        document.getElementById(id).classList.add('active');
     }
 </script>
 </body>
