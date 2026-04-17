@@ -3,34 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK PRO FIX</title>
+    <title>VTIK PRO | New DB</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --main: #fe2c55; --bg: #000; }
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; text-align: center; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #111; display: flex; justify-content: space-around; align-items: center; }
-        .page { display: none; padding-top: 50px; height: 100vh; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
+        .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #111; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
+        .page { display: none; padding: 20px; height: 100vh; }
         .active { display: block; }
-        .btn-plus { background: #fff; color: #000; border: none; padding: 5px 20px; border-radius: 8px; font-weight: bold; font-size: 20px; }
+        video { width: 100%; height: 80vh; background: #000; margin-bottom: 20px; border-radius: 15px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-<div id="home" class="page active">
-    <h3>خلاصة الفيديوهات</h3>
-    <div id="feed">جاري جلب الروابط من سوبابيز...</div>
+<div id="homePage" class="page active">
+    <h3>الفيديوهات</h3>
+    <div id="videoContainer">جاري جلب البيانات...</div>
 </div>
 
-<div id="profile" class="page">
-    <h2 id="userName">...</h2>
-    <p>معرف المستخدم: <span id="userId">0</span></p>
-    <div id="dbStatus" style="color: yellow; font-size: 12px;">جاري فحص الاتصال بسوبابيز...</div>
+<div id="profilePage" class="page">
+    <h2 id="name">...</h2>
+    <div id="syncStatus" style="font-size: 12px; margin-bottom: 20px;"></div>
+    <div style="background:#111; padding:20px; border-radius:15px;">
+        <h1 id="coins">0</h1>
+        <p>الرصيد الحالي</p>
+    </div>
 </div>
 
-<nav class="nav-bar">
-    <button onclick="show('home')">🏠</button>
-    <button class="btn-plus" onclick="upload()">+</button>
-    <button onclick="show('profile')">👤</button>
+<nav class="nav">
+    <button onclick="show('homePage')">🏠</button>
+    <button onclick="uploadVideo()" style="background:#fe2c55; color:#000; border:none; padding:5px 15px; border-radius:8px; font-weight:bold;">+</button>
+    <button onclick="show('profilePage')">👤</button>
 </nav>
 
 <script>
@@ -42,69 +45,61 @@
 
     let user = JSON.parse(localStorage.getItem('vtik_session'));
 
-    async function start() {
-        if(!user) {
-            document.body.innerHTML = "<h1>يرجى تسجيل الدخول أولاً</h1>";
-            return;
-        }
-
-        document.getElementById('userName').innerText = user.first_name;
-        document.getElementById('userId').innerText = user.id;
-
-        // اختبار إجباري لتسجيل المستخدم في سوبابيز
+    async function init() {
+        if(!user) return;
+        
+        document.getElementById('name').innerText = user.first_name;
+        
+        // محاولة تسجيل المستخدم في القاعدة الجديدة فوراً
         const { error } = await sb.from('vtik_users').upsert({
             user_id: user.id.toString(),
             username: user.first_name
         });
 
-        if (error) {
-            document.getElementById('dbStatus').innerText = "خطأ في سوبابيز: " + error.message;
-            document.getElementById('dbStatus').style.color = "red";
+        const status = document.getElementById('syncStatus');
+        if(error) {
+            status.innerHTML = `<span class="status-dot" style="background:red;"></span> فشل الربط: ${error.message}`;
         } else {
-            document.getElementById('dbStatus').innerText = "متصل بنجاح وسجلك موجود!";
-            document.getElementById('dbStatus').style.color = "lime";
+            status.innerHTML = `<span class="status-dot" style="background:lime;"></span> قاعدة البيانات متصلة ومحدثة`;
+            loadVideos();
         }
-
-        loadVideos();
     }
 
     async function loadVideos() {
-        const { data, error } = await sb.from('vtik_videos').select('*');
-        if (data && data.length > 0) {
-            document.getElementById('feed').innerHTML = data.map(v => `
-                <div style="height:80vh; margin-bottom:20px;">
-                    <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" controls style="width:100%; height:100%;"></video>
-                </div>
+        const { data } = await sb.from('vtik_videos').select('*').order('created_at', {ascending: false});
+        const container = document.getElementById('videoContainer');
+        if(data && data.length > 0) {
+            container.innerHTML = data.map(v => `
+                <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" controls loop></video>
             `).join('');
         } else {
-            document.getElementById('feed').innerText = "لا توجد روابط في سوبابيز حالياً.";
+            container.innerHTML = "لا توجد فيديوهات مسجلة في القاعدة الجديدة.";
         }
     }
 
-    async function upload() {
-        const inp = document.createElement('input');
-        inp.type = 'file'; inp.accept = 'video/*';
-        inp.onchange = async () => {
-            alert("بدأ الرفع لتليجرام...");
+    async function uploadVideo() {
+        const input = document.createElement('input');
+        input.type = 'file'; input.accept = 'video/*';
+        input.onchange = async () => {
+            alert("1. جاري الرفع لتليجرام...");
             const fd = new FormData();
             fd.append('chat_id', CHAT_ID);
-            fd.append('video', inp.files[0]);
+            fd.append('video', input.files[0]);
 
             const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {method:'POST', body:fd});
             const out = await res.json();
 
             if(out.ok) {
-                alert("تم الرفع لتليجرام. الآن نحاول حفظ الرابط في سوبابيز...");
-                const { error } = await sb.from('vtik_videos').insert([{
+                alert("2. تم الرفع لتليجرام. جاري التسجيل في سوبابيز...");
+                const { error } = await sb.from('vtik_videos').insert({
                     url: out.result.video.file_id,
                     user_id: user.id.toString()
-                }]);
-
-                if(error) alert("فشل الحفظ في سوبابيز: " + error.message);
+                });
+                if(error) alert("خطأ في سوبابيز: " + error.message);
                 else location.reload();
             }
         };
-        inp.click();
+        input.click();
     }
 
     function show(id) {
@@ -112,7 +107,7 @@
         document.getElementById(id).classList.add('active');
     }
 
-    window.onload = start;
+    window.onload = init;
 </script>
 </body>
 </html>
