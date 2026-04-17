@@ -3,119 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK PRO</title>
+    <title>VTIK PRO FIX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --main: #fe2c55; --accent: #25f4ee; --gold: #FFD700; --bg: #000; }
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
-        .page { position: fixed; inset: 0; display: none; overflow-y: auto; padding-bottom: 80px; }
-        .page.active { display: block; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #111; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: #555; font-size: 28px; cursor: pointer; }
-        .nav-btn.active { color: white; }
-        #mainFeed { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; }
-        .video-card { height: 100vh; width: 100vw; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        :root { --main: #fe2c55; --bg: #000; }
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; text-align: center; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #111; display: flex; justify-content: space-around; align-items: center; }
+        .page { display: none; padding-top: 50px; height: 100vh; }
+        .active { display: block; }
+        .btn-plus { background: #fff; color: #000; border: none; padding: 5px 20px; border-radius: 8px; font-weight: bold; font-size: 20px; }
     </style>
 </head>
 <body>
 
-<div id="homePage" class="page active"><div id="mainFeed"></div></div>
-<div id="profilePage" class="page">
-    <div style="padding:40px 20px; text-align:center;">
-        <h2 id="uNameDisplay">تحميل...</h2>
-        <div style="background:#111; padding:20px; border-radius:15px; margin:20px 0;">
-            <h1 id="coinShow" style="color:var(--gold); margin:0;">0</h1>
-            <p style="color:#777;">الكوينز</p>
-        </div>
-        <button onclick="localStorage.clear(); location.reload();" style="color:#555; background:none; border:1px solid #222; padding:10px; width:100%; border-radius:10px;">تسجيل خروج</button>
-    </div>
+<div id="home" class="page active">
+    <h3>خلاصة الفيديوهات</h3>
+    <div id="feed">جاري جلب الروابط من سوبابيز...</div>
+</div>
+
+<div id="profile" class="page">
+    <h2 id="userName">...</h2>
+    <p>معرف المستخدم: <span id="userId">0</span></p>
+    <div id="dbStatus" style="color: yellow; font-size: 12px;">جاري فحص الاتصال بسوبابيز...</div>
 </div>
 
 <nav class="nav-bar">
-    <button class="nav-btn active" onclick="showPage('homePage', this)">🏠</button>
-    <button class="nav-btn" onclick="triggerUpload()" style="background:#fff; color:#000; width:50px; height:32px; border-radius:10px; font-weight:bold; font-size:20px;">+</button>
-    <button class="nav-btn" onclick="showPage('profilePage', this)">👤</button>
+    <button onclick="show('home')">🏠</button>
+    <button class="btn-plus" onclick="upload()">+</button>
+    <button onclick="show('profile')">👤</button>
 </nav>
 
 <script>
     const BOT_TOKEN = "8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0";
-    const CHAT_ID = "-1003614080639"; 
-    const SUPABASE_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const CHAT_ID = "-1003614080639";
+    const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
+    const sb = supabase.createClient(S_URL, S_KEY);
 
     let user = JSON.parse(localStorage.getItem('vtik_session'));
 
-    async function initApp() {
-        if(!user) return;
-        
-        // 1. مزامنة بيانات المستخدم (إنشاء إذا لم يوجد)
-        const { data: existingUser } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
-        
-        if(!existingUser) {
-            await sb.from('vtik_users').insert([{ user_id: user.id.toString(), username: user.first_name || "مستخدم جديد" }]);
-            document.getElementById('uNameDisplay').innerText = user.first_name;
-        } else {
-            document.getElementById('uNameDisplay').innerText = existingUser.username;
-            document.getElementById('coinShow').innerText = existingUser.coins_balance || 0;
+    async function start() {
+        if(!user) {
+            document.body.innerHTML = "<h1>يرجى تسجيل الدخول أولاً</h1>";
+            return;
         }
 
-        // 2. جلب الفيديوهات
-        const { data: vids } = await sb.from('vtik_videos').select('*').order('created_at', {ascending: false});
-        const feed = document.getElementById('mainFeed');
-        if(vids && vids.length > 0) {
-            feed.innerHTML = vids.map(v => `
-                <div class="video-card">
-                    <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" loop playsinline controls></video>
+        document.getElementById('userName').innerText = user.first_name;
+        document.getElementById('userId').innerText = user.id;
+
+        // اختبار إجباري لتسجيل المستخدم في سوبابيز
+        const { error } = await sb.from('vtik_users').upsert({
+            user_id: user.id.toString(),
+            username: user.first_name
+        });
+
+        if (error) {
+            document.getElementById('dbStatus').innerText = "خطأ في سوبابيز: " + error.message;
+            document.getElementById('dbStatus').style.color = "red";
+        } else {
+            document.getElementById('dbStatus').innerText = "متصل بنجاح وسجلك موجود!";
+            document.getElementById('dbStatus').style.color = "lime";
+        }
+
+        loadVideos();
+    }
+
+    async function loadVideos() {
+        const { data, error } = await sb.from('vtik_videos').select('*');
+        if (data && data.length > 0) {
+            document.getElementById('feed').innerHTML = data.map(v => `
+                <div style="height:80vh; margin-bottom:20px;">
+                    <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" controls style="width:100%; height:100%;"></video>
                 </div>
             `).join('');
         } else {
-            feed.innerHTML = '<div style="text-align:center; padding-top:50vh; color:#333;">لا توجد فيديوهات. ارفع أول فيديو الآن!</div>';
+            document.getElementById('feed').innerText = "لا توجد روابط في سوبابيز حالياً.";
         }
     }
 
-    // دالة الرفع المعدلة
-    function triggerUpload() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'video/*';
-        input.onchange = async (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            
-            alert("جاري الرفع إلى تليجرام وسوبابيز.. انتظر قليلاً");
+    async function upload() {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'video/*';
+        inp.onchange = async () => {
+            alert("بدأ الرفع لتليجرام...");
             const fd = new FormData();
             fd.append('chat_id', CHAT_ID);
-            fd.append('video', file);
+            fd.append('video', inp.files[0]);
 
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, { method: 'POST', body: fd });
-                const result = await res.json();
-                
-                if(result.ok) {
-                    const fileId = result.result.video.file_id;
-                    await sb.from('vtik_videos').insert([{ url: fileId, user_id: user.id.toString() }]);
-                    alert("تم الرفع بنجاح!");
-                    location.reload();
-                } else {
-                    alert("خطأ تليجرام: " + result.description);
-                }
-            } catch (err) {
-                alert("خطأ في الاتصال");
+            const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {method:'POST', body:fd});
+            const out = await res.json();
+
+            if(out.ok) {
+                alert("تم الرفع لتليجرام. الآن نحاول حفظ الرابط في سوبابيز...");
+                const { error } = await sb.from('vtik_videos').insert([{
+                    url: out.result.video.file_id,
+                    user_id: user.id.toString()
+                }]);
+
+                if(error) alert("فشل الحفظ في سوبابيز: " + error.message);
+                else location.reload();
             }
         };
-        input.click();
+        inp.click();
     }
 
-    function showPage(id, btn) {
+    function show(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(btn) btn.classList.add('active');
     }
 
-    window.onload = initApp;
+    window.onload = start;
 </script>
 </body>
 </html>
