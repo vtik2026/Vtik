@@ -3,111 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK PRO | New DB</title>
+    <title>VTIK | دخول</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-        .nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: #111; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
-        .page { display: none; padding: 20px; height: 100vh; }
-        .active { display: block; }
-        video { width: 100%; height: 80vh; background: #000; margin-bottom: 20px; border-radius: 15px; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        body { 
+            margin: 0; 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+        }
+        .login-box {
+            text-align: center;
+            padding: 40px;
+            border-radius: 30px;
+            background: #111;
+            border: 1px solid #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 { font-size: 3rem; color: #fe2c55; margin-bottom: 10px; }
+        p { color: #888; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
-<div id="homePage" class="page active">
-    <h3>الفيديوهات</h3>
-    <div id="videoContainer">جاري جلب البيانات...</div>
-</div>
-
-<div id="profilePage" class="page">
-    <h2 id="name">...</h2>
-    <div id="syncStatus" style="font-size: 12px; margin-bottom: 20px;"></div>
-    <div style="background:#111; padding:20px; border-radius:15px;">
-        <h1 id="coins">0</h1>
-        <p>الرصيد الحالي</p>
+    <div class="login-box">
+        <h1>VTIK</h1>
+        <p>عالم الفيديوهات القصيرة والمكافآت</p>
+        
+        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0" 
+                data-size="large" 
+                data-onauth="onTelegramAuth(user)" 
+                data-request-access="write"></script>
     </div>
-</div>
 
-<nav class="nav">
-    <button onclick="show('homePage')">🏠</button>
-    <button onclick="uploadVideo()" style="background:#fe2c55; color:#000; border:none; padding:5px 15px; border-radius:8px; font-weight:bold;">+</button>
-    <button onclick="show('profilePage')">👤</button>
-</nav>
+    <script>
+        // إعدادات الربط مع سوبابيز
+        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
+        const sb = supabase.createClient(S_URL, S_KEY);
 
-<script>
-    const BOT_TOKEN = "8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0";
-    const CHAT_ID = "-1003614080639";
-    const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
-    const sb = supabase.createClient(S_URL, S_KEY);
+        async function onTelegramAuth(user) {
+            // 1. التحقق من وجود المستخدم في القاعدة
+            const { data: existingUser, error } = await sb
+                .from('vtik_users')
+                .select('*')
+                .eq('user_id', user.id.toString())
+                .single();
 
-    let user = JSON.parse(localStorage.getItem('vtik_session'));
-
-    async function init() {
-        if(!user) return;
-        
-        document.getElementById('name').innerText = user.first_name;
-        
-        // محاولة تسجيل المستخدم في القاعدة الجديدة فوراً
-        const { error } = await sb.from('vtik_users').upsert({
-            user_id: user.id.toString(),
-            username: user.first_name
-        });
-
-        const status = document.getElementById('syncStatus');
-        if(error) {
-            status.innerHTML = `<span class="status-dot" style="background:red;"></span> فشل الربط: ${error.message}`;
-        } else {
-            status.innerHTML = `<span class="status-dot" style="background:lime;"></span> قاعدة البيانات متصلة ومحدثة`;
-            loadVideos();
-        }
-    }
-
-    async function loadVideos() {
-        const { data } = await sb.from('vtik_videos').select('*').order('created_at', {ascending: false});
-        const container = document.getElementById('videoContainer');
-        if(data && data.length > 0) {
-            container.innerHTML = data.map(v => `
-                <video src="https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${v.url}" controls loop></video>
-            `).join('');
-        } else {
-            container.innerHTML = "لا توجد فيديوهات مسجلة في القاعدة الجديدة.";
-        }
-    }
-
-    async function uploadVideo() {
-        const input = document.createElement('input');
-        input.type = 'file'; input.accept = 'video/*';
-        input.onchange = async () => {
-            alert("1. جاري الرفع لتليجرام...");
-            const fd = new FormData();
-            fd.append('chat_id', CHAT_ID);
-            fd.append('video', input.files[0]);
-
-            const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {method:'POST', body:fd});
-            const out = await res.json();
-
-            if(out.ok) {
-                alert("2. تم الرفع لتليجرام. جاري التسجيل في سوبابيز...");
-                const { error } = await sb.from('vtik_videos').insert({
-                    url: out.result.video.file_id,
-                    user_id: user.id.toString()
+            if (!existingUser) {
+                // 2. مستخدم جديد: منحه مكافأة التسجيل
+                const { error: insertError } = await sb.from('vtik_users').insert({
+                    user_id: user.id.toString(),
+                    username: user.username || user.first_name,
+                    cash_balance: 200,   // هدية كاش
+                    coins_balance: 500,  // هدية كوينز
+                    avatar_url: user.photo_url
                 });
-                if(error) alert("خطأ في سوبابيز: " + error.message);
-                else location.reload();
+
+                if (!insertError) {
+                    alert("🎉 مبروك! حصلت على 200 جنيه و 500 كوينز هدية ترحيبية.");
+                }
             }
-        };
-        input.click();
-    }
 
-    function show(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
+            // 3. حفظ بيانات المستخدم في المتصفح للدخول التلقائي
+            localStorage.setItem('vtik_session', JSON.stringify(user));
+            
+            // 4. الانتقال لصفحة الهوم
+            window.location.href = 'home.html';
+        }
 
-    window.onload = init;
-</script>
+        // إذا كان مسجل دخول بالفعل، يذهب للهوم مباشرة
+        if(localStorage.getItem('vtik_session')) {
+            window.location.href = 'home.html';
+        }
+    </script>
 </body>
 </html>
