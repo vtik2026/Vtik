@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTIK | سجل العمليات</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --main: #fe2c55; --bg: #000; --card: #111; }
+        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; padding-bottom: 80px; }
+        
+        .header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #222; }
+        .header h1 { margin: 0; font-size: 24px; color: var(--main); }
+
+        .list-container { padding: 15px; }
+        .history-item { 
+            background: var(--card); 
+            padding: 15px; 
+            border-radius: 15px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-right: 4px solid #333;
+        }
+        
+        /* تلوين الحالات */
+        .status-reward { border-right-color: #ffd700; } /* ذهبي للهدايا */
+        .status-withdraw { border-right-color: #ff4d4d; } /* أحمر للسحب */
+        .status-deposit { border-right-color: #4caf50; } /* أخضر للإيداع */
+
+        .info h4 { margin: 0; font-size: 16px; }
+        .info span { font-size: 11px; color: #666; }
+        
+        .amount { text-align: left; }
+        .amount h3 { margin: 0; font-size: 18px; color: #fff; }
+        .amount p { margin: 0; font-size: 10px; color: #888; }
+
+        .empty-state { text-align: center; padding: 50px; color: #444; }
+
+        /* شريط التنقل السفلي */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; }
+        .nav-item.active { color: white; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>سجل العمليات 📜</h1>
+</div>
+
+<div id="historyList" class="list-container">
+    </div>
+
+<div class="nav-bar">
+    <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
+    <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
+    <a href="editor.html" class="nav-item">➕</a>
+    <a href="history.html" class="nav-item active">📜<br>السجل</a>
+    <a href="profile.html" class="nav-item">👤<br>الملف</a>
+</div>
+
+<script>
+    const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
+    const sb = supabase.createClient(S_URL, S_KEY);
+    const user = JSON.parse(localStorage.getItem('vtik_session'));
+
+    async function loadHistory() {
+        if(!user) return;
+
+        // جلب العمليات من جدول الهدايا وجدول المعاملات
+        const { data: rewards } = await sb.from('vtik_rewards')
+            .select('*')
+            .eq('user_id', user.id.toString())
+            .order('created_at', { ascending: false });
+
+        const container = document.getElementById('historyList');
+        
+        if (!rewards || rewards.length === 0) {
+            container.innerHTML = '<div class="empty-state">لا توجد عمليات مسجلة حتى الآن</div>';
+            return;
+        }
+
+        container.innerHTML = rewards.map(item => {
+            const date = new Date(item.created_at).toLocaleDateString('ar-EG');
+            const typeText = item.type === 'cash' ? 'جنيه' : 'كوينز';
+            
+            return `
+                <div class="history-item status-reward">
+                    <div class="info">
+                        <h4>هدية من الإدارة 🎁</h4>
+                        <span>التاريخ: ${date}</span>
+                    </div>
+                    <div class="amount">
+                        <h3>+${item.amount}</h3>
+                        <p>${typeText}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.onload = loadHistory;
+</script>
+</body>
+</html>
