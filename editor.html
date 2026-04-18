@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTIK | محرر الفيديوهات</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --main: #fe2c55; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        /* منطقة المعاينة */
+        .editor-view { position: relative; width: 100%; max-width: 400px; aspect-ratio: 9/16; background: #111; overflow: hidden; margin-top: 10px; border-radius: 15px; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* طبقة الإيموجي */
+        #emoji-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .emoji-item { position: absolute; font-size: 50px; animation: bounce 2s infinite; pointer-events: auto; cursor: grab; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        /* لوحة التحكم */
+        .controls-panel { width: 100%; max-width: 400px; padding: 20px; background: #121212; border-radius: 25px 25px 0 0; margin-top: auto; box-sizing: border-box; }
+        .slider-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--main); }
+
+        .tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
+        .tool-btn { background: #222; border: none; color: #fff; padding: 12px 5px; border-radius: 12px; font-size: 11px; cursor: pointer; transition: 0.2s; }
+        .tool-btn:active { transform: scale(0.9); background: var(--main); }
+        
+        .footer { display: flex; justify-content: space-between; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
+        .btn-publish { background: var(--main); color: #fff; border: none; padding: 12px 35px; border-radius: 12px; font-weight: bold; font-size: 16px; flex-grow: 1; margin-right: 10px; }
+        .btn-back { background: #333; color: #fff; border: none; padding: 12px 20px; border-radius: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="editor-view" id="vContainer">
+    <video id="previewVideo" src="" loop muted></video>
+    <div id="emoji-layer"></div>
+</div>
+
+<div class="controls-panel">
+    <div class="slider-group">
+        <label>السطوع (Brightness)</label>
+        <input type="range" id="bright" min="50" max="150" value="100" oninput="updateStyle()">
+    </div>
+    <div class="slider-group">
+        <label>التباين (Contrast)</label>
+        <input type="range" id="contr" min="50" max="150" value="100" oninput="updateStyle()">
+    </div>
+
+    <div class="tools">
+        <button class="tool-btn" onclick="addEmoji('🔥')">🔥 نار</button>
+        <button class="tool-btn" onclick="addEmoji('✨')">✨ بريق</button>
+        <button class="tool-btn" id="muteIcon" onclick="toggleAudio()">🔇 كتم</button>
+        <button class="tool-btn" onclick="document.getElementById('musicFile').click()">🎵 موسيقى</button>
+    </div>
+    <input type="file" id="musicFile" hidden accept="audio/*" onchange="applyMusic(event)">
+</div>
+
+<div class="footer">
+    <button class="btn-back" onclick="window.history.back()">خروج</button>
+    <button class="btn-publish" onclick="publishVideo()">نشر الآن 🎬</button>
+</div>
+
+<script>
+    const video = document.getElementById('previewVideo');
+    const layer = document.getElementById('emoji-layer');
+    let extraMusic = null;
+
+    // محاكاة اختيار فيديو (يجب ربطه بآلية الرفع لديك)
+    window.onload = () => {
+        // إذا كان هناك فيديو مؤقت محفوظ من صفحة الرفع
+        const tempUrl = localStorage.getItem('last_uploaded_url');
+        if(tempUrl) {
+            video.src = tempUrl;
+            video.play();
+        } else {
+            alert("يرجى اختيار فيديو أولاً");
+        }
+    };
+
+    function updateStyle() {
+        const b = document.getElementById('bright').value;
+        const c = document.getElementById('contr').value;
+        video.style.filter = `brightness(${b}%) contrast(${c}%)`;
+    }
+
+    function addEmoji(emoji) {
+        const el = document.createElement('div');
+        el.className = 'emoji-item';
+        el.innerText = emoji;
+        el.style.left = '45%';
+        el.style.top = '40%';
+        
+        // ميزة سحب الإيموجي للمكان المناسب
+        let move = false;
+        el.onmousedown = () => move = true;
+        window.onmousemove = (e) => {
+            if(move) {
+                el.style.left = (e.clientX - 25) + 'px';
+                el.style.top = (e.clientY - 25) + 'px';
+            }
+        };
+        window.onmouseup = () => move = false;
+        
+        layer.appendChild(el);
+    }
+
+    function toggleAudio() {
+        video.muted = !video.muted;
+        document.getElementById('muteIcon').innerText = video.muted ? "🔊 تشغيل" : "🔇 كتم";
+    }
+
+    function applyMusic(e) {
+        const file = e.target.files[0];
+        if(file) {
+            if(extraMusic) extraMusic.pause();
+            extraMusic = new Audio(URL.createObjectURL(file));
+            extraMusic.loop = true;
+            extraMusic.play();
+            video.muted = true;
+            document.getElementById('muteIcon').innerText = "🔊 تشغيل";
+        }
+    }
+
+    function publishVideo() {
+        alert("يتم الآن دمج التعديلات ورفع الفيديو لقاعدة البيانات...");
+        // هنا يتم استدعاء كود الرفع الخاص بسوبابيز
+        window.location.href = 'home.html';
+    }
+</script>
+</body>
+  </html>
+          
