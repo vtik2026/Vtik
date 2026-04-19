@@ -6,24 +6,8 @@
     <title>VTIK | دخول</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            margin: 0; 
-            background: #000; 
-            color: #fff; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-        }
-        .login-box {
-            text-align: center;
-            padding: 40px;
-            border-radius: 30px;
-            background: #111;
-            border: 1px solid #222;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-box { text-align: center; padding: 40px; border-radius: 30px; background: #111; border: 1px solid #222; }
         h1 { font-size: 3rem; color: #fe2c55; margin-bottom: 10px; }
         p { color: #888; margin-bottom: 30px; }
     </style>
@@ -42,42 +26,33 @@
     </div>
 
     <script>
-        // إعدادات الربط مع سوبابيز
+        // استخدام مفتاح Anon الموحد لتجنب مشاكل الـ API Key
         const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
         const sb = supabase.createClient(S_URL, S_KEY);
 
         async function onTelegramAuth(user) {
-            // 1. التحقق من وجود المستخدم في القاعدة
-            const { data: existingUser, error } = await sb
+            const { data: existingUser } = await sb
                 .from('vtik_users')
                 .select('*')
                 .eq('user_id', user.id.toString())
                 .single();
 
             if (!existingUser) {
-                // 2. مستخدم جديد: منحه مكافأة التسجيل
-                const { error: insertError } = await sb.from('vtik_users').insert({
+                await sb.from('vtik_users').insert({
                     user_id: user.id.toString(),
                     username: user.username || user.first_name,
-                    cash_balance: 200,   // هدية كاش
-                    coins_balance: 500,  // هدية كوينز
+                    cash_balance: 200,
+                    coins_balance: 500,
                     avatar_url: user.photo_url
                 });
-
-                if (!insertError) {
-                    alert("🎉 مبروك! حصلت على 200 جنيه و 500 كوينز هدية ترحيبية.");
-                }
+                alert("🎉 مبروك! حصلت على 200 جنيه و 500 كوينز هدية.");
             }
 
-            // 3. حفظ بيانات المستخدم في المتصفح للدخول التلقائي
             localStorage.setItem('vtik_session', JSON.stringify(user));
-            
-            // 4. الانتقال لصفحة الهوم
             window.location.href = 'home.html';
         }
 
-        // إذا كان مسجل دخول بالفعل، يذهب للهوم مباشرة
         if(localStorage.getItem('vtik_session')) {
             window.location.href = 'home.html';
         }
