@@ -1,10 +1,86 @@
-<div class="login-box">
-    <h1>VTIK</h1>
-    <p>عالم الفيديوهات القصيرة والمكافآت</p>
-    
-    <script async src="https://telegram.org/js/telegram-widget.js?22" 
-            data-telegram-login="videotikEG_bot" 
-            data-size="large" 
-            data-onauth="onTelegramAuth(user)" 
-            data-request-access="write"></script>
-</div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTIK | دخول</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { 
+            margin: 0; 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+        }
+        .login-box {
+            text-align: center;
+            padding: 40px;
+            border-radius: 30px;
+            background: #111;
+            border: 1px solid #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 350px;
+            width: 90%;
+        }
+        h1 { font-size: 3.5rem; color: #fe2c55; margin: 0; }
+        p { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h1>VTIK</h1>
+        <p>عالم الفيديوهات القصيرة والمكافآت</p>
+        
+        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="videotikEG_bot" 
+                data-size="large" 
+                data-onauth="onTelegramAuth(user)" 
+                data-request-access="write"></script>
+    </div>
+
+    <script>
+        // إعدادات الربط مع سوبابيز (مفتاح Anon)
+        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
+        const sb = supabase.createClient(S_URL, S_KEY);
+
+        async function onTelegramAuth(user) {
+            // التحقق من وجود المستخدم
+            const { data: existingUser, error } = await sb
+                .from('vtik_users')
+                .select('*')
+                .eq('user_id', user.id.toString())
+                .single();
+
+            if (!existingUser) {
+                // تسجيل مستخدم جديد وهدية ترحيبية
+                const { error: insertError } = await sb.from('vtik_users').insert({
+                    user_id: user.id.toString(),
+                    username: user.username || user.first_name,
+                    cash_balance: 200,   
+                    coins_balance: 500,  
+                    avatar_url: user.photo_url
+                });
+
+                if (!insertError) {
+                    alert("🎉 مبروك! حصلت على 200 جنيه و 500 كوينز هدية ترحيبية.");
+                }
+            }
+
+            // حفظ الجلسة والانتقال للرئيسية
+            localStorage.setItem('vtik_session', JSON.stringify(user));
+            window.location.href = 'home.html';
+        }
+
+        // تحويل تلقائي إذا كان مسجل دخول
+        if(localStorage.getItem('vtik_session')) {
+            window.location.href = 'home.html';
+        }
+    </script>
+</body>
+</html>
