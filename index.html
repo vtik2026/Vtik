@@ -1,61 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK | دخول</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-box { text-align: center; padding: 40px; border-radius: 30px; background: #111; border: 1px solid #222; }
-        h1 { font-size: 3rem; color: #fe2c55; margin-bottom: 10px; }
-        p { color: #888; margin-bottom: 30px; }
-    </style>
-</head>
-<body>
-
-    <div class="login-box">
-        <h1>VTIK</h1>
-        <p>عالم الفيديوهات القصيرة والمكافآت</p>
-        
-        <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                data-telegram-login="8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0" 
-                data-size="large" 
-                data-onauth="onTelegramAuth(user)" 
-                data-request-access="write"></script>
-    </div>
-
-    <script>
-        // استخدام مفتاح Anon الموحد لتجنب مشاكل الـ API Key
-        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
-        const sb = supabase.createClient(S_URL, S_KEY);
-
-        async function onTelegramAuth(user) {
-            const { data: existingUser } = await sb
-                .from('vtik_users')
-                .select('*')
-                .eq('user_id', user.id.toString())
-                .single();
-
-            if (!existingUser) {
-                await sb.from('vtik_users').insert({
-                    user_id: user.id.toString(),
-                    username: user.username || user.first_name,
-                    cash_balance: 200,
-                    coins_balance: 500,
-                    avatar_url: user.photo_url
-                });
-                alert("🎉 مبروك! حصلت على 200 جنيه و 500 كوينز هدية.");
-            }
-
-            localStorage.setItem('vtik_session', JSON.stringify(user));
-            window.location.href = 'home.html';
-        }
-
-        if(localStorage.getItem('vtik_session')) {
-            window.location.href = 'home.html';
-        }
-    </script>
-</body>
-</html>
+<div class="login-box">
+    <h1>VTIK</h1>
+    <p>عالم الفيديوهات القصيرة والمكافآت</p>
+    
+    <script async src="https://telegram.org/js/telegram-widget.js?22" 
+            data-telegram-login="videotikEG_bot" 
+            data-size="large" 
+            data-onauth="onTelegramAuth(user)" 
+            data-request-access="write"></script>
+</div>
