@@ -9,34 +9,30 @@
         :root { --main: #fe2c55; --card: #121212; }
         body { margin: 0; background: #000; color: white; font-family: sans-serif; padding-bottom: 80px; }
         
-        .header { padding: 30px 20px; text-align: center; background: linear-gradient(to bottom, #1a1a1a, #000); }
+        .header { padding: 30px 20px; text-align: center; background: linear-gradient(to bottom, #1a1a1a, #000); position: relative; }
+        .logout-btn { position: absolute; top: 15px; left: 15px; background: #333; color: #fff; border: none; padding: 5px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--main); margin-bottom: 10px; object-fit: cover; }
         
-        /* المحفظة */
         .wallet { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
         .balance-box { background: var(--card); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #222; }
         .balance-box h2 { margin: 5px 0; color: var(--main); font-size: 24px; }
         .balance-box span { font-size: 12px; color: #888; }
 
-        /* الأزرار */
         .btn-group { padding: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 45%; font-size: 14px; }
         .btn-w { background: #fff; color: #000; }
         .btn-d { background: var(--main); color: #fff; }
 
-        /* قائمة الفيديوهات */
         .video-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 5px; margin-top: 20px; }
         .v-item { position: relative; aspect-ratio: 9/16; background: #111; border-radius: 8px; overflow: hidden; }
         .v-item video { width: 100%; height: 100%; object-fit: cover; }
         .del-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); border: none; color: #fff; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; z-index: 5; }
 
-        /* نافذة السحب/الإيداع */
         .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
                  background: #1e1e1e; padding: 25px; border-radius: 25px; width: 80%; z-index: 1000; }
         .modal input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 900; }
 
-        /* شريط التنقل */
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
         .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; }
         .active { color: white; }
@@ -45,6 +41,7 @@
 <body>
 
 <div class="header">
+    <button class="logout-btn" onclick="logout()">خروج 🚪</button>
     <img id="uAvatar" class="avatar" src="https://via.placeholder.com/90">
     <h3 id="uName">جاري التحميل...</h3>
 </div>
@@ -69,14 +66,6 @@
 <h4 style="margin: 20px 20px 10px;">فيديوهاتي 🎬</h4>
 <div id="userVids" class="video-grid"></div>
 
-<div id="bgOverlay" class="overlay" onclick="closeModal()"></div>
-<div id="modalBox" class="modal">
-    <h3 id="mTitle" style="margin-top:0;">العملية</h3>
-    <input type="text" id="phone" placeholder="رقم الهاتف (فودافون كاش..)">
-    <input type="number" id="amt" placeholder="المبلغ">
-    <button class="btn btn-d" style="width:100%" onclick="process()">تأكيد العملية</button>
-</div>
-
 <div class="nav-bar">
     <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
     <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
@@ -87,10 +76,9 @@
 
 <script>
     const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
     const sb = supabase.createClient(S_URL, S_KEY);
     const user = JSON.parse(localStorage.getItem('vtik_session'));
-    let actionType = '';
 
     async function init() {
         if(!user) return window.location.href='index.html';
@@ -102,57 +90,12 @@
             document.getElementById('cashVal').innerText = data.cash_balance;
             document.getElementById('coinsVal').innerText = data.coins_balance;
         }
-        loadVideos();
     }
 
-    async function loadVideos() {
-        const { data } = await sb.from('vtik_videos').select('*').eq('user_id', user.id.toString());
-        const grid = document.getElementById('userVids');
-        if(data) {
-            grid.innerHTML = data.map(v => `
-                <div class="v-item" id="vid-${v.id}">
-                    <button class="del-btn" onclick="delVid(${v.id})">×</button>
-                    <video src="https://api.telegram.org/bot8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0/getFile?file_id=${v.url}"></video>
-                </div>
-            `).join('');
-        }
-    }
-
-    function openAction(type) {
-        if(type === 'withdraw') {
-            const cash = parseFloat(document.getElementById('cashVal').innerText);
-            if(cash < 1000) return alert("⚠️ الحد الأدنى للسحب هو 1000 جنيه.");
-        }
-        actionType = type;
-        document.getElementById('mTitle').innerText = type === 'withdraw' ? 'طلب سحب' : 'طلب إيداع';
-        document.getElementById('modalBox').style.display = 'block';
-        document.getElementById('bgOverlay').style.display = 'block';
-    }
-
-    function closeModal() {
-        document.getElementById('modalBox').style.display = 'none';
-        document.getElementById('bgOverlay').style.display = 'none';
-    }
-
-    async function process() {
-        const phone = document.getElementById('phone').value;
-        const amount = document.getElementById('amt').value;
-        if(!phone || !amount) return alert("أكمل البيانات");
-
-        await sb.from('vtik_transactions').insert({
-            user_id: user.id.toString(),
-            type: actionType,
-            amount: parseFloat(amount),
-            status: 'pending'
-        });
-        alert("تم إرسال طلبك للأدمن بنجاح.");
-        closeModal();
-    }
-
-    async function delVid(id) {
-        if(confirm("حذف الفيديو؟")) {
-            await sb.from('vtik_videos').delete().eq('id', id);
-            document.getElementById(`vid-${id}`).remove();
+    function logout() {
+        if(confirm("هل تريد تسجيل الخروج؟")) {
+            localStorage.removeItem('vtik_session');
+            window.location.href = 'index.html';
         }
     }
 
