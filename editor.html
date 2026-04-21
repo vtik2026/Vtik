@@ -3,165 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK | المحرر الاحترافي</title>
+    <title>VTIK | رفع فيديو</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --main: #fe2c55; --bg: #0b0b0b; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        
-        /* الهيدر */
-        .header { width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-        .logout-btn { background: #222; color: #ff4d4d; border: none; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-
-        /* منطقة المعاينة */
-        .editor-view { position: relative; width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; overflow: hidden; border-radius: 20px; border: 1px solid #333; margin-top: 10px; }
+        body { margin: 0; background: #0b0b0b; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        #emoji-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .emoji-item { position: absolute; font-size: 50px; pointer-events: auto; cursor: move; }
-
-        /* لوحة التحكم */
-        .controls-panel { width: 100%; max-width: 400px; padding: 20px; background: #161616; border-radius: 30px 30px 0 0; margin-top: auto; box-sizing: border-box; }
-        .slider-group { margin-bottom: 20px; }
-        label { display: block; font-size: 13px; color: #aaa; margin-bottom: 10px; }
-        input[type="range"] { width: 100%; accent-color: var(--main); }
-
-        .tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .tool-btn { background: #222; border: 1px solid #333; color: #fff; padding: 12px 5px; border-radius: 15px; font-size: 11px; cursor: pointer; }
-        
-        .footer-btns { display: flex; gap: 10px; width: 100%; }
-        .btn-publish { background: var(--main); color: #fff; border: none; padding: 16px; border-radius: 15px; font-weight: bold; flex-grow: 2; font-size: 16px; }
-        .btn-select { background: #0084ff; color: #fff; border: none; padding: 16px; border-radius: 15px; flex-grow: 1; }
-
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--main); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div id="loading">
-    <div class="spinner"></div>
-    <p style="margin-top: 15px;">جاري نشر الفيديو...</p>
-</div>
-
-<div class="header">
-    <button class="logout-btn" onclick="logout()">خروج 🚪</button>
-    <div style="font-weight: bold; letter-spacing: 1px;">VTIK EDITOR</div>
-    <div style="width: 50px;"></div> </div>
-
-<div class="editor-view">
-    <video id="previewVideo" loop muted></video>
-    <div id="emoji-layer"></div>
-</div>
-
-<div class="controls-panel">
-    <div class="slider-group">
-        <label>إضاءة الفيديو (Brightness)</label>
-        <input type="range" id="bright" min="50" max="150" value="100" oninput="updateStyle()">
+    <div class="preview-box">
+        <video id="vPreview" controls></video>
     </div>
-    
-    <div class="tools">
-        <button class="tool-btn" onclick="addEmoji('🔥')">🔥 نار</button>
-        <button class="tool-btn" onclick="addEmoji('✨')">✨ بريق</button>
-        <button class="tool-btn" id="muteBtn" onclick="toggleAudio()">🔇 كتم</button>
-        <button class="tool-btn" onclick="document.getElementById('musicFile').click()">🎵 موسيقى</button>
-    </div>
+    <input type="file" id="vFile" accept="video/*" hidden onchange="handleFile(event)">
+    <button class="upload-btn" onclick="document.getElementById('vFile').click()">اختيار فيديو من الهاتف</button>
+    <button class="upload-btn" style="background:#222;" onclick="upload()">نشر الآن 🎬</button>
 
-    <input type="file" id="musicFile" hidden accept="audio/*" onchange="applyMusic(event)">
-    <input type="file" id="videoFile" hidden accept="video/*" onchange="loadVideo(event)">
+    <script>
+        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
+        const sb = supabase.createClient(S_URL, S_KEY);
 
-    <div class="footer-btns">
-        <button class="btn-select" onclick="document.getElementById('videoFile').click()">📱 ملفاتي</button>
-        <button class="btn-publish" onclick="publishVideo()">نشر الآن 🎬</button>
-    </div>
-</div>
-
-<script>
-    // الإعدادات المسحوبة من بياناتك السابقة
-    const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjI0MzQzMiwiZXhwIjoyMDkxODE5NDMyfQ.-Lpm2btZHRzSa3hVw5MqSnMzWDZ5CjZOZnLgMVkNH2k";
-    const sb = supabase.createClient(S_URL, S_KEY);
-
-    const video = document.getElementById('previewVideo');
-    let extraMusic = null;
-
-    function logout() {
-        localStorage.removeItem('vtik_session');
-        window.location.href = 'index.html';
-    }
-
-    function loadVideo(e) {
-        const file = e.target.files[0];
-        if(file) {
-            video.src = URL.createObjectURL(file);
-            video.play();
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if(file) document.getElementById('vPreview').src = URL.createObjectURL(file);
         }
-    }
 
-    function updateStyle() {
-        video.style.filter = `brightness(${document.getElementById('bright').value}%)`;
-    }
-
-    function addEmoji(emoji) {
-        const el = document.createElement('div');
-        el.className = 'emoji-item';
-        el.innerText = emoji;
-        el.style.left = '40%'; el.style.top = '40%';
-        
-        el.ontouchmove = (e) => {
-            const t = e.touches[0];
-            el.style.left = (t.clientX - 25) + 'px';
-            el.style.top = (t.clientY - 25) + 'px';
-        };
-        document.getElementById('emoji-layer').appendChild(el);
-    }
-
-    function toggleAudio() {
-        video.muted = !video.muted;
-        document.getElementById('muteBtn').innerText = video.muted ? "🔇 كتم" : "🔊 تشغيل";
-    }
-
-    function applyMusic(e) {
-        const file = e.target.files[0];
-        if(file) {
-            if(extraMusic) extraMusic.pause();
-            extraMusic = new Audio(URL.createObjectURL(file));
-            extraMusic.loop = true;
-            extraMusic.play();
-            video.muted = true;
+        async function upload() {
+            const user = JSON.parse(localStorage.getItem('vtik_session'));
+            if(!user) return alert("سجل دخولك أولاً");
+            
+            // هنا يتم توجيه المستخدم للبوت لرفع الفيديو فعلياً والحصول على الرابط
+            alert("سيتم توجيهك الآن لبوت تليجرام لرفع الفيديو والحصول على المكافأة.");
+            window.location.href = `https://t.me/videotikEG_bot?start=upload_${user.id}`;
         }
-    }
-
-    async function publishVideo() {
-        const session = JSON.parse(localStorage.getItem('vtik_session'));
-        if(!session) return alert("سجل دخولك أولاً!");
-        if(!video.src) return alert("اختار فيديو من موبايلك الأول!");
-
-        document.getElementById('loading').style.display = 'flex';
-
-        try {
-            // ملاحظة: هنا سنرسل رابط افتراضي لأننا نعتمد على رفع البوت لاحقاً
-            // يمكنك تغيير الرابط بالرابط الذي يوفره لك البوت
-            const botVideoUrl = "https://t.me/your_bot_storage/123"; 
-
-            const { error } = await sb.from('vtik_videos').insert([{
-                user_id: session.user_id || session.id.toString(),
-                video_url: botVideoUrl,
-                caption: "تم النشر من تطبيق VTIK",
-                likes_count: 0
-            }]);
-
-            if (error) throw error;
-
-            alert("تم النشر بنجاح! سيظهر الفيديو في الصفحة الرئيسية الآن.");
-            window.location.href = 'home.html';
-
-        } catch (err) {
-            alert("فشل النشر: " + err.message);
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
