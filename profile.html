@@ -9,22 +9,20 @@
         :root { --main: #fe2c55; --card: #121212; }
         body { margin: 0; background: #000; color: white; font-family: sans-serif; padding-bottom: 80px; }
         .header { padding: 30px 20px; text-align: center; background: linear-gradient(to bottom, #1a1a1a, #000); position: relative; }
-        .logout-btn { position: absolute; top: 15px; left: 15px; background: #333; color: #fff; border: none; padding: 5px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
-        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--main); margin-bottom: 10px; object-fit: cover; }
+        .logout-btn { position: absolute; top: 15px; left: 15px; background: #333; color: #fff; border: none; padding: 5px 12px; border-radius: 8px; font-size: 12px; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--main); margin-bottom: 10px; }
         .wallet { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
         .balance-box { background: var(--card); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #222; }
         .balance-box h2 { margin: 5px 0; color: var(--main); font-size: 24px; }
-        .balance-box span { font-size: 12px; color: #888; }
         .btn-group { padding: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 45%; font-size: 14px; }
+        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; width: 45%; }
         .btn-w { background: #fff; color: #000; }
         .btn-d { background: var(--main); color: #fff; }
-        .video-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 5px; margin-top: 20px; }
-        .v-item { position: relative; aspect-ratio: 9/16; background: #111; border-radius: 8px; overflow: hidden; }
+        .video-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 5px; }
+        .v-item { aspect-ratio: 9/16; background: #111; border-radius: 8px; overflow: hidden; }
         .v-item video { width: 100%; height: 100%; object-fit: cover; }
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
         .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; }
-        .active { color: white; }
     </style>
 </head>
 <body>
@@ -32,78 +30,58 @@
 <div class="header">
     <button class="logout-btn" onclick="logout()">خروج 🚪</button>
     <img id="uAvatar" class="avatar" src="https://via.placeholder.com/90">
-    <h3 id="uName">جاري التحميل...</h3>
+    <h3 id="uName">تحميل...</h3>
 </div>
 
 <div class="wallet">
-    <div class="balance-box">
-        <span>رصيد كاش</span>
-        <h2 id="cashVal">0</h2>
-    </div>
-    <div class="balance-box">
-        <span>رصيد كوينز</span>
-        <h2 id="coinsVal">0</h2>
-    </div>
+    <div class="balance-box"><span>رصيد كاش</span><h2 id="cashVal">0</h2></div>
+    <div class="balance-box"><span>رصيد كوينز</span><h2 id="coinsVal">0</h2></div>
 </div>
 
 <div class="btn-group">
     <button class="btn btn-w">سحب</button>
     <button class="btn btn-d">إيداع</button>
+    <button class="btn btn-d" style="width: 93%; background: #222;">تحويل كوينز</button>
 </div>
 
-<h4 style="margin: 20px 20px 10px;">فيديوهاتي 🎬</h4>
+<h4 style="margin: 20px;">فيديوهاتي 🎬</h4>
 <div id="userVids" class="video-grid"></div>
 
 <div class="nav-bar">
     <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
-    <a href="profile.html" class="nav-item active">👤<br>الملف</a>
+    <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
+    <a href="https://t.me/videotikEG_bot" class="nav-item" style="font-size: 20px; color: #fe2c55;">➕</a>
+    <a href="history.html" class="nav-item">📜<br>السجل</a>
+    <a href="profile.html" class="nav-item active" style="color:white;">👤<br>الملف</a>
 </div>
 
 <script>
     const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    // تم إصلاح المفتاح ليعمل بشكل صحيح
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z"; 
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
     const sb = supabase.createClient(S_URL, S_KEY);
-    
-    // سحب بيانات المستخدم من الذاكرة
     const user = JSON.parse(localStorage.getItem('vtik_session'));
 
     async function init() {
-        if(!user) {
-            window.location.href='index.html';
-            return;
-        }
-
-        // عرض البيانات الأساسية من تليجرام
+        if(!user) return window.location.href='index.html';
         document.getElementById('uName').innerText = user.first_name;
         if(user.photo_url) document.getElementById('uAvatar').src = user.photo_url;
 
-        // جلب الرصيد من Supabase
-        const { data: userData } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
-        if(userData) {
-            document.getElementById('cashVal').innerText = userData.cash_balance;
-            document.getElementById('coinsVal').innerText = userData.coins_balance;
+        // جلب الداتا من الجدول
+        const { data } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
+        if(data) {
+            document.getElementById('cashVal').innerText = data.cash_balance;
+            document.getElementById('coinsVal').innerText = data.coins_balance;
         }
 
-        // جلب فيديوهات المستخدم فقط
+        // جلب الفيديوهات
         const { data: vids } = await sb.from('vtik_videos').select('*').eq('user_id', user.id.toString());
-        const vGrid = document.getElementById('userVids');
-        if(vids && vids.length > 0) {
+        if(vids) {
             vids.forEach(v => {
-                vGrid.innerHTML += `<div class="v-item"><video src="${v.video_url}"></video></div>`;
+                document.getElementById('userVids').innerHTML += `<div class="v-item"><video src="${v.video_url}"></video></div>`;
             });
-        } else {
-            vGrid.innerHTML = "<p style='grid-column: 1/4; text-align:center; color:#555;'>لا يوجد فيديوهات بعد</p>";
         }
     }
-
-    function logout() {
-        if(confirm("هل تريد تسجيل الخروج؟")) {
-            localStorage.removeItem('vtik_session');
-            window.location.href = 'index.html';
-        }
-    }
-
+    function logout() { localStorage.removeItem('vtik_session'); window.location.href='index.html'; }
     window.onload = init;
 </script>
 </body>
