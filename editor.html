@@ -9,7 +9,7 @@
         body { margin: 0; background: #0b0b0b; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-bottom: 80px; }
         .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #333; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 80%; max-width: 300px; }
+        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 80%; max-width: 300px; display: block; text-align: center; }
         #status { margin-top: 15px; color: #fe2c55; font-size: 14px; font-weight: bold; text-align: center; }
     </style>
 </head>
@@ -21,13 +21,13 @@
     <div id="status">جاهز للاختيار</div>
 
     <input type="file" id="vFile" accept="video/*" hidden onchange="handleFile(event)">
+    
     <button class="upload-btn" onclick="document.getElementById('vFile').click()">اختيار فيديو من الهاتف</button>
     
-    <button id="pubBtn" class="upload-btn" style="background:#222; display: none;" onclick="upload()">نشر الآن 🎬</button>
+    <button id="pubBtn" type="button" class="upload-btn" style="background:#222; display: none;" onclick="upload(event)">نشر الآن 🎬</button>
 
     <script>
         let selectedFile = null;
-        // الرابط الذي أعطاه لك الـ Agent (تأكد من وجود /api في النهاية)
         const API_BASE = "https://bd035457-9a8c-40dd-9f69-809e0d81c5e0-00-2zb2r9td510vr.worf.replit.dev/api";
 
         function handleFile(e) {
@@ -39,7 +39,10 @@
             }
         }
 
-        async function upload() {
+        async function upload(event) {
+            // منع أي تحويل تلقائي للرابط
+            event.preventDefault();
+
             const user = JSON.parse(localStorage.getItem('vtik_session'));
             if(!user) return alert("سجل دخولك أولاً");
             if(!selectedFile) return alert("اختر فيديو أولاً");
@@ -47,7 +50,7 @@
             const status = document.getElementById('status');
             const btn = document.getElementById('pubBtn');
 
-            status.innerText = "⏳ جاري الرفع لتليجرام... انتظر قليلاً";
+            status.innerText = "⏳ جاري الرفع المباشر... يرجى عدم إغلاق الصفحة";
             btn.disabled = true;
             btn.style.opacity = "0.5";
 
@@ -57,7 +60,6 @@
             formData.append('user_name', user.first_name);
 
             try {
-                // إرسال الطلب للسيرفر مباشرة بدلاً من التحويل للبوت
                 const response = await fetch(`${API_BASE}/upload-from-web`, {
                     method: 'POST',
                     body: formData
@@ -67,12 +69,13 @@
                     status.innerText = "✅ تم النشر بنجاح!";
                     setTimeout(() => window.location.href = 'home.html', 2000);
                 } else {
-                    status.innerText = "❌ فشل الرفع. تأكد أن السيرفر يعمل.";
+                    const errorMsg = await response.text();
+                    status.innerText = "❌ فشل الرفع: " + errorMsg;
                     btn.disabled = false;
                     btn.style.opacity = "1";
                 }
             } catch (err) {
-                status.innerText = "❌ حدث خطأ في الاتصال بالسيرفر.";
+                status.innerText = "❌ حدث خطأ في الاتصال بالسيرفر. تأكد أن Replit شغال.";
                 btn.disabled = false;
                 btn.style.opacity = "1";
             }
