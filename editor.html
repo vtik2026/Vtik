@@ -10,7 +10,7 @@
         .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #333; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 80%; max-width: 300px; }
-        #status { margin-top: 15px; color: #fe2c55; font-size: 14px; font-weight: bold; }
+        #status { margin-top: 15px; color: #fe2c55; font-size: 14px; font-weight: bold; text-align: center; padding: 0 10px; }
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
         .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; }
     </style>
@@ -24,12 +24,12 @@
         <video id="vPreview" controls></video>
     </div>
 
-    <div id="status"></div>
+    <div id="status">جاهز لاختيار الفيديو</div>
 
     <input type="file" id="vFile" accept="video/*" hidden onchange="handleFile(event)">
     
     <button class="upload-btn" onclick="document.getElementById('vFile').click()">اختيار فيديو من الهاتف</button>
-    <button id="pubBtn" class="upload-btn" style="background:#222; display: none;" onclick="upload()">نشر الآن على تليجرام 🚀</button>
+    <button id="pubBtn" class="upload-btn" style="background:#222; display: none;" onclick="upload()">نشر الآن على Vtik 🚀</button>
 
     <div class="nav-bar">
         <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
@@ -38,13 +38,15 @@
 
     <script>
         let selectedFile = null;
+        // الرابط الجديد الذي أعطاه لك الـ Agent
+        const API_BASE = "https://bd035457-9a8c-40dd-9f69-809e0d81c5e0-00-2zb2r9td510vr.worf.replit.dev/api";
 
         function handleFile(e) {
             selectedFile = e.target.files[0];
             if(selectedFile) {
                 document.getElementById('vPreview').src = URL.createObjectURL(selectedFile);
                 document.getElementById('pubBtn').style.display = "block";
-                document.getElementById('status').innerText = "فيديو جاهز للنشر ✅";
+                document.getElementById('status').innerText = "تم اختيار الفيديو بنجاح ✅";
             }
         }
 
@@ -56,39 +58,35 @@
             const statusDiv = document.getElementById('status');
             const pubBtn = document.getElementById('pubBtn');
 
-            // 1. تجهيز البيانات للإرسال
             const formData = new FormData();
             formData.append('video', selectedFile);
             formData.append('user_id', user.id);
             formData.append('user_name', user.first_name);
 
-            statusDiv.innerText = "⏳ جاري الرفع والمعالجة عبر تليجرام...";
+            statusDiv.innerText = "⏳ جاري إرسال الفيديو لتليجرام ومعالجته...";
             pubBtn.disabled = true;
             pubBtn.style.opacity = "0.5";
 
             try {
-                // ملاحظة: استبدل الرابط برابط الـ API في Replit الخاص بك
-                // رابط Replit عادة يكون: https://اسم-المشروع.اسم-المستخدم.repl.co/upload-from-web
-                const response = await fetch('https://vtik-bot.yourusername.repl.co/upload-from-web', {
+                // نستخدم المسار المفتوح للخارج /upload-from-web مضافاً إليه /api
+                const response = await fetch(`${API_BASE}/upload-from-web`, {
                     method: 'POST',
                     body: formData
                 });
 
-                const result = await response.json();
-
                 if (response.ok) {
-                    statusDiv.innerText = "✅ تم النشر بنجاح على تليجرام والموقع!";
+                    statusDiv.innerText = "✅ تم النشر بنجاح! ستراه في الرئيسية الآن.";
                     setTimeout(() => window.location.href = 'home.html', 2500);
                 } else {
-                    statusDiv.innerText = "❌ فشل الرفع: " + (result.message || "خطأ مجهول");
+                    const errText = await response.text();
+                    statusDiv.innerText = "❌ فشل الرفع: " + errText;
                     pubBtn.disabled = false;
                     pubBtn.style.opacity = "1";
                 }
             } catch (err) {
-                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر (تأكد أن Replit شغال)";
+                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر. تأكد من تشغيل Replit.";
                 pubBtn.disabled = false;
                 pubBtn.style.opacity = "1";
-                console.error(err);
             }
         }
     </script>
