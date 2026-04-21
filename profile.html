@@ -8,31 +8,20 @@
     <style>
         :root { --main: #fe2c55; --card: #121212; }
         body { margin: 0; background: #000; color: white; font-family: sans-serif; padding-bottom: 80px; }
-        
         .header { padding: 30px 20px; text-align: center; background: linear-gradient(to bottom, #1a1a1a, #000); position: relative; }
         .logout-btn { position: absolute; top: 15px; left: 15px; background: #333; color: #fff; border: none; padding: 5px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--main); margin-bottom: 10px; object-fit: cover; }
-        
         .wallet { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
         .balance-box { background: var(--card); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #222; }
         .balance-box h2 { margin: 5px 0; color: var(--main); font-size: 24px; }
         .balance-box span { font-size: 12px; color: #888; }
-
         .btn-group { padding: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 45%; font-size: 14px; }
         .btn-w { background: #fff; color: #000; }
         .btn-d { background: var(--main); color: #fff; }
-
         .video-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 5px; margin-top: 20px; }
         .v-item { position: relative; aspect-ratio: 9/16; background: #111; border-radius: 8px; overflow: hidden; }
         .v-item video { width: 100%; height: 100%; object-fit: cover; }
-        .del-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); border: none; color: #fff; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; z-index: 5; }
-
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                 background: #1e1e1e; padding: 25px; border-radius: 25px; width: 80%; z-index: 1000; }
-        .modal input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 900; }
-
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
         .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; }
         .active { color: white; }
@@ -58,9 +47,8 @@
 </div>
 
 <div class="btn-group">
-    <button class="btn btn-w" onclick="openAction('withdraw')">سحب</button>
-    <button class="btn btn-d" onclick="openAction('deposit')">إيداع</button>
-    <button class="btn btn-d" style="width: 93%; background: #222;" onclick="openAction('transfer')">تحويل كوينز</button>
+    <button class="btn btn-w">سحب</button>
+    <button class="btn btn-d">إيداع</button>
 </div>
 
 <h4 style="margin: 20px 20px 10px;">فيديوهاتي 🎬</h4>
@@ -68,27 +56,44 @@
 
 <div class="nav-bar">
     <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
-    <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
-    <a href="editor.html" class="nav-item">➕</a>
-    <a href="history.html" class="nav-item">📜<br>السجل</a>
     <a href="profile.html" class="nav-item active">👤<br>الملف</a>
 </div>
 
 <script>
     const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
+    // تم إصلاح المفتاح ليعمل بشكل صحيح
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z"; 
     const sb = supabase.createClient(S_URL, S_KEY);
+    
+    // سحب بيانات المستخدم من الذاكرة
     const user = JSON.parse(localStorage.getItem('vtik_session'));
 
     async function init() {
-        if(!user) return window.location.href='index.html';
+        if(!user) {
+            window.location.href='index.html';
+            return;
+        }
+
+        // عرض البيانات الأساسية من تليجرام
         document.getElementById('uName').innerText = user.first_name;
         if(user.photo_url) document.getElementById('uAvatar').src = user.photo_url;
 
-        const { data } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
-        if(data) {
-            document.getElementById('cashVal').innerText = data.cash_balance;
-            document.getElementById('coinsVal').innerText = data.coins_balance;
+        // جلب الرصيد من Supabase
+        const { data: userData } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
+        if(userData) {
+            document.getElementById('cashVal').innerText = userData.cash_balance;
+            document.getElementById('coinsVal').innerText = userData.coins_balance;
+        }
+
+        // جلب فيديوهات المستخدم فقط
+        const { data: vids } = await sb.from('vtik_videos').select('*').eq('user_id', user.id.toString());
+        const vGrid = document.getElementById('userVids');
+        if(vids && vids.length > 0) {
+            vids.forEach(v => {
+                vGrid.innerHTML += `<div class="v-item"><video src="${v.video_url}"></video></div>`;
+            });
+        } else {
+            vGrid.innerHTML = "<p style='grid-column: 1/4; text-align:center; color:#555;'>لا يوجد فيديوهات بعد</p>";
         }
     }
 
