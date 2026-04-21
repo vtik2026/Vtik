@@ -14,10 +14,6 @@
         .wallet { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
         .balance-box { background: var(--card); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #222; }
         .balance-box h2 { margin: 5px 0; color: var(--main); font-size: 24px; }
-        .btn-group { padding: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; width: 45%; }
-        .btn-w { background: #fff; color: #000; }
-        .btn-d { background: var(--main); color: #fff; }
         .video-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 5px; }
         .v-item { aspect-ratio: 9/16; background: #111; border-radius: 8px; overflow: hidden; }
         .v-item video { width: 100%; height: 100%; object-fit: cover; }
@@ -38,26 +34,20 @@
     <div class="balance-box"><span>رصيد كوينز</span><h2 id="coinsVal">0</h2></div>
 </div>
 
-<div class="btn-group">
-    <button class="btn btn-w">سحب</button>
-    <button class="btn btn-d">إيداع</button>
-    <button class="btn btn-d" style="width: 93%; background: #222;">تحويل كوينز</button>
-</div>
-
 <h4 style="margin: 20px;">فيديوهاتي 🎬</h4>
 <div id="userVids" class="video-grid"></div>
 
 <div class="nav-bar">
     <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
     <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
-    <a href="https://t.me/videotikEG_bot" class="nav-item" style="font-size: 20px; color: #fe2c55;">➕</a>
+    <a href="editor.html" class="nav-item" style="font-size: 20px; color: #fe2c55;">➕</a>
     <a href="history.html" class="nav-item">📜<br>السجل</a>
     <a href="profile.html" class="nav-item active" style="color:white;">👤<br>الملف</a>
 </div>
 
 <script>
     const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(S_URL, S_KEY);
     const user = JSON.parse(localStorage.getItem('vtik_session'));
 
@@ -66,14 +56,12 @@
         document.getElementById('uName').innerText = user.first_name;
         if(user.photo_url) document.getElementById('uAvatar').src = user.photo_url;
 
-        // جلب الداتا من الجدول
         const { data } = await sb.from('vtik_users').select('*').eq('user_id', user.id.toString()).single();
         if(data) {
-            document.getElementById('cashVal').innerText = data.cash_balance;
-            document.getElementById('coinsVal').innerText = data.coins_balance;
+            document.getElementById('cashVal').innerText = data.cash_balance || 0;
+            document.getElementById('coinsVal').innerText = data.coins_balance || 0;
         }
 
-        // جلب الفيديوهات
         const { data: vids } = await sb.from('vtik_videos').select('*').eq('user_id', user.id.toString());
         if(vids) {
             vids.forEach(v => {
