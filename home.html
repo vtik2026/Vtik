@@ -18,20 +18,19 @@
 </head>
 <body>
 
-<div id="feed" class="feed">
-    </div>
+<div id="feed" class="feed"></div>
 
 <div class="nav-bar">
     <a href="home.html" class="nav-item active">🏠<br>الرئيسية</a>
     <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
-    <a href="https://t.me/videotikEG_bot" class="nav-item" style="font-size: 20px; color: #fe2c55;">➕</a>
+    <a href="editor.html" class="nav-item" style="font-size: 20px; color: #fe2c55;">➕</a>
     <a href="history.html" class="nav-item">📜<br>السجل</a>
     <a href="profile.html" class="nav-item">👤<br>الملف</a>
 </div>
 
 <script>
     const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
     const sb = supabase.createClient(S_URL, S_KEY);
 
     async function loadFeed() {
@@ -42,10 +41,7 @@
                 container.innerHTML += `
                     <div class="video-card">
                         <video src="${v.video_url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
-                        <div class="side-bar">
-                            <span>❤️</span>
-                            <span>💬</span>
-                        </div>
+                        <div class="side-bar"><span>❤️</span><span>💬</span></div>
                     </div>`;
             });
         }
