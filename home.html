@@ -6,131 +6,45 @@
     <title>VTIK | الرئيسية</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; }
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
-        
-        /* حاوية الفيديوهات */
-        #main-feed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
-        #main-feed::-webkit-scrollbar { display: none; }
-        
-        .video-container { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
+        .video-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; }
+        .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
-
-        /* الأزرار الجانبية */
-        .side-actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-        .action-btn { background: none; border: none; color: white; font-size: 28px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .action-btn span { font-size: 12px; margin-top: 5px; font-weight: bold; }
-
-        /* الأيقونات الخاصة */
-        .special-icons { position: absolute; left: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 25px; z-index: 10; }
-        .gift-icon { font-size: 35px; cursor: pointer; animation: pulse 1.5s infinite; filter: drop-shadow(0 0 10px gold); }
-        .planet-icon { font-size: 35px; cursor: pointer; filter: drop-shadow(0 0 10px var(--tiktok-blue)); transition: 0.3s; }
-        .planet-icon:hover { transform: rotate(20deg) scale(1.1); }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        /* نافذة الجائزة المنبثقة */
-        .reward-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: linear-gradient(45deg, #ffd700, #ffae00); color: #000; padding: 30px; 
-                        border-radius: 25px; text-align: center; z-index: 2000; box-shadow: 0 0 30px rgba(255,215,0,0.5); }
-        
-        /* شريط التنقل السفلي */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.9); 
-                   display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 100; }
-        .nav-item { color: #888; text-decoration: none; font-size: 12px; text-align: center; }
-        .nav-item.active { color: white; }
-        .upload-icon { background: white; color: black; padding: 5px 15px; border-radius: 10px; font-weight: bold; font-size: 20px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.8); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+        .nav-item { text-decoration: none; color: #888; font-size: 12px; text-align: center; }
+        .active { color: #fff; }
     </style>
 </head>
 <body>
+    <div class="video-container" id="feed"></div>
 
-<div id="main-feed">
+    <div class="nav-bar">
+        <a href="home.html" class="nav-item active">🏠<br>الرئيسية</a>
+        <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
+        <a href="editor.html" class="nav-item" style="font-size:24px; color:#fe2c55;">+</a>
+        <a href="profile.html" class="nav-item">👤<br>الملف</a>
     </div>
 
-<div class="special-icons">
-    <div class="planet-icon" onclick="window.location.href='game.html'">🪐</div>
-    <div id="giftBtn" class="gift-icon" onclick="checkRewards()">🎁</div>
-</div>
+    <script>
+        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
+        const sb = supabase.createClient(S_URL, S_KEY);
 
-<div id="rewardPopup" class="reward-popup">
-    <h2 style="margin-top:0;">مبروك! 🎉</h2>
-    <p id="rewardMsg" style="font-weight: bold;"></p>
-    <button onclick="closeReward()" style="padding:10px 25px; border:none; border-radius:15px; background:#000; color:#fff; cursor:pointer; font-weight:bold;">استلام الآن</button>
-</div>
-
-<div class="nav-bar">
-    <a href="home.html" class="nav-item active">🏠<br>الرئيسية</a>
-    <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
-    <a href="editor.html" class="upload-icon">+</a>
-    <a href="history.html" class="nav-item">📜<br>السجل</a>
-    <a href="profile.html" class="nav-item">👤<br>الملف</a>
-</div>
-
-<script>
-    const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.BFC9VsD3AfcMK9gXJKuMhLB8jJVyn14Aa4HF14G8BfY";
-    const sb = supabase.createClient(S_URL, S_KEY);
-    const user = JSON.parse(localStorage.getItem('vtik_session'));
-
-    async function loadFeed() {
-        const { data: vids } = await sb.from('vtik_videos').select('*').order('created_at', {ascending: false});
-        const feed = document.getElementById('main-feed');
-        
-        if(vids && vids.length > 0) {
-            feed.innerHTML = vids.map(v => `
-                <div class="video-container">
-                    <video src="https://api.telegram.org/bot8744239107:AAEyhq-gUka7pdeCjy63tglRS5_U8es1Fd0/getFile?file_id=${v.url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
-                    
-                    <div class="side-actions">
-                        <button class="action-btn" onclick="likeVideo(${v.id})">❤️ <span>${v.likes_count || 0}</span></button>
-                        <button class="action-btn" onclick="alert('التعليقات قريباً')">💬 <span>0</span></button>
-                        <button class="action-btn" onclick="shareVideo('${v.url}')">↗️ <span>نشر</span></button>
+        async function loadFeed() {
+            const { data } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
+            const feed = document.getElementById('feed');
+            if (data) {
+                feed.innerHTML = data.map(v => `
+                    <div class="video-card">
+                        <video src="${v.video_url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
+                        <div style="position:absolute; bottom:80px; right:20px; text-align:center;">
+                            <div style="font-size:25px;">❤️</div><span>${v.likes_count}</span>
+                        </div>
                     </div>
-
-                    <div style="position:absolute; bottom:80px; right:20px; text-align:right; text-shadow: 0 1px 3px #000;">
-                        <p style="font-weight:bold; margin-bottom:5px;">@${v.user_id}</p>
-                        <p style="font-size:14px; margin:0;">${v.caption || ''}</p>
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            feed.innerHTML = '<div class="video-container"><h3>لا توجد فيديوهات حالياً</h3></div>';
+                `).join('');
+            }
         }
-    }
-
-    // فحص الجوائز (🎁)
-    async function checkRewards() {
-        if(!user) return;
-        const { data } = await sb.from('vtik_rewards')
-            .select('*')
-            .eq('user_id', user.id.toString())
-            .eq('is_read', false)
-            .limit(1).single();
-
-        if(data) {
-            document.getElementById('rewardMsg').innerText = `حصلت على ${data.amount} ${data.type === 'coins' ? 'كوينز' : 'جنيه كاش'}`;
-            document.getElementById('rewardPopup').style.display = 'block';
-            await sb.from('vtik_rewards').update({ is_read: true }).eq('id', data.id);
-        } else {
-            alert("لا توجد هدايا جديدة حالياً.");
-        }
-    }
-
-    function closeReward() { document.getElementById('rewardPopup').style.display = 'none'; }
-    
-    function shareVideo(url) {
-        if (navigator.share) {
-            navigator.share({ title: 'VTIK', url: url });
-        } else {
-            alert("رابط الفيديو: " + url);
-        }
-    }
-
-    window.onload = loadFeed;
-</script>
+        window.onload = loadFeed;
+    </script>
 </body>
 </html>
