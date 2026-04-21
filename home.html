@@ -2,49 +2,45 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTIK | الرئيسية</title>
+    <title>Vtik - الصفحة الرئيسية</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
-        .video-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; }
-        .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.8); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
-        .nav-item { text-decoration: none; color: #888; font-size: 12px; text-align: center; }
-        .active { color: #fff; }
-    </style>
 </head>
 <body>
-    <div class="video-container" id="feed"></div>
+    <nav>
+        <h2>فيديوهات Vtik</h2>
+        <a href="profile.html">حسابي</a>
+    </nav>
 
-    <div class="nav-bar">
-        <a href="home.html" class="nav-item active">🏠<br>الرئيسية</a>
-        <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
-        <a href="editor.html" class="nav-item" style="font-size:24px; color:#fe2c55;">+</a>
-        <a href="profile.html" class="nav-item">👤<br>الملف</a>
-    </div>
+    <div id="video-grid" class="container">
+        </div>
 
     <script>
-        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
-        const sb = supabase.createClient(S_URL, S_KEY);
+        // إعدادات الربط مع Supabase (استخدم مفاتيحك الخاصة)
+        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co"; 
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // تأكد من وضع المفتاح كاملاً
+        const supabase = supabase.createClient(S_URL, S_KEY);
 
-        async function loadFeed() {
-            const { data } = await sb.from('vtik_videos').select('*').order('created_at', { ascending: false });
-            const feed = document.getElementById('feed');
+        async function loadVideos() {
+            const { data, error } = await supabase
+                .from('vtik_videos')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const grid = document.getElementById('video-grid');
             if (data) {
-                feed.innerHTML = data.map(v => `
-                    <div class="video-card">
-                        <video src="${v.video_url}" loop onclick="this.paused ? this.play() : this.pause()"></video>
-                        <div style="position:absolute; bottom:80px; right:20px; text-align:center;">
-                            <div style="font-size:25px;">❤️</div><span>${v.likes_count}</span>
-                        </div>
-                    </div>
-                `).join('');
+                data.forEach(video => {
+                    const item = document.createElement('div');
+                    item.className = 'video-item';
+                    item.innerHTML = `
+                        <video controls src="${video.video_url}"></video>
+                        <p>${video.caption}</p>
+                    `;
+                    grid.appendChild(item);
+                });
             }
         }
-        window.onload = loadFeed;
+        loadVideos();
     </script>
 </body>
 </html>
