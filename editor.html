@@ -6,37 +6,90 @@
     <title>VTIK | رفع فيديو</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; background: #0b0b0b; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; }
-        .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; }
+        body { margin: 0; background: #0b0b0b; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-bottom: 80px; }
+        .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #333; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 80%; max-width: 300px; }
+        #status { margin-top: 15px; color: #fe2c55; font-size: 14px; font-weight: bold; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
+        .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; }
     </style>
 </head>
 <body>
+    <div class="header" style="margin-top: 20px;">
+        <h3>نشر فيديو جديد 🎬</h3>
+    </div>
+
     <div class="preview-box">
         <video id="vPreview" controls></video>
     </div>
+
+    <div id="status"></div>
+
     <input type="file" id="vFile" accept="video/*" hidden onchange="handleFile(event)">
+    
     <button class="upload-btn" onclick="document.getElementById('vFile').click()">اختيار فيديو من الهاتف</button>
-    <button class="upload-btn" style="background:#222;" onclick="upload()">نشر الآن 🎬</button>
+    <button id="pubBtn" class="upload-btn" style="background:#222; display: none;" onclick="upload()">نشر الآن على تليجرام 🚀</button>
+
+    <div class="nav-bar">
+        <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
+        <a href="profile.html" class="nav-item">👤<br>الملف</a>
+    </div>
 
     <script>
-        const S_URL = "https://etnolailfekdqaatfmmt.supabase.co";
-        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bm9sYWlsZmVrZHFhYXRmbW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDM0MzIsImV4cCI6MjA5MTgxOTQzMn0.Xf-M5m7Z4m_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z";
-        const sb = supabase.createClient(S_URL, S_KEY);
+        let selectedFile = null;
 
         function handleFile(e) {
-            const file = e.target.files[0];
-            if(file) document.getElementById('vPreview').src = URL.createObjectURL(file);
+            selectedFile = e.target.files[0];
+            if(selectedFile) {
+                document.getElementById('vPreview').src = URL.createObjectURL(selectedFile);
+                document.getElementById('pubBtn').style.display = "block";
+                document.getElementById('status').innerText = "فيديو جاهز للنشر ✅";
+            }
         }
 
         async function upload() {
             const user = JSON.parse(localStorage.getItem('vtik_session'));
             if(!user) return alert("سجل دخولك أولاً");
-            
-            // هنا يتم توجيه المستخدم للبوت لرفع الفيديو فعلياً والحصول على الرابط
-            alert("سيتم توجيهك الآن لبوت تليجرام لرفع الفيديو والحصول على المكافأة.");
-            window.location.href = `https://t.me/videotikEG_bot?start=upload_${user.id}`;
+            if(!selectedFile) return alert("يرجى اختيار فيديو أولاً");
+
+            const statusDiv = document.getElementById('status');
+            const pubBtn = document.getElementById('pubBtn');
+
+            // 1. تجهيز البيانات للإرسال
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+            formData.append('user_id', user.id);
+            formData.append('user_name', user.first_name);
+
+            statusDiv.innerText = "⏳ جاري الرفع والمعالجة عبر تليجرام...";
+            pubBtn.disabled = true;
+            pubBtn.style.opacity = "0.5";
+
+            try {
+                // ملاحظة: استبدل الرابط برابط الـ API في Replit الخاص بك
+                // رابط Replit عادة يكون: https://اسم-المشروع.اسم-المستخدم.repl.co/upload-from-web
+                const response = await fetch('https://vtik-bot.yourusername.repl.co/upload-from-web', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerText = "✅ تم النشر بنجاح على تليجرام والموقع!";
+                    setTimeout(() => window.location.href = 'home.html', 2500);
+                } else {
+                    statusDiv.innerText = "❌ فشل الرفع: " + (result.message || "خطأ مجهول");
+                    pubBtn.disabled = false;
+                    pubBtn.style.opacity = "1";
+                }
+            } catch (err) {
+                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر (تأكد أن Replit شغال)";
+                pubBtn.disabled = false;
+                pubBtn.style.opacity = "1";
+                console.error(err);
+            }
         }
     </script>
 </body>
