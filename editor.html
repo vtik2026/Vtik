@@ -35,7 +35,8 @@
 
     <script>
         let selectedFile = null;
-        const API_BASE = "https://a46c30b9-cfa3-4faf-9d04-ff52688a0101-00-7vd0d5l5jyur.spock.replit.dev/api";
+        // تم تحديث الرابط هنا ليعمل مع السيرفر الجديد في PythonAnywhere
+        const API_BASE = "https://Vtikeg.pythonanywhere.com/api"; 
 
         function handleFile(e) {
             selectedFile = e.target.files[0];
@@ -63,16 +64,17 @@
             pubBtn.disabled = true;
 
             try {
+                // استدعاء السيرفر الجديد
                 const response = await fetch(`${API_BASE}/upload-from-web`, { method: 'POST', body: formData });
                 if (response.ok) {
                     statusDiv.innerText = "✅ تم النشر بنجاح!";
                     setTimeout(() => window.location.href = 'home.html', 2000);
                 } else {
-                    statusDiv.innerText = "❌ فشل الرفع. تأكد من تشغيل Replit.";
+                    statusDiv.innerText = "❌ فشل الرفع. تأكد من تشغيل PythonAnywhere.";
                     pubBtn.disabled = false;
                 }
             } catch (err) {
-                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر.";
+                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر الجديد.";
                 pubBtn.disabled = false;
             }
         }
