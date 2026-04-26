@@ -7,41 +7,51 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { margin: 0; background: #0b0b0b; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-bottom: 80px; }
-        .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #333; }
+        .preview-box { width: 90%; max-width: 350px; aspect-ratio: 9/16; background: #000; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 80%; max-width: 300px; text-align: center; }
+        .upload-btn { background: #fe2c55; color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 80%; max-width: 300px; text-align: center; transition: 0.3s; }
+        .upload-btn:disabled { background: #555; cursor: not-allowed; }
         #status { margin-top: 15px; color: #fe2c55; font-size: 14px; font-weight: bold; text-align: center; padding: 0 10px; }
+        
+        /* شريط التنقل السفلي */
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; }
-        .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; }
+        .nav-item { text-decoration: none; color: #888; font-size: 10px; text-align: center; flex: 1; }
+        .nav-item.active { color: white; }
     </style>
 </head>
 <body>
     <div class="header" style="margin-top: 20px;"><h3>نشر فيديو جديد 🎬</h3></div>
 
-    <div class="preview-box"><video id="vPreview" controls></video></div>
+    <div class="preview-box">
+        <video id="vPreview" controls></video>
+    </div>
+    
     <div id="status">جاهز لاختيار الفيديو</div>
 
     <input type="file" id="vFile" accept="video/*" hidden onchange="handleFile(event)">
+    
     <button class="upload-btn" onclick="document.getElementById('vFile').click()">اختيار فيديو من الهاتف</button>
     <button id="pubBtn" type="button" class="upload-btn" style="background:#222; display: none;" onclick="upload(event)">نشر الآن 🚀</button>
 
     <div class="nav-bar">
         <a href="home.html" class="nav-item">🏠<br>الرئيسية</a>
         <a href="stars.html" class="nav-item">🌟<br>النجوم</a>
-        <a href="editor.html" class="nav-item active" style="color:white;">➕</a>
+        <a href="editor.html" class="nav-item active">➕</a>
         <a href="history.html" class="nav-item">📜<br>السجل</a>
         <a href="profile.html" class="nav-item">👤<br>الملف</a>
     </div>
 
     <script>
         let selectedFile = null;
-        // تم تحديث الرابط هنا ليعمل مع السيرفر الجديد في PythonAnywhere
-        const API_BASE = "https://Vtikeg.pythonanywhere.com/api"; 
+        // الرابط الجديد الخاص بسيرفرك على PythonAnywhere
+        const API_BASE = "https://Vtikeg.pythonanywhere.com/api";
 
         function handleFile(e) {
             selectedFile = e.target.files[0];
             if(selectedFile) {
-                document.getElementById('vPreview').src = URL.createObjectURL(selectedFile);
+                // عرض معاينة الفيديو قبل الرفع
+                const videoURL = URL.createObjectURL(selectedFile);
+                document.getElementById('vPreview').src = videoURL;
                 document.getElementById('pubBtn').style.display = "block";
                 document.getElementById('status').innerText = "تم اختيار الفيديو ✅";
             }
@@ -49,33 +59,49 @@
 
         async function upload(event) {
             event.preventDefault();
-            const user = JSON.parse(localStorage.getItem('vtik_session'));
-            if(!user) return alert("سجل دخولك أولاً");
+            
+            // التأكد من وجود جلسة دخول
+            const sessionData = localStorage.getItem('vtik_session');
+            if(!sessionData) return alert("سجل دخولك أولاً");
+            const user = JSON.parse(sessionData);
             
             const statusDiv = document.getElementById('status');
             const pubBtn = document.getElementById('pubBtn');
 
+            // تجهيز البيانات لإرسالها للسيرفر
             const formData = new FormData();
             formData.append('video', selectedFile);
             formData.append('user_id', user.id);
-            formData.append('user_name', user.first_name);
+            formData.append('user_name', user.first_name || 'مستخدم Vtik');
 
-            statusDiv.innerText = "⏳ جاري الرفع المباشر...";
+            statusDiv.innerText = "⏳ جاري الرفع للسيرفر... يرجى عدم إغلاق الصفحة";
             pubBtn.disabled = true;
+            pubBtn.style.opacity = "0.5";
 
             try {
-                // استدعاء السيرفر الجديد
-                const response = await fetch(`${API_BASE}/upload-from-web`, { method: 'POST', body: formData });
+                // الاتصال بـ PythonAnywhere
+                const response = await fetch(`${API_BASE}/upload-from-web`, { 
+                    method: 'POST', 
+                    body: formData,
+                    mode: 'cors' // لضمان قبول الطلب عبر النطاقات المختلفة
+                });
+
+                const result = await response.json();
+
                 if (response.ok) {
                     statusDiv.innerText = "✅ تم النشر بنجاح!";
+                    statusDiv.style.color = "#00ff00";
                     setTimeout(() => window.location.href = 'home.html', 2000);
                 } else {
-                    statusDiv.innerText = "❌ فشل الرفع. تأكد من تشغيل PythonAnywhere.";
+                    statusDiv.innerText = "❌ فشل: " + (result.error || "خطأ غير معروف");
                     pubBtn.disabled = false;
+                    pubBtn.style.opacity = "1";
                 }
             } catch (err) {
-                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر الجديد.";
+                console.error("Upload Error:", err);
+                statusDiv.innerText = "❌ خطأ في الاتصال بالسيرفر. تأكد من تفعيل السيرفر.";
                 pubBtn.disabled = false;
+                pubBtn.style.opacity = "1";
             }
         }
     </script>
