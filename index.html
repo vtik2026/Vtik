@@ -3,41 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vtik - تسجيل الدخول</title>
-    <link rel="stylesheet" href="style.css">
+    <title>VTIK - Secured Wallet</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-        .login-container { background: #121212; padding: 40px; border-radius: 20px; border: 1px solid #222; width: 85%; max-width: 400px; }
-        h1 { color: #fe2c55; margin-bottom: 10px; }
-        p { color: #888; font-size: 14px; margin-bottom: 30px; }
+        :root { --tiktok-red: #fe2c55; --tiktok-blue: #25f4ee; --gold: #FFD700; --black: #010101; --neon-green: #39FF14; }
+        body, html { margin: 0; padding: 0; height: 100%; background: var(--black); color: white; font-family: sans-serif; overflow: hidden; }
+
+        /* الشاشة الرئيسية والفيديوهات */
+        #mainFeed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+        .video-container { position: relative; width: 100vw; height: 100vh; scroll-snap-align: start; background: #000; display: flex; align-items: center; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .side-icons { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+        .icon-btn { width: 55px; height: 55px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 26px; backdrop-filter: blur(8px); }
+
+        /* صفحة البروفايل */
+        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--black); display: none; z-index: 1000; overflow-y: auto; padding-bottom: 80px; }
+        .id-badge { display: inline-block; padding: 6px 18px; background: #111; border: 1px solid #333; color: var(--gold); border-radius: 20px; font-family: monospace; font-size: 14px; margin-top: 30px; }
+
+        .wallet-card { background: linear-gradient(145deg, #111, #222); padding: 25px; border-radius: 20px; margin: 15px 20px; border: 1px solid #333; text-align: center; position: relative;}
+        
+        .btn-group { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
+        .btn-action { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+
+        /* شبكة الفيديوهات $3 \times \infty$ */
+        #myVideosGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 5px; }
+        .grid-item { position: relative; width: 100%; aspect-ratio: 9/16; background: #111; border-radius: 4px; overflow: hidden; }
+        .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        .del-x { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 60px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.5px solid #333; z-index: 2000; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h1>مرحباً بك في Vtik</h1>
-        <p>سجل دخولك عبر تليجرام لرفع ومشاهدة الفيديوهات</p>
+
+    <div id="loading">جاري المعالجة... 🚀</div>
+    <div id="mainFeed"></div>
+
+    <div id="profilePage" class="page">
+        <center><div id="displayUserID" class="id-badge">ID: --2026--</div></center>
         
-        <div id="telegram-login-box">
-            <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                    data-telegram-login="videotikEG_bot" 
-                    data-size="large" 
-                    data-onauth="onTelegramAuth(user)" 
-                    data-request-access="write"></script>
+        <div class="wallet-card">
+            <div style="color:var(--tiktok-blue); font-size:32px; font-weight:bold;"><span id="cashBal">0</span> EGP</div>
+            <div style="color:var(--gold); font-size:22px;">🪙 <span id="coinBal">0</span> Coins</div>
         </div>
+
+        <div class="btn-group">
+            <button class="btn-action" style="background:var(--tiktok-blue);" onclick="toggleF('dF')">📥 إيداع</button>
+            <button class="btn-action" style="background:var(--tiktok-red); color:white;" onclick="toggleF('wF')">📤 سحب</button>
+            <button class="btn-action" style="background:var(--gold);" onclick="toggleF('eF')">💱 تحويل Coins</button>
+        </div>
+
+        <div id="dF" class="form-panel" style="display:none; padding:20px;">
+            <input type="number" id="inD_amt" placeholder="المبلغ" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:1px solid #444; color:white; border-radius:8px;">
+            <button class="btn-action" onclick="doF('dep')">تأكيد</button>
+        </div>
+
+        <h3 style="padding: 15px 20px 5px 20px; border-top: 1px solid #222; margin-top: 20px; color: #888;">منشوراتي 🎬</h3>
+        <div id="myVideosGrid"></div>
     </div>
 
-    <script type="text/javascript">
-      function onTelegramAuth(user) {
-        // حفظ بيانات المستخدم في ذاكرة المتصفح لكي تستخدمها صفحة البروفايل
-        localStorage.setItem('vtik_session', JSON.stringify(user));
-        // الانتقال التلقائي لصفحة البروفايل بعد النجاح
-        window.location.href = 'profile.html';
-      }
+    <nav class="nav-bar">
+        <button style="background:none; border:none; color:white; font-size:24px;" onclick="closePages()">🏠</button>
+        <div style="cursor:pointer; width:45px; height:30px; background:linear-gradient(to right, var(--tiktok-blue), var(--tiktok-red)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:black;" id="upBtn">➕</div>
+        <button style="background:none; border:none; color:white; font-size:24px;" onclick="showPage('profilePage')">👤</button>
+    </nav>
 
-      // تأمين إضافي: لو المستخدم مسجل دخول بالفعل، ابعته للبروفايل فوراً
-      if (localStorage.getItem('vtik_session')) {
-          window.location.href = 'profile.html';
-      }
+    <script>
+        const CONFIG = {
+            BOT_TOKEN: '8608757510:AAHULS7KucBQy9wq_ax4AoGS490tmABrB3U',
+            CHAT_ID: '-1003614080639', // تم التحديث للآيدي الرقمي
+            SB_URL: 'https://filnjwkcbfcdbkajqwji.supabase.co',
+            SB_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpbG5qd2tjYmZjZGJrYWpxd2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzc3ODcsImV4cCI6MjA5Mjk1Mzc4N30._D2oohezO31dXNUvicMdKcpJoUkcwBCpqLxDGcXFoBs'
+        };
+
+        let db = JSON.parse(localStorage.getItem('vtik_pro_v21')) || { 
+            cash: 0, coins: 0, vids: [], userID: "VT" + Math.floor(1000 + Math.random() * 9000)
+        };
+
+        function save() { localStorage.setItem('vtik_pro_v21', JSON.stringify(db)); render(); }
+
+        async function fetchVideos() {
+            try {
+                const res = await fetch(`${CONFIG.SB_URL}/rest/v1/videos?select=*`, {
+                    headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+                });
+                const data = await res.json();
+                db.vids = data.map(v => ({ url: v.video_url, id: v.id }));
+                render();
+            } catch (e) { console.error("DB Error"); }
+        }
+
+        function render() {
+            document.getElementById('cashBal').innerText = db.cash.toFixed(2);
+            document.getElementById('coinBal').innerText = db.coins;
+            document.getElementById('displayUserID').innerText = "ID: " + db.userID;
+
+            const feed = document.getElementById('mainFeed'); feed.innerHTML = '';
+            const grid = document.getElementById('myVideosGrid'); grid.innerHTML = '';
+
+            db.vids.forEach((v, i) => {
+                feed.innerHTML += `<div class="video-container"><video src="${v.url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video><div class="side-icons"><button class="icon-btn" onclick="addPoints()">❤️</button></div></div>`;
+                grid.innerHTML += `<div class="grid-item"><button class="del-x" onclick="deleteVideo(${i}, ${v.id})">✕</button><video src="${v.url}" muted></video></div>`;
+            });
+            initObs();
+        }
+
+        function addPoints() { db.coins += 150; save(); alert("تم إضافة 150 كوين!"); }
+
+        async function deleteVideo(index, sbId) {
+            if(!confirm("حذف الفيديو؟")) return;
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                await fetch(`${CONFIG.SB_URL}/rest/v1/videos?id=eq.${sbId}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+                });
+                db.vids.splice(index, 1);
+                save();
+            } catch (e) { alert("خطأ في الحذف"); }
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        document.getElementById('upBtn').onclick = () => {
+            let i = document.createElement('input'); i.type = 'file'; i.accept = 'video/*';
+            i.onchange = async e => {
+                const file = e.target.files[0]; if(!file) return;
+                document.getElementById('loading').style.display = 'flex';
+                const fd = new FormData(); fd.append('chat_id', CONFIG.CHAT_ID); fd.append('video', file);
+
+                try {
+                    const tg = await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendVideo`, { method: 'POST', body: fd });
+                    const tgD = await tg.json();
+                    if(tgD.ok) {
+                        // استخدام رابط تليجرام المباشر للقناة
+                        const vUrl = `https://t.me/c/${CONFIG.CHAT_ID.replace('-100','')}/${tgD.result.message_id}`;
+                        await fetch(`${CONFIG.SB_URL}/rest/v1/videos`, {
+                            method: 'POST',
+                            headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ video_url: vUrl, file_id: tgD.result.video.file_id })
+                        });
+                        fetchVideos();
+                    } else { alert("فشل الرفع: " + tgD.description); }
+                } catch(e) { alert("خطأ في الاتصال"); }
+                document.getElementById('loading').style.display = 'none';
+            };
+            i.click();
+        };
+
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); document.getElementById(id).style.display = 'block'; }
+        function closePages() { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); }
+        function toggleF(id) { let f = document.getElementById(id); f.style.display = f.style.display==='none'?'block':'none'; }
+        function initObs(){ const obs=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?e.target.play():e.target.pause()),{threshold:0.7}); document.querySelectorAll('video').forEach(v=>obs.observe(v)); }
+
+        function doF(type) {
+            if(type === 'dep') db.cash += parseFloat(document.getElementById('inD_amt').value || 0);
+            save();
+            document.getElementById('dF').style.display = 'none';
+        }
+
+        fetchVideos();
     </script>
 </body>
 </html>
