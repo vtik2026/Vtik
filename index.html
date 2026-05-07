@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VTIK - Official Hub</title>
+    <title>VTIK - Premium Edition</title>
     <style>
         :root { --gold: #FFD700; --tiktok-blue: #25f4ee; --tiktok-red: #fe2c55; }
         body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
         canvas { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
 
-        /* صفحة القفل الإجبارية */
+        /* شاشة القفل */
         #loginWall { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { padding: 40px 20px; background: rgba(255,255,255,0.05); border: 2px solid var(--gold); border-radius: 30px; backdrop-filter: blur(15px); width: 85%; text-align: center; }
 
         /* الواجهة الرئيسية */
         #mainUI { display: none; }
         .top-tabs { position: fixed; top: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2000; }
-        .tab-btn { width: 160px; padding: 10px; background: rgba(0,0,0,0.7); border: 1px solid var(--gold); border-radius: 20px; color: var(--gold); font-weight: bold; cursor: pointer; text-align: center; font-size: 14px; }
+        .tab-btn { width: 160px; padding: 10px; background: rgba(0,0,0,0.7); border: 1px solid var(--gold); border-radius: 20px; color: var(--gold); font-weight: bold; cursor: pointer; text-align: center; }
         #earth-trigger { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 230px; height: 230px; border-radius: 50%; z-index: 100; cursor: pointer; }
         
-        /* الصفحات الداخلية */
+        /* الصفحات */
         .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 3000; overflow-y: auto; padding-bottom: 100px; }
         .wallet-card { background: #111; padding: 20px; border-radius: 20px; margin: 15px; border: 1px solid #333; text-align: center; }
-        .btn-action { padding: 12px; border-radius: 12px; border: none; font-weight: bold; width: 90%; margin: 8px 0; cursor: pointer; font-size: 15px; }
+        .btn-action { padding: 12px; border-radius: 12px; border: none; font-weight: bold; width: 90%; margin: 8px 0; cursor: pointer; }
 
         .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 4000; }
         
-        #rewardPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #000; border: 2px solid var(--gold); padding: 30px; border-radius: 25px; text-align: center; z-index: 8000; transition: 0.3s; }
+        #rewardPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 25px; text-align: center; z-index: 8000; transition: 0.3s; }
         #rewardPopup.show { transform: translate(-50%, -50%) scale(1); }
+        
+        .spin-count { color: var(--gold); font-size: 12px; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -36,9 +38,8 @@
 
     <div id="loginWall">
         <div class="login-box">
-            <h1 style="color: var(--gold); letter-spacing: 5px; margin-bottom: 5px;">VTIK</h1>
-            <p style="margin-bottom: 30px; color: #ccc; font-size: 14px;">سجل دخولك لبدء الربح والاستثمار</p>
-            
+            <h1 style="color: var(--gold);">VTIK</h1>
+            <p style="margin-bottom: 30px;">سجل دخولك لبدء الربح</p>
             <div id="telegram-login-container">
                 <script async src="https://telegram.org/js/telegram-widget.js?22" 
                     data-telegram-login="videotikEG_bot" 
@@ -47,7 +48,6 @@
                     data-request-access="write">
                 </script>
             </div>
-            <p style="font-size: 11px; color: #444; margin-top: 25px;">يجب الموافقة على الدخول من داخل تطبيق تلجرام</p>
         </div>
     </div>
 
@@ -55,47 +55,37 @@
         <div class="top-tabs">
             <div class="tab-btn" onclick="showPage('tasksPage')">📋 مهام اليوم</div>
             <div class="tab-btn" onclick="showPage('vipPage')">💎 VIP الاستثمار</div>
+            <div class="spin-count">المحاولات اليومية: <span id="tries">0</span>/3</div>
         </div>
 
         <div id="earth-trigger" onclick="spinEarth()"></div>
 
-        <div id="vipPage" class="page">
-            <div style="text-align: center; padding: 25px;"><h2 style="color: var(--gold);">💎 بورصة الذهب والفضة</h2></div>
+        <div id="tasksPage" class="page">
+            <h2 style="text-align:center; padding:20px; color:var(--gold);">📋 المهام اليومية</h2>
             <div class="wallet-card">
-                <select id="metalType" class="btn-action" style="background:#222; color:#fff" onchange="updatePrice()">
-                    <option value="gold24">ذهب عيار 24</option>
-                    <option value="gold21">ذهب عيار 21</option>
-                    <option value="gold18">ذهب عيار 18</option>
-                    <option value="silver925">فضة عيار 925</option>
-                </select>
-                <p style="margin-top:20px;">الكمية: <span id="weightVal" style="color:var(--gold); font-weight:bold;">0.001</span> جم</p>
-                <input type="range" id="weightSlider" min="0.001" max="10" step="0.001" value="0.001" style="width: 100%; margin: 15px 0; accent-color: var(--gold);" oninput="updatePrice()">
-                <div style="background:#000; padding:15px; border-radius:12px; border:1px dashed #444;">
-                    <h2 style="margin:0;"><span id="totalPrice">0</span> EGP</h2>
+                <p>شاهد الفيديو التالي واربح 200 كوينز</p>
+                <div id="taskVideoContainer" style="background:#000; height:150px; border-radius:15px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; border:1px dashed #444;">
+                    رابط فيديو الآدمن يظهر هنا
                 </div>
-                <button class="btn-action" style="background:var(--gold); color:#000; margin-top:20px;" onclick="invest()">🚀 استثمر الآن</button>
-                <button class="btn-action" style="background:#fff; color:#000" onclick="requestDelivery()">🚚 طلب شحن للمنزل (150ج)</button>
+                <button class="btn-action" style="background:var(--tiktok-blue)" onclick="completeTask()">تمت المشاهدة ✅</button>
             </div>
-            <button onclick="closePages()" class="btn-action" style="background:#111; color:#fff; display:block; margin:auto; width:50%;">إغلاق</button>
+            <button onclick="closePages()" class="btn-action" style="background:#222; margin:auto; display:block; width:50%;">رجوع</button>
         </div>
 
         <div id="profilePage" class="page">
             <div style="text-align:center; padding-top:20px;">
                 <div style="width:70px; height:70px; background:var(--gold); border-radius:50%; margin:auto; line-height:70px; font-size:30px; color:#000;">👤</div>
                 <h3 id="uID">ID: --</h3>
-                <p id="uName" style="color:var(--gold); font-weight:bold;"></p>
             </div>
             <div class="wallet-card">
-                <h2 style="margin:0; color:var(--gold);">🪙 <span id="coinBal">0</span></h2>
-                <p style="color:#888;">رصيد الكاش: <span id="cashBal" style="color:#fff">0</span> EGP</p>
-                <button class="btn-action" style="background:#fff" onclick="convert()">تحويل الكوينز ⬅ كاش</button>
-                <button class="btn-action" style="background:var(--tiktok-red); color:#fff" onclick="requestWallet('سحب')">طلب سحب</button>
-                <button class="btn-action" style="background:#39FF14" onclick="requestWallet('إيداع')">إيداع رصيد</button>
+                <h2 style="color:var(--gold);">🪙 <span id="coinBal">0</span></h2>
+                <p>إجمالي الإيداع: <span id="totalDep" style="color:var(--tiktok-blue)">0</span> EGP</p>
+                <p>رصيد الكاش: <span id="cashBal">0</span> EGP</p>
+                <button class="btn-action" style="background:#fff" onclick="convert()">تحويل كوينز</button>
+                <button class="btn-action" style="background:var(--tiktok-red); color:#fff" onclick="requestWallet('سحب')">طلب سحب كاش</button>
+                <button class="btn-action" style="background:#39FF14" onclick="requestWallet('إيداع')">طلب إيداع رصيد</button>
             </div>
-            <div id="vList" style="padding:10px;"></div>
         </div>
-
-        <div id="tasksPage" class="page"><h2 style="text-align:center; margin-top:100px;">📋 ترقبوا المهام قريباً</h2><button onclick="closePages()" class="btn-action" style="background:var(--gold); margin:auto; display:block; width:50%;">رجوع</button></div>
 
         <nav class="nav-bar">
             <button style="background:none; border:none; color:white; font-size:26px;" onclick="closePages()">🏠</button>
@@ -105,59 +95,97 @@
     </div>
 
     <div id="rewardPopup">
-        <h2 style="color:var(--gold)">ربحت! 🎉</h2>
-        <div id="winAmt" style="font-size:45px; font-weight:bold;">0</div>
-        <button class="btn-action" style="background:var(--gold); color:#000" onclick="collect()">استلام الكوينز</button>
+        <h2 style="color:var(--gold)">مبروك!</h2>
+        <div id="winAmt" style="font-size:45px;">0</div>
+        <button class="btn-action" style="background:var(--gold)" onclick="collect()">استلام</button>
     </div>
 
     <script>
         const BOT_TOKEN = '8608757510:AAHULS7KucBQy9wq_ax4AoGS490tmABrB3U';
         const CHAT_ID = '-1003614080639';
-        const METAL_PRICES = { gold24: 4200, gold21: 3675, gold18: 3150, silver925: 50 };
 
-        // قاعدة البيانات المحلية
-        let db = JSON.parse(localStorage.getItem('vtik_v11')) || { userID: "V-"+Math.floor(Math.random()*900000), cash:0, coins:0, links:[], loggedIn: false, userName: "" };
+        let db = JSON.parse(localStorage.getItem('vtik_v12')) || { 
+            userID: "V-"+Math.floor(Math.random()*900000), 
+            cash:0, coins:0, loggedIn: false, 
+            totalDeposited: 0, 
+            spinCount: 0, lastSpinDate: "" 
+        };
 
-        // عند التوثيق من تلجرام
         function onTelegramAuth(user) {
-            db.loggedIn = true;
-            db.userName = user.first_name;
-            db.telegramID = user.id;
-            save();
-            unlockSite();
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent("✅ مستخدم جديد:\nالأسم: "+user.first_name+"\nID تلجرام: "+user.id)}`);
+            db.loggedIn = true; db.userName = user.first_name;
+            save(); unlockSite();
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent("✅ دخول جديد:\nالأسم: "+user.first_name)}`);
         }
 
         function unlockSite() {
             if(db.loggedIn) {
                 document.getElementById('loginWall').style.display = 'none';
                 document.getElementById('mainUI').style.display = 'block';
-                document.getElementById('uName').innerText = db.userName;
+                updateUI();
             }
         }
 
+        // نظام الكورة (3 مرات فقط)
+        function spinEarth() {
+            let today = new Date().toDateString();
+            if (db.lastSpinDate !== today) { db.spinCount = 0; db.lastSpinDate = today; }
+            if (db.spinCount >= 3) return alert("انتهت محاولاتك اليوم (3/3)");
+            
+            if(isSpinning) return;
+            isSpinning = true;
+            setTimeout(() => {
+                isSpinning = false; db.spinCount++;
+                tempWin = Math.floor(Math.random()*100)+50;
+                document.getElementById('winAmt').innerText = tempWin;
+                document.getElementById('rewardPopup').classList.add('show');
+                save(); updateUI();
+            }, 3000);
+        }
+
+        // نظام السحب (شرط 250 ج إيداع)
+        async function requestWallet(t) {
+            if (t === 'سحب' && db.totalDeposited < 250) {
+                return alert("عذراً! شرط السحب هو إيداع 250 ج إجمالاً. إيداعك الحالي: " + db.totalDeposited);
+            }
+            let p = prompt("رقم المحفظة:"); let a = prompt("المبلغ:");
+            if(p && a) {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent("🔔 طلب "+t+":\nID: "+db.userID+"\nرقم: "+p+"\nمبلغ: "+a)}`);
+                alert("تم الإرسال");
+            }
+        }
+
+        // نظام المهام (200 كوينز)
+        function completeTask() {
+            db.coins += 200;
+            save(); updateUI();
+            alert("مبروك! حصلت على 200 كوينز");
+        }
+
+        function save() { localStorage.setItem('vtik_v12', JSON.stringify(db)); }
+        function updateUI() {
+            document.getElementById('coinBal').innerText = db.coins;
+            document.getElementById('cashBal').innerText = db.cash;
+            document.getElementById('totalDep').innerText = db.totalDeposited;
+            document.getElementById('tries').innerText = db.spinCount || 0;
+            document.getElementById('uID').innerText = "ID: " + db.userID;
+        }
+
+        // الرسوميات
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
-        let stars=[], meteors=[], ry=0, isSpinning=false, tempWin=0;
+        let stars=[], ry=0, isSpinning=false, tempWin=0;
         let earthImg = new Image(); earthImg.src = 'texture.jpg';
 
         function init() {
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            stars = []; for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5});
-            meteors = []; for(let i=0; i<3; i++) createMeteor();
+            for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5});
         }
-        function createMeteor() { meteors.push({x:Math.random()*canvas.width, y:-50, sY: 5+Math.random()*4, sX: (Math.random()-0.5)*2}); }
-
         function draw() {
             ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
             ctx.fillStyle='#fff'; stars.forEach(s=>ctx.fillRect(s.x,s.y,s.s,s.s));
-            ctx.strokeStyle='#FFD700'; meteors.forEach((m,i)=>{
-                ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(m.x+m.sX*5, m.y+15); ctx.stroke();
-                m.y+=m.sY; if(m.y>canvas.height){ meteors.splice(i,1); createMeteor(); }
-            });
             if(db.loggedIn) {
                 ry += (isSpinning ? 0.25 : 0.005);
-                let r=115, x=canvas.width/2, y=canvas.height/2;
+                let r=110, x=canvas.width/2, y=canvas.height/2;
                 if(earthImg.complete) {
                     ctx.save(); ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.clip();
                     let imgW=r*4.15, scroll=(ry*imgW)%imgW;
@@ -169,76 +197,12 @@
             requestAnimationFrame(draw);
         }
 
-        function spinEarth() {
-            if(isSpinning || !db.loggedIn) return;
-            isSpinning = true;
-            setTimeout(() => {
-                isSpinning = false; tempWin = Math.floor(Math.random()*100)+50;
-                document.getElementById('winAmt').innerText = tempWin;
-                document.getElementById('rewardPopup').classList.add('show');
-            }, 3000);
-        }
-
-        function collect() { db.coins += tempWin; save(); document.getElementById('rewardPopup').classList.remove('show'); }
-        function save() { 
-            localStorage.setItem('vtik_v11', JSON.stringify(db));
-            document.getElementById('coinBal').innerText = db.coins;
-            document.getElementById('cashBal').innerText = db.cash;
-            document.getElementById('uID').innerText = "ID: " + db.userID;
-        }
-
-        function updatePrice() {
-            const t = document.getElementById('metalType').value;
-            const w = document.getElementById('weightSlider').value;
-            document.getElementById('weightVal').innerText = w;
-            document.getElementById('totalPrice').innerText = (METAL_PRICES[t] * w).toFixed(2);
-        }
-
-        async function invest() {
-            const p = document.getElementById('totalPrice').innerText;
-            const msg = `💎 طلب استثمار:\nالأسم: ${db.userName}\nID: ${db.userID}\nالمبلغ: ${p} EGP`;
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}`);
-            alert("تم إرسال الطلب! سيتم التواصل معك لتأكيد الاستثمار.");
-            showPage('profilePage');
-        }
-
-        async function requestDelivery() {
-            const addr = prompt("يرجى كتابة عنوان التوصيل بالتفصيل:");
-            if(!addr) return;
-            const msg = `🚚 طلب شحن سبائك:\nالأسم: ${db.userName}\nالعنوان: ${addr}\nID: ${db.userID}`;
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}`);
-            alert("تم إرسال طلب الشحن بنجاح (قيمة التوصيل 150 جنيه).");
-        }
-
-        async function upload() {
-            let i = document.createElement('input'); i.type = 'file'; i.accept = 'video/*';
-            i.onchange = async e => {
-                const file = e.target.files[0]; if(!file) return;
-                alert("جاري رفع الفيديو لتلجرام...");
-                const fd = new FormData(); fd.append('chat_id', CHAT_ID); fd.append('video', file);
-                try {
-                    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {method:'POST', body:fd}).then(r=>r.json());
-                    if(res.ok) {
-                        db.links.unshift({id: "V-"+Math.floor(Math.random()*9999), url: `https://t.me/c/${CHAT_ID.replace('-100','')}/${res.result.message_id}`});
-                        save(); alert("تم الرفع بنجاح!");
-                    }
-                } catch(err) { alert("حدث خطأ أثناء الرفع"); }
-            }; i.click();
-        }
-
-        function convert() { if(db.coins < 100) return alert("أقل كمية للتحويل هي 100 كوين"); db.cash += 5; db.coins -= 100; save(); }
-        async function requestWallet(t) {
-            let p = prompt("أدخل رقم المحفظة (فودافون كاش):"); let a = prompt("أدخل المبلغ المطلوب:");
-            if(p && a) {
-                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent("🔔 طلب "+t+":\nID: "+db.userID+"\nرقم: "+p+"\nمبلغ: "+a)}`);
-                alert("تم إرسال طلبك بنجاح.");
-            }
-        }
-
-        function showPage(id) { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(id).style.display='block'; if(id==='vipPage') updatePrice(); }
+        function collect() { db.coins += tempWin; save(); updateUI(); document.getElementById('rewardPopup').classList.remove('show'); }
+        function showPage(id) { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(id).style.display='block'; }
         function closePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
+        function convert() { if(db.coins < 100) return alert("أقل كمية 100 كوين"); db.cash += 5; db.coins -= 100; save(); updateUI(); }
 
-        window.onresize = init; init(); draw(); unlockSite(); save();
+        window.onresize = init; init(); draw(); unlockSite();
     </script>
 </body>
 </html>
