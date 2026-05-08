@@ -2,74 +2,77 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>VTIK - لوحة التحكم الإدارية</title>
+    <title>VTIK Admin - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
-        .card { background: #111; border: 1px solid #FFD700; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        input, button { padding: 10px; border-radius: 5px; border: none; margin: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
-        th { background: #FFD700; color: #000; }
-        .status-badge { padding: 5px 10px; border-radius: 10px; font-size: 12px; }
+        body { background: #0b0b0b; color: #fff; font-family: sans-serif; padding: 20px; }
+        .card { background: #1a1a1a; border: 1px solid #FFD700; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        input, button { padding: 12px; border-radius: 8px; border: none; margin: 5px; }
+        button { background: #FFD700; color: #000; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        td, th { border: 1px solid #333; padding: 10px; text-align: center; }
+        .res-box { display: none; margin-top: 20px; border-top: 1px solid #FFD700; padding-top: 20px; }
     </style>
 </head>
 <body>
-
-    <h1>لوحة تحكم VTIK الإدارية 🛠️</h1>
+    <h1>🛠️ لوحة تحكم VTIK الكاملة</h1>
 
     <div class="card">
-        <h3>📢 إضافة مهمة فيديو جديدة</h3>
-        <input type="text" id="videoUrl" placeholder="رابط الفيديو (YouTube/TikTok)" style="width: 60%;">
-        <button onclick="publishTask()" style="background: #39FF14;">نشر المهمة (200 كوينز)</button>
+        <h3>📢 نشر مهمة فيديو (تختفي بعد 12 ساعة)</h3>
+        <input type="text" id="taskUrl" placeholder="رابط فيديو يوتيوب" style="width:70%">
+        <button onclick="updateTask()">نشر وتحديث 🚀</button>
     </div>
 
     <div class="card">
-        <h3>🔍 بحث عن مستخدم</h3>
-        <input type="text" id="searchPhone" placeholder="بحث برقم الهاتف أو ID">
-        <button onclick="searchUser()" style="background: #FFD700;">بحث الآن</button>
-    </div>
-
-    <div class="card">
-        <h3>📊 إحصائيات النشاط</h3>
-        <table id="logsTable">
-            <thead>
-                <tr>
-                    <th>المستخدم</th>
-                    <th>النشاط</th>
-                    <th>التفاصيل</th>
-                    <th>الوقت</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
+        <h3>🔍 البحث الشامل عن مستخدم</h3>
+        <input type="text" id="searchKey" placeholder="أدخل ID التلجرام">
+        <button onclick="searchUser()">بحث عن المستخدم</button>
+        
+        <div id="result" class="res-box">
+            <p>👤 الاسم: <span id="n"></span></p>
+            <p>🪙 الكوينز: <span id="c"></span></p>
+            <p>💰 الإيداع: <span id="d"></span> ج</p>
+            <h4>📋 السجل والعمليات:</h4>
+            <table id="transTable"></table>
+        </div>
     </div>
 
     <script>
-        const BOT_TOKEN = '8608757510:AAHULS7KucBQy9wq_ax4AoGS490tmABrB3U';
-        const CHAT_ID = '-1003614080639';
+        const SB_URL = 'https://filnjwkcbfcdbkajqwji.supabase.co';
+        const SB_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpbG5qd2tjYmZjZGJrYWpxd2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzc3ODcsImV4cCI6MjA5Mjk1Mzc4N30._D2oohezO31dXNUvicMdKcpJoUkcwBCpqLxDGcXFoBs';
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // وظيفة نشر مهمة فيديو
-        async function publishTask() {
-            const url = document.getElementById('videoUrl').value;
-            if(!url) return alert("أدخل الرابط أولاً");
-            
-            const msg = `🆕 مهمة جديدة في VTIK!\nشاهد الفيديو واربح 200 كوينز\nالرابط: ${url}`;
-            
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg)}`);
-            alert("تم نشر المهمة وإرسالها لتلجرام!");
-            document.getElementById('videoUrl').value = "";
+        async function cleanOldTasks() {
+            const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+            await supabase.from('tasks').delete().lt('created_at', twelveHoursAgo);
         }
 
-        // وظيفة محاكاة البحث (تعتمد على البيانات المرسلة لتلجرام)
-        function searchUser() {
-            const term = document.getElementById('searchPhone').value;
-            alert("يتم الآن جلب بيانات " + term + " من قاعدة بيانات تلجرام...");
-            // ملاحظة: لجلب بيانات حقيقية هنا نحتاج لسيرفر (Backend) 
-            // لكن يمكنك رؤية كل التفاصيل في جروب التلجرام الخاص بك حالياً.
+        async function updateTask() {
+            const url = document.getElementById('taskUrl').value;
+            if(!url) return;
+            await supabase.from('tasks').insert([{ video_url: url }]);
+            alert("تم النشر بنجاح!");
         }
 
-        // تحسين: في لوحة الآدمن يفضل دائماً مراقبة قناة التلجرام لأنها المخزن الرئيسي حالياً
+        async function searchUser() {
+            const id = document.getElementById('searchKey').value;
+            const { data: user } = await supabase.from('profiles').select('*').eq('telegram_id', id).single();
+            const { data: logs } = await supabase.from('transactions').select('*').eq('telegram_id', id).order('created_at', {ascending: false});
+
+            if(user) {
+                document.getElementById('n').innerText = user.username;
+                document.getElementById('c').innerText = user.coins;
+                document.getElementById('d').innerText = user.total_deposited;
+                
+                let html = "<tr><th>النوع</th><th>القيمة</th><th>التوقيت</th></tr>";
+                logs.forEach(l => {
+                    html += `<tr><td>${l.type}</td><td>${l.amount}</td><td>${new Date(l.created_at).toLocaleTimeString()}</td></tr>`;
+                });
+                document.getElementById('transTable').innerHTML = html;
+                document.getElementById('result').style.display = 'block';
+            } else { alert("المستخدم غير موجود"); }
+        }
+        window.onload = cleanOldTasks;
     </script>
 </body>
 </html>
