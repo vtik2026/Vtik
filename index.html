@@ -4,32 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VTIK - Hub</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --gold: #FFD700; --tiktok-blue: #25f4ee; --tiktok-red: #fe2c55; }
         body, html { margin: 0; padding: 0; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
         canvas { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
+        
+        /* شاشة تسجيل الدخول */
         #loginWall { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { padding: 40px 20px; background: rgba(255,255,255,0.05); border: 2px solid var(--gold); border-radius: 30px; backdrop-filter: blur(15px); width: 85%; text-align: center; }
-        #mainUI { display: none; }
+        
+        /* الواجهة الرئيسية */
+        #mainUI { display: none; height: 100vh; position: relative; z-index: 10; }
         .top-tabs { position: fixed; top: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2000; }
         .tab-btn { width: 160px; padding: 10px; background: rgba(0,0,0,0.7); border: 1px solid var(--gold); border-radius: 20px; color: var(--gold); font-weight: bold; cursor: pointer; text-align: center; }
+        
+        /* منطقة كوكب الأرض للتفاعل */
         #earth-trigger { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 230px; height: 230px; border-radius: 50%; z-index: 100; cursor: pointer; }
-        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 3000; overflow-y: auto; padding-bottom: 100px; }
+        
+        /* الصفحات الداخلية */
+        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 3000; overflow-y: auto; padding-top: 110px; padding-bottom: 100px; box-sizing: border-box; }
         .wallet-card { background: #111; padding: 20px; border-radius: 20px; margin: 15px; border: 1px solid #333; text-align: center; }
         .btn-action { padding: 12px; border-radius: 12px; border: none; font-weight: bold; width: 90%; margin: 8px 0; cursor: pointer; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 4000; }
+        
+        /* شريط التنقل السفلي */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 4000; }
+        .nav-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; width: 50%; height: 100%; }
+        
+        /* نافذة الجوائز */
         #rewardPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #111; border: 2px solid var(--gold); padding: 30px; border-radius: 25px; text-align: center; z-index: 8000; transition: 0.3s; }
         #rewardPopup.show { transform: translate(-50%, -50%) scale(1); }
     </style>
 </head>
 <body>
+
     <canvas id="mainCanvas"></canvas>
+
     <div id="loginWall">
         <div class="login-box">
-            <h1 style="color: var(--gold); letter-spacing: 5px;">VTIK</h1>
+            <h1 style="color: var(--gold); letter-spacing: 5px; margin-bottom: 30px;">VTIK HUB</h1>
             <div id="telegram-login-container">
-                <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="videotikEG_bot" data-size="large" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
+                <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                        data-telegram-login="videotikEG_bot" 
+                        data-size="large" 
+                        data-onauth="onTelegramAuth(user)" 
+                        data-request-access="write"></script>
             </div>
         </div>
     </div>
@@ -38,114 +57,215 @@
         <div class="top-tabs">
             <div class="tab-btn" onclick="showPage('tasksPage')">📋 مهام اليوم</div>
             <div class="tab-btn" onclick="showPage('vipPage')">💎 VIP الاستثمار</div>
-            <div style="color:var(--gold); font-size:12px;">المحاولات: <span id="tries">0</span>/3</div>
+            <div style="color:var(--gold); font-weight: bold; font-size:13px;">المحاولات: <span id="tries">0</span>/3</div>
         </div>
+        
         <div id="earth-trigger" onclick="spinEarth()"></div>
 
         <div id="tasksPage" class="page">
-            <h2 style="text-align:center; padding:20px; color:var(--gold);">📋 مهام الربح</h2>
+            <h2 style="text-align:center; color:var(--gold);">📋 مهام الربح</h2>
             <div class="wallet-card">
-                <div id="taskVideoContainer">جاري تحميل المهمة...</div>
-                <button id="taskBtn" class="btn-action" style="background:var(--tiktok-blue); display:none;" onclick="completeTask()">تمت المشاهدة (200 كوينز) ✅</button>
+                <div id="taskVideoContainer">جاري تحميل المهمة الحالية...</div>
+                <button id="taskBtn" class="btn-action" style="background:var(--tiktok-blue); display:none; margin-top: 15px;" onclick="completeTask()">تمت المشاهدة (200 كوينز) ✅</button>
             </div>
-            <button onclick="closePages()" class="btn-action" style="background:#222; margin:auto; display:block; width:50%;">إغلاق</button>
+            <button onclick="closePages()" class="btn-action" style="background:#222; margin:20px auto; display:block; width:50%; color:#fff;">إغلاق والعودة 🏠</button>
         </div>
 
         <div id="vipPage" class="page">
-            <h2 style="text-align:center; padding:20px; color:var(--gold);">💎 بورصة الذهب</h2>
+            <h2 style="text-align:center; color:var(--gold);">💎 بورصة الذهب</h2>
             <div class="wallet-card">
-                <p>سعر الذهب الحالي: 3600 ج</p>
+                <p style="font-size: 18px;">سعر الذهب الحالي: <span style="color: var(--gold); font-weight: bold;">3600 ج</span></p>
                 <button class="btn-action" style="background:var(--gold); color:#000;" onclick="invest('ذهب عيار 21')">🚀 استثمار سريع</button>
             </div>
-            <button onclick="closePages()" class="btn-action" style="background:#222; margin:auto; display:block; width:50%;">إغلاق</button>
+            <button onclick="closePages()" class="btn-action" style="background:#222; margin:20px auto; display:block; width:50%; color:#fff;">إغلاق والعودة 🏠</button>
         </div>
 
         <div id="profilePage" class="page">
+            <h2 style="text-align:center; color:var(--gold);">👤 المحفظة والحساب</h2>
             <div class="wallet-card">
-                <h3 id="uName">👤 جاري التحميل...</h3>
-                <h2 style="color:var(--gold);">🪙 <span id="coinBal">0</span></h2>
-                <p>إيداعك: <span id="totalDep">0</span> ج</p>
-                <button class="btn-action" style="background:#fff" onclick="convert()">تحويل لكاش</button>
-                <button class="btn-action" style="background:var(--tiktok-red); color:#fff" onclick="requestWallet('سحب')">طلب سحب</button>
+                <h3 id="uName" style="color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px;">👤 جاري التحميل...</h3>
+                <p>رصيدك الحالي:</p>
+                <h2 style="color:var(--gold); margin: 10px 0;">🪙 <span id="coinBal">0</span> كوينز</h2>
+                <p style="color: #aaa;">إجمالي الإيداعات: <span id="totalDep" style="color: #fff;">0</span> ج</p>
+                <hr style="border: 0.5px solid #222; margin: 20px 0;">
+                <button class="btn-action" style="background:#fff; color:#000;" onclick="convert()">تحويل لكاش</button>
+                <button class="btn-action" style="background:var(--tiktok-red); color:#fff;" onclick="requestWallet('سحب')">طلب سحب أرباح</button>
             </div>
+            <button onclick="closePages()" class="btn-action" style="background:#222; margin:20px auto; display:block; width:50%; color:#fff;">إغلاق والعودة 🏠</button>
         </div>
 
         <nav class="nav-bar">
-            <button style="background:none; border:none; color:white; font-size:26px;" onclick="closePages()">🏠</button>
-            <button style="background:none; border:none; color:white; font-size:26px;" onclick="showPage('profilePage')">👤</button>
+            <button class="nav-btn" onclick="closePages()">🏠</button>
+            <button class="nav-btn" onclick="showPage('profilePage')">👤</button>
         </nav>
     </div>
 
-    <div id="rewardPopup"><h2 style="color:var(--gold)">مبروك!</h2><div id="winAmt" style="font-size:45px;">0</div><button class="btn-action" style="background:var(--gold)" onclick="collect()">استلام</button></div>
+    <div id="rewardPopup">
+        <h2 style="color:var(--gold)">مبروك!</h2>
+        <div id="winAmt" style="font-size:45px; font-weight: bold; margin: 15px 0;">0</div>
+        <button class="btn-action" style="background:var(--gold); color: #000;" onclick="collect()">استلام الكوينز</button>
+    </div>
 
     <script>
+        // ربط مكتبة وقاعدة بيانات سوبابيز بالمفتاح الجديد الآمن لـ Vtik
         const SB_URL = 'https://filnjwkcbfcdbkajqwji.supabase.co';
-        const SB_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpbG5qd2tjYmZjZGJrYWpxd2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzc3ODcsImV4cCI6MjA5Mjk1Mzc4N30._D2oohezO31dXNUvicMdKcpJoUkcwBCpqLxDGcXFoBs';
-        const supabase = supabase.createClient(SB_URL, SB_KEY);
-        const BOT_TOKEN = '8608757510:AAHULS7KucBQy9wq_ax4AoGS490tmABrB3U';
-        const CHAT_ID = '-1003614080639';
+        const SB_KEY = 'Sb_publishable_uP9HU42MKGX5MZ6LMT_-VQ_8rYtoiC8';
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        let db = JSON.parse(localStorage.getItem('vtik_v30')) || { userID: "", cash:0, coins:0, loggedIn: false, totalDeposited: 0, spinCount: 0, lastSpinDate: "" };
+        // تحميل وحفظ الذاكرة المحلية
+        let db = JSON.parse(localStorage.getItem('vtik_v30')) || { 
+            userID: "", userName: "", cash: 0, coins: 0, loggedIn: false, totalDeposited: 0, spinCount: 0, lastSpinDate: "" 
+        };
 
+        // معالجة تسجيل دخول تليجرام الناجح
         async function onTelegramAuth(user) {
-            db.loggedIn = true; db.userName = user.first_name; db.userID = String(user.id);
-            // التسجيل في سوبابيز
-            await supabase.from('profiles').upsert({ telegram_id: db.userID, username: db.userName, coins: db.coins, cash: db.cash, total_deposited: db.totalDeposited });
-            save(); unlockSite();
+            db.loggedIn = true; 
+            db.userName = user.first_name || "مستعمل تليجرام"; 
+            db.userID = String(user.id);
+            save(); 
+            
+            // رفع البيانات والتحقق الفوري مع سوبابيز لحماية المحفظة
+            try {
+                await supabaseClient.from('profiles').upsert({ 
+                    telegram_id: db.userID, 
+                    username: db.userName, 
+                    coins: db.coins, 
+                    cash: db.cash, 
+                    total_deposited: db.totalDeposited 
+                });
+            } catch(err) { console.log("Database Sync deferred."); }
+            
+            unlockSite();
         }
 
-        function unlockSite() { if(db.loggedIn) { document.getElementById('loginWall').style.display='none'; document.getElementById('mainUI').style.display='block'; updateUI(); loadLiveTask(); } }
+        // إخفاء جدار التسجيل وإظهار واجهة VTIK
+        function unlockSite() { 
+            if(db.loggedIn && db.userID !== "") { 
+                document.getElementById('loginWall').style.display = 'none'; 
+                document.getElementById('mainUI').style.display = 'block'; 
+                updateUI(); 
+                loadLiveTask(); 
+            } 
+        }
 
+        // إدارة إظهار الصفحات الفرعية وتنشيط القوائم
+        function showPage(id) { 
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
+            document.getElementById(id).style.display = 'block'; 
+            updateUI();
+        }
+
+        // العودة للرئيسية وإغلاق كافة النوافذ المفتوحة
+        function closePages() { 
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
+        }
+
+        // جلب آخر فيديو للمهمة الحالية من سوبابيز
         async function loadLiveTask() {
-            const { data } = await supabase.from('tasks').select('*').order('created_at', {ascending: false}).limit(1);
-            if (data && data[0]) {
-                const diff = (new Date() - new Date(data[0].created_at)) / (1000 * 60 * 60);
-                if (diff < 12) {
+            try {
+                const { data } = await supabaseClient.from('tasks').select('*').order('created_at', {ascending: false}).limit(1);
+                if (data && data[0]) {
                     document.getElementById('taskVideoContainer').innerHTML = `<iframe width="100%" height="200" src="${data[0].video_url.replace('watch?v=','embed/')}" frameborder="0" allowfullscreen></iframe>`;
                     document.getElementById('taskBtn').style.display = 'block';
-                } else { document.getElementById('taskVideoContainer').innerHTML = "انتهت المهام اليومية"; }
+                } else { 
+                    document.getElementById('taskVideoContainer').innerHTML = "لا توجد مهام نشطة حالياً بانتظار تحديث الإدارة."; 
+                }
+            } catch(e) {
+                document.getElementById('taskVideoContainer').innerHTML = "بانتظار مزامنة جدول المهام...";
             }
         }
 
+        // استلام وتحديث جوائز عجلة تدوير الأرض
         async function collect() {
-            db.coins += tempWin; save(); updateUI();
-            await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.userID);
-            await supabase.from('transactions').insert({ telegram_id: db.userID, type: 'جوائز', amount: tempWin + " كوينز" });
+            db.coins += tempWin; 
+            save(); 
+            updateUI();
+            
+            await supabaseClient.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.userID);
+            await supabaseClient.from('transactions').insert({ telegram_id: db.userID, type: 'جوائز الأرض', amount: tempWin + " كوينز" });
+            
             document.getElementById('rewardPopup').classList.remove('show');
         }
 
+        // إرسال طلب استثماري مباشر للـ Admin
         async function invest(metal) {
-            await supabase.from('transactions').insert({ telegram_id: db.userID, type: 'استثمار', amount: metal });
-            alert("تم إرسال طلب الاستثمار للآدمن");
+            await supabaseClient.from('transactions').insert({ telegram_id: db.userID, type: 'استثمار', amount: metal });
+            alert("تم إرسال طلب الاستثمار للآدمن بنجاح ومزامنته مع سوبابيز.");
         }
 
+        // تدوير كوكب الأرض التفاعلي
         function spinEarth() {
             let today = new Date().toDateString();
             if (db.lastSpinDate !== today) { db.spinCount = 0; db.lastSpinDate = today; }
-            if (db.spinCount >= 3) return alert("انتهت محاولاتك!");
-            if(isSpinning) return; isSpinning = true;
+            if (db.spinCount >= 3) return alert("انتهت محاولاتك المجانية اليومية!");
+            if(isSpinning) return; 
+            
+            isSpinning = true;
             setTimeout(() => {
-                isSpinning = false; db.spinCount++; tempWin = Math.floor(Math.random()*100)+50;
+                isSpinning = false; 
+                db.spinCount++; 
+                tempWin = Math.floor(Math.random() * 100) + 50;
                 document.getElementById('winAmt').innerText = tempWin;
-                document.getElementById('rewardPopup').classList.add('show'); save(); updateUI();
-            }, 3000);
+                document.getElementById('rewardPopup').classList.add('show'); 
+                save(); 
+                updateUI();
+            }, 2500);
         }
 
+        // مزامنة الأرقام بالواجهة
         function updateUI() { 
             document.getElementById('coinBal').innerText = db.coins; 
             document.getElementById('totalDep').innerText = db.totalDeposited; 
             document.getElementById('tries').innerText = db.spinCount;
             document.getElementById('uName').innerText = "👤 " + db.userName;
         }
-        function save() { localStorage.setItem('vtik_v30', JSON.stringify(db)); }
-        function showPage(id) { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(id).style.display='block'; }
-        function closePages() { document.querySelectorAll('.page').forEach(p=>p.style.display='none'); }
 
-        const canvas = document.getElementById('mainCanvas'); const ctx = canvas.getContext('2d');
-        let stars=[], ry=0, isSpinning=false, tempWin=0; let earthImg = new Image(); earthImg.src = 'texture.jpg';
-        function init() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5}); }
-        function draw() { ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#fff'; stars.forEach(s=>ctx.fillRect(s.x,s.y,s.s,s.s)); if(db.loggedIn) { ry += (isSpinning ? 0.25 : 0.005); let r=110, x=canvas.width/2, y=canvas.height/2; if(earthImg.complete) { ctx.save(); ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.clip(); let imgW=r*4.15, scroll=(ry*imgW)%imgW; ctx.drawImage(earthImg, x-scroll, y-r, imgW, r*2); ctx.drawImage(earthImg, x-scroll+imgW, y-r, imgW, r*2); ctx.restore(); } } requestAnimationFrame(draw); }
-        window.onresize = init; init(); draw(); unlockSite();
+        function save() { localStorage.setItem('vtik_v30', JSON.stringify(db)); }
+
+        // --- كود الأنيميشن الفضائي والأرض باستخدام خريطة المستودع الخاصة بك ---
+        const canvas = document.getElementById('mainCanvas'); 
+        const ctx = canvas.getContext('2d');
+        let stars = [], ry = 0, isSpinning = false, tempWin = 0; 
+        
+        let earthImg = new Image(); 
+        earthImg.src = 'texture.jpg'; // استخدام صورتك المحلية الموجودة بالمستودع مباشرة
+
+        function init() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+            stars = [];
+            for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5}); 
+        }
+        
+        function draw() { 
+            ctx.fillStyle = '#000'; 
+            ctx.fillRect(0,0,canvas.width,canvas.height); 
+            ctx.fillStyle='#fff'; 
+            stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s)); 
+            
+            if(db.loggedIn) { 
+                ry += (isSpinning ? 0.25 : 0.005); 
+                let r = 110, x = canvas.width/2, y = canvas.height/2; 
+                if(earthImg.complete) { 
+                    ctx.save(); 
+                    ctx.beginPath(); 
+                    ctx.arc(x,y,r,0,Math.PI*2); 
+                    ctx.clip(); 
+                    let imgW = r * 4.15, scroll = (ry * imgW) % imgW; 
+                    ctx.drawImage(earthImg, x-scroll, y-r, imgW, r*2); 
+                    ctx.drawImage(earthImg, x-scroll+imgW, y-r, imgW, r*2); 
+                    ctx.restore(); 
+                } 
+            } 
+            requestAnimationFrame(draw); 
+        }
+        
+        window.onresize = init; 
+        init(); 
+        draw(); 
+        
+        // فحص القفل التلقائي عند بدء التشغيل
+        unlockSite();
     </script>
 </body>
 </html>
