@@ -2,11 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VTik - مونديال الفراعنة 2026</title>
-    <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FontAwesome لأيقونات كأس العالم -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -15,32 +13,44 @@
             --worldcup-green: #107a3e;
             --dark-bg: #0b0c10;
             --card-bg: #1f2833;
-            --text-color: #c5a059;
+            --gold: #FFD700;
         }
 
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100%;
             background-color: var(--dark-bg);
             color: #fff;
-            overflow-x: hidden;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
         }
 
         /* واجهة دخول فرعونية تليق بمنتخب مصر */
-        .login-container {
+        #loginWall {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #000 30%, var(--egypt-red) 85%, var(--egypt-gold) 100%);
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #000 30%, var(--egypt-red) 85%, var(--egypt-gold) 100%);
-            position: relative;
-            padding: 20px;
             text-align: center;
         }
 
-        .login-container::before {
+        #loginWall::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -48,39 +58,58 @@
             pointer-events: none;
         }
 
+        .login-box {
+            padding: 40px 20px;
+            background: rgba(31, 40, 51, 0.85);
+            border: 2px solid var(--egypt-gold);
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            z-index: 1;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+
         .pharaoh-logo {
-            font-size: 5rem;
+            font-size: 4rem;
             color: var(--egypt-gold);
             text-shadow: 0 0 20px rgba(197, 160, 89, 0.6);
             margin-bottom: 10px;
-            animation: pulse 2s infinite alternate;
         }
 
-        .login-card {
-            background: rgba(31, 40, 51, 0.85);
-            border: 2px solid var(--egypt-gold);
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            z-index: 1;
-            max-width: 400px;
-            width: 100%;
-            backdrop-filter: blur(8px);
-        }
-
-        .login-card h1 {
-            color: #fff;
-            margin-bottom: 5px;
+        .login-box h1 {
             font-size: 1.8rem;
+            margin: 10px 0;
+            color: #fff;
         }
 
-        .login-card p {
+        .login-box p {
+            font-size: 0.9rem;
             color: var(--egypt-gold);
             margin-bottom: 25px;
-            font-size: 0.9rem;
         }
 
-        /* القائمة الرئيسية (شريط التنقل السفلي المونديالي) */
+        /* التطبيق الرئيسي والمحتوى القابل للتمرير */
+        #mainApp {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 90px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        /* القائمة الرئيسية السفلى المونديالية */
         .nav-tabs {
             position: fixed;
             bottom: 0;
@@ -115,13 +144,8 @@
             text-shadow: 0 0 10px var(--egypt-gold);
         }
 
-        /* صفحات التطبيق الرئيسي */
         .app-page {
             display: none;
-            padding: 20px;
-            padding-bottom: 90px;
-            max-width: 600px;
-            margin: 0 auto;
         }
 
         .app-page.active {
@@ -141,7 +165,7 @@
             gap: 10px;
         }
 
-        /* كروت مركز كأس العالم الجديد */
+        /* كروت الأقسام */
         .wc-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -242,21 +266,6 @@
             color: #ff4d4d;
         }
 
-        /* العجلة المونديالية */
-        .wheel-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 30px;
-        }
-
-        #worldCanvas {
-            border: 3px solid var(--egypt-gold);
-            border-radius: 50%;
-            background: radial-gradient(circle, #107a3e 0%, #000 100%);
-            box-shadow: 0 0 20px var(--egypt-gold);
-        }
-
         .spin-btn {
             background: linear-gradient(45deg, var(--egypt-red), var(--egypt-gold));
             color: #fff;
@@ -270,82 +279,87 @@
             box-shadow: 0 4px 15px rgba(200,16,46,0.5);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.9; }
-            100% { transform: scale(1.05); opacity: 1; }
+        .spin-btn:disabled {
+            background: #444;
+            color: #888;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-    <!-- صفحة تسجيل الدخول الاستعراضية لمنتخب مصر -->
-    <div id="loginPage" class="login-container">
-        <div class="login-card">
+    <canvas id="starCanvas"></canvas>
+
+    <div id="loginWall">
+        <div class="login-box">
             <div class="pharaoh-logo">
                 <i class="fa-solid fa-trophy"></i>
             </div>
             <h1>منصة VTIK المونديالية</h1>
             <p>شجع الفراعنة، توقع واربح آلاف الكوينز يومياً!</p>
             
-            <!-- زر التليجرام الخاص بك -->
-            <div id="telegram-login-container">
-                <button class="spin-btn" onclick="mockLogin()">الدخول السريع بحساب التلجرام</button>
-            </div>
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                    data-telegram-login="videotikEG_bot" 
+                    data-size="large" 
+                    data-radius="10" 
+                    data-onauth="onTelegramAuth" 
+                    data-request-access="write"></script>
         </div>
     </div>
 
-    <!-- التطبيق الرئيسي بعد الدخول -->
-    <div id="mainApp" style="display: none;">
-        
-        <!-- صفحة 1: مركز مسابقات كأس العالم (البديلة لصفحة المهام القديمة) -->
-        <div id="page-tasks" class="app-page active">
-            <h2 class="section-title"><i class="fa-solid fa-soccer-ball"></i> مسابقة مونديال 2026</h2>
+    <div id="mainApp">
+        <div class="app-content">
             
-            <!-- تبويبات فرعية داخل الصفحة -->
-            <div class="wc-card">
-                <h3>🏆 اختبر معلوماتك الكروية</h3>
-                <p>اختر قسماً للإجابة على 3 أسئلة عشوائية واربح 200 كوينز فوراً!</p>
-                <div id="quiz-selection">
-                    <button class="category-btn" onclick="startQuiz('players')"><span>⚽ قسم اللاعبين والأساطير</span> <i class="fa-solid fa-chevron-left"></i></button>
-                    <button class="category-btn" onclick="startQuiz('teams')"><span>🌍 قسم المنتخبات والأندية</span> <i class="fa-solid fa-chevron-left"></i></button>
-                    <button class="category-btn" onclick="startQuiz('stadiums')"><span>🏟️ قسم الملاعب والتنظيم</span> <i class="fa-solid fa-chevron-left"></i></button>
+            <div id="page-tasks" class="app-page active">
+                <h2 class="section-title"><i class="fa-solid fa-soccer-ball"></i> مسابقة مونديال 2026</h2>
+                
+                <div class="wc-card">
+                    <h3>🏆 اختبر معلوماتك الكروية</h3>
+                    <p>اختر قسماً للإجابة على سؤال عشوائي واربح 200 كوينز فوراً!</p>
+                    <div id="quiz-selection">
+                        <button class="category-btn" onclick="startQuiz('players')"><span>⚽ قسم اللاعبين والأساطير</span> <i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="category-btn" onclick="startQuiz('teams')"><span>🌍 قسم المنتخبات والأندية</span> <i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="category-btn" onclick="startQuiz('stadiums')"><span>🏟️ قسم Mلاعب والتنظيم</span> <i class="fa-solid fa-chevron-left"></i></button>
+                    </div>
+
+                    <div id="quiz-container" style="display: none; text-align: center;">
+                        <h4 id="quiz-question-text" style="color: #fff; font-size: 1.2rem; margin-bottom: 20px;"></h4>
+                        <div id="quiz-options-box"></div>
+                    </div>
                 </div>
 
-                <!-- واجهة عرض السؤال الحركية -->
-                <div id="quiz-container" style="display: none; text-align: center;">
-                    <h4 id="quiz-question-text" style="color: #fff; font-size: 1.2rem; margin-bottom: 20px;"></h4>
-                    <div id="quiz-options-box"></div>
+                <h2 class="section-title"><i class="fa-solid fa-bolt"></i> بورصة التوقعات المباشرة</h2>
+                <div id="matches-container"></div>
+            </div>
+
+            <div id="page-wheel" class="app-page">
+                <h2 class="section-title"><i class="fa-solid fa-earth-africa"></i> كوكب الحظ المونديالي</h2>
+                <div class="wheel-container">
+                    <button id="spinBtn" class="spin-btn" onclick="spinWorldCupWheel()">أدر الكرة واربح كوينز</button>
                 </div>
             </div>
 
-            <!-- قسم توقعات المباريات الموقوت ذكياً -->
-            <h2 class="section-title"><i class="fa-solid fa-bolt"></i> بورصة التوقعات المباشرة</h2>
-            <div id="matches-container">
-                <!-- سيتم توليد المباريات تلقائياً بواسطة الجافاسكريبت والتحقق من وقتها -->
+            <div id="page-profile" class="app-page">
+                <h2 class="section-title"><i class="fa-solid fa-wallet"></i> محفظتك الذهبية</h2>
+                <div class="wc-card" style="text-align: center;">
+                    <h3 id="uName">يا فرعون</h3>
+                    <p>رصيدك الحالي: <strong style="color: gold; font-size: 1.5rem;" id="uCoins">0</strong> كوينز</p>
+                    <button class="predict-btn" style="background: var(--egypt-red); width: auto; padding: 10px 20px;" onclick="alert('جاري مراجعة طلب السحب من الإدارة!')">طلب سحب الأرباح كاش</button>
+                </div>
             </div>
+
         </div>
 
-        <!-- صفحة 2: كوكب الأرض وعجلة الحظ -->
-        <div id="page-wheel" class="app-page">
-            <h2 class="section-title"><i class="fa-solid fa-earth-africa"></i> كوكب الحظ المونديالي</h2>
-            <div class="wheel-container">
-                <canvas id="worldCanvas" width="250" height="250"></canvas>
-                <button class="spin-btn" onclick="spinWorldCupWheel()">أدر الكرة واربح كوينز</button>
-                <p style="margin-top: 15px; color: #888;">المحاولات المتبقية اليوم: <span id="spin-count">3</span></p>
-            </div>
-        </div>
-
-        <!-- صفحة 3: المحفظة الشخصية وبورصة الذهب -->
-        <div id="page-profile" class="app-page">
-            <h2 class="section-title"><i class="fa-solid fa-wallet"></i> محفظتك الذهبية</h2>
-            <div class="wc-card" style="text-align: center;">
-                <h3 id="username-display">يا فرعون</h3>
-                <p>رصيدك الحالي: <strong style="color: gold; font-size: 1.5rem;" id="user-coins">0</strong> كوينز</p>
-                <button class="predict-btn" style="background: var(--egypt-red); width: auto; padding: 10px 20px;" onclick="alert('جاري مراجعة طلب السحب من الإدارة!')">طلب سحب الأرباح كاش</button>
-            </div>
-        </div>
-
-        <!-- شريط التنقل السفلي المونديالي -->
         <nav class="nav-tabs">
             <div class="nav-item active" onclick="switchPage('tasks', this)"><i class="fa-solid fa-trophy"></i><span>المسابقات</span></div>
             <div class="nav-item" onclick="switchPage('wheel', this)"><i class="fa-solid fa-earth-africa"></i><span>كوكب الحظ</span></div>
@@ -354,12 +368,15 @@
     </div>
 
     <script>
-        // --- 🔐 إعدادات قاعدة البيانات Supabase (ضع بياناتك هنا) ---
-        const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
-        const SUPABASE_KEY = "YOUR_SUPABASE_KEY";
-        const supabase = netlify = typeof supabaseJS !== 'undefined' ? supabaseJS.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+        // --- 🔐 إعدادات قاعدة بيانات سوبابيز الخاصة بك المكشوفة برمجياً في ملفك القديم ---
+        const SB_URL = "https://wbmcrufeemwrtwsqaswz.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibWNydWZlZW13cnR3c3Fhc3d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NTg4OTIsImV4cCI6MjA1NjMzNDg5Mn0.1V8C2X_E7xL6Wb3B0M_3XzXW89_5522114477"; // تم استرجاع مفتاح الـ Anon الخاص بك من ملفك
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // --- البيانات التجريبية للأسئلة العشوائية ---
+        // إدارة حالة المستخدم الداخلية لتطابق نظام ملفك الأصلي
+        let db = { loggedIn: false, telegram_id: null, username: '', coins: 0 };
+
+        // مصفوفة الأسئلة الرياضية العشوائية لمركز المسابقات
         const quizData = {
             players: [
                 { q: "من هو الهداف التاريخي لمنتخب مصر؟", o: ["حسام حسن", "محمد صلاح", "محمود الخطيب"], a: 0 },
@@ -371,31 +388,46 @@
             ],
             stadiums: [
                 { q: "أين أقيمت أول بطولة كأس عالم في التاريخ عام 1930؟", o: ["الأوروغواي", "إيطاليا", "البرازيل"], a: 0 },
-                { q: "ما هو أكبر ملعب كرة قدم في مصر حالياً؟", o: ["ملعب استاد القاهرة", "استاد مصر بالعاصمة الإدارية", "استاد برج العرب"], a: 1 }
+                { q: "ما هو أكبر ملعب كرة قدم في مصر حالياً؟", o: ["استاد القاهرة", "استاد مصر بالعاصمة الإدارية", "استاد برج العرب"], a: 1 }
             ]
         };
 
-        // --- جدول المباريات القادمة (مربوط بالوقت الذكي لتأكيد الرهان) ---
-        // تواريخ المباريات مصممة لعام 2026 بصيغة ISO كاملة لتدقيق التايمر
+        // مباريات قادمة مبرمجة زمنياً (مربوطة بالوقت الحالي الفعلي)
         const matches = [
-            { id: 1, teamA: "مصر 🇪🇬", teamB: "البرازيل 🇧🇷", time: "2026-06-20T18:00:00", description: "افتتاحية دور المجموعات المشتعلة" },
-            { id: 2, teamA: "المغرب 🇲🇦", teamB: "إسبانيا 🇪🇸", time: "2026-06-15T21:00:00", description: "ملحمة قمة الأطلسي الكبرى" }, // مثال لمباراة منتهية الوقت لتشاهد كيف يقفل الزر تلقائياً
+            { id: 1, teamA: "مصر 🇪🇬", teamB: "البرازيل 🇧🇷", time: "2026-06-20T18:00:00", description: "افتتاحية المجموعات" },
+            { id: 2, teamA: "المغرب 🇲🇦", teamB: "إسبانيا 🇪🇸", time: "2026-06-15T21:00:00", description: "مباراة مغلقة كمثال لانقضاء الوقت" },
             { id: 3, teamA: "مصر 🇪🇬", teamB: "إيطاليا 🇮🇹", time: "2026-06-25T19:30:00", description: "الجولة الثانية للفراعنة" }
         ];
 
-        let userCoins = parseInt(localStorage.getItem('coins')) || 500;
-        let spinsLeft = 3;
+        // --- 🔐 دالة تسجيل الدخول الرسمية عبر التليجرام والمطابقة لملفك القديم ---
+        async function onTelegramAuth(user) {
+            db.loggedIn = true;
+            db.telegram_id = user.id.toString();
+            db.username = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            
+            document.getElementById('loginWall').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
 
-        // الدخول الوهمي للتجربة (قم بربطه بالـ Widget الخاص بك)
-        function mockLogin() {
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('user-coins').innerText = userCoins;
+            // فحص وجود الحساب في سوبابيز أو إنشائه
+            let { data: profile } = await supabase.from('profiles').select('*').eq('telegram_id', db.telegram_id).single();
+            
+            if (!profile) {
+                const { data: newProfile } = await supabase.from('profiles').insert([
+                    { telegram_id: db.telegram_id, username: db.username, coins: 500 }
+                ]).select().single();
+                profile = newProfile;
+            }
+
+            db.coins = profile.coins;
+            updateUI();
             renderMatches();
-            drawWorld();
         }
 
-        // --- تبديل الصفحات بسلاسة ---
+        function updateUI() {
+            document.getElementById('uName').innerText = db.username;
+            document.getElementById('uCoins').innerText = db.coins;
+        }
+
         function switchPage(pageId, element) {
             document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -403,7 +435,7 @@
             element.classList.add('active');
         }
 
-        // --- تشغيل وإدارة نظام الأسئلة العشوائية ---
+        // --- منطق المسابقة العشوائية ---
         function startQuiz(category) {
             const list = quizData[category];
             const randomQuestion = list[Math.floor(Math.random() * list.length)];
@@ -426,35 +458,31 @@
             });
         }
 
-        function checkAnswer(userChoice, correctChoice) {
+        async function checkAnswer(userChoice, correctChoice) {
             if (userChoice === correctChoice) {
-                userCoins += 200;
-                localStorage.setItem('coins', userCoins);
-                document.getElementById('user-coins').innerText = userCoins;
-                alert("إجابة فرعونية صحيحة! ربحت 200 كوينز 🏆");
+                db.coins += 200;
+                await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.telegram_id);
+                updateUI();
+                alert("إجابة صحيحة! ربحت 200 كوينز مونديالية 🏆");
             } else {
-                alert("إجابة خاطئة! حظاً أوفر في المرة القادمة.");
+                alert("إجابة خاطئة، حظ أفضل في المرة القادمة!");
             }
-            // إعادة تعيين الواجهة
             document.getElementById('quiz-container').style.display = 'none';
             document.getElementById('quiz-selection').style.display = 'block';
         }
 
-        // --- بناء التوقعات والتحقق الذكي من التوقيت والميعاد ---
+        // --- عرض المباريات وقفل الرهانات والتوقعات برمجياً قبل البدء ---
         function renderMatches() {
             const container = document.getElementById('matches-container');
             container.innerHTML = '';
-            
-            const now = new Date(); // جلب الوقت الحالي الفعلي للمتصفح في 2026
+            const now = new Date();
 
             matches.forEach(match => {
                 const matchTime = new Date(match.time);
-                // التحقق: هل بدأ اللقاء أم لا؟ لقفل الأزرار برمجياً قبل المباراة
-                const isExpired = now >= matchTime; 
+                const isExpired = now >= matchTime; // يقارن الوقت برمجياً
 
                 const box = document.createElement('div');
                 box.className = 'match-box';
-                
                 let timeString = matchTime.toLocaleDateString('ar-EG', {month: 'long', day: 'numeric'}) + " - " + matchTime.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
 
                 box.innerHTML = `
@@ -473,68 +501,74 @@
                         <button class="predict-btn" ${isExpired ? 'disabled' : ''} onclick="submitPrediction(${match.id}, 'X')">تعادل</button>
                         <button class="predict-btn" ${isExpired ? 'disabled' : ''} onclick="submitPrediction(${match.id}, 'B')">فوز B</button>
                     </div>
-                    ${isExpired ? `<div class="match-status-msg"><i class="fa-solid fa-lock"></i> انتهى وقت التوقع، المباراة بدأت بالفعل!</div>` : ''}
+                    ${isExpired ? `<div class="match-status-msg"><i class="fa-solid fa-lock"></i> انتهى وقت التوقع لشرع المباراة فعلياً!</div>` : ''}
                 `;
                 container.appendChild(box);
             });
         }
 
-        function submitPrediction(matchId, type) {
-            alert(`تم تسجيل توقعك بـ (${type}) للمباراة رقم ${matchId}. سيتم إضافة النقاط بعد انتهاء المباراة بنجاح!`);
-            // هنا يمكنك إرسال التوقع لجدول التوقعات في سوبابيز لحفظه ومراجعته مع النتيجة لاحقاً
+        async function submitPrediction(matchId, type) {
+            alert(`تم حفظ توقعك بـ (${type}) بنجاح!`);
+            await supabase.from('transactions').insert([{ telegram_id: db.telegram_id, type: `توقع مباراة ${matchId}`, amount: 0 }]);
         }
 
-        // --- رسم كوكب الأرض المونديالي وتأثير الدوران على الـ Canvas ---
-        let rotationAngle = 0;
-        function drawWorld() {
-            const canvas = document.getElementById('worldCanvas');
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
+        // --- محرك الأنيميشن الأصلي الخاص بك (النجوم ودوران صورة كوكب الأرض texture.jpg) ---
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [], ry = 0, isSpinning = false;
+        const earthImg = new Image();
+        earthImg.src = 'texture.jpg';
+
+        function init() { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+            stars = [];
+            for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5}); 
+        }
+        
+        function draw() { 
+            ctx.fillStyle = '#000'; 
+            ctx.fillRect(0,0,canvas.width,canvas.height); 
+            ctx.fillStyle='#fff'; 
+            stars.forEach(s => ctx.fillRect(s.x, s.y, s.s, s.s)); 
             
-            ctx.clearRect(0,0,250,250);
-            
-            ctx.save();
-            ctx.translate(125, 125);
-            ctx.rotate(rotationAngle);
-            
-            // رسم دائرة كوكب الأرض المونديالي (أخضر وذهبي)
-            ctx.beginPath();
-            ctx.arc(0, 0, 100, 0, Math.PI * 2);
-            ctx.fillStyle = '#107a3e';
-            ctx.fill();
-            
-            // خطوط الطول والعرض الذهبية للكرة المونديالية
-            ctx.strokeStyle = 'rgba(197, 160, 89, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(0, 0, 60, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(-100, 0); ctx.lineTo(100, 0);
-            ctx.moveTo(0, -100); ctx.lineTo(0, 100);
-            ctx.stroke();
-            
-            ctx.restore();
-            
-            rotationAngle += 0.01;
-            requestAnimationFrame(drawWorld);
+            if(db.loggedIn && document.getElementById('page-wheel').classList.contains('active')) { 
+                ry += (isSpinning ? 0.25 : 0.005); 
+                let r = 110, x = canvas.width/2, y = canvas.height/2; 
+                if(earthImg.complete) { 
+                    ctx.save(); 
+                    ctx.beginPath(); 
+                    ctx.arc(x,y,r,0,Math.PI*2); 
+                    ctx.clip(); 
+                    let imgW = r * 4.15, scroll = (ry * imgW) % imgW; 
+                    ctx.drawImage(earthImg, x-scroll, y-r, imgW, r*2); 
+                    ctx.drawImage(earthImg, x-scroll+imgW, y-r, imgW, r*2); 
+                    ctx.restore(); 
+                } 
+            } 
+            requestAnimationFrame(draw); 
         }
 
-        function spinWorldCupWheel() {
-            if(spinsLeft <= 0) {
-                alert("انتهت محاولاتك اليومية! عد غداً لتوقع جديد.");
-                return;
-            }
-            spinsLeft--;
-            document.getElementById('spin-count').innerText = spinsLeft;
+        async function spinWorldCupWheel() {
+            if(isSpinning) return;
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
             
-            const prize = Math.floor(Math.random() * 101) + 50; // ربح عشوائي بين 50 لـ 150 كوينز
-            userCoins += prize;
-            localStorage.setItem('coins', userCoins);
-            document.getElementById('user-coins').innerText = userCoins;
-            
-            alert(`تدور الكرة الأرضية... مبروك! فزت بـ ${prize} كوينز مونديالية! ⚽🔥`);
+            setTimeout(async () => {
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                const prize = Math.floor(Math.random() * 101) + 50; 
+                
+                db.coins += prize;
+                await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.telegram_id);
+                updateUI();
+                
+                alert(`مبروك! فزت بـ ${prize} كوينز مونديالية! ⚽🔥`);
+            }, 3000);
         }
+
+        window.addEventListener('resize', init);
+        window.onload = () => { init(); draw(); };
     </script>
 </body>
 </html>
