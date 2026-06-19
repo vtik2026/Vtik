@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VTik - مونديال الفراعنة 2026</title>
+    <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FontAwesome لأيقونات كأس العالم -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -298,8 +300,10 @@
 </head>
 <body>
 
+    <!-- خلفية النجوم المتحركة -->
     <canvas id="starCanvas"></canvas>
 
+    <!-- شاشة تسجيل الدخول بالتليجرام -->
     <div id="loginWall">
         <div class="login-box">
             <div class="pharaoh-logo">
@@ -308,6 +312,7 @@
             <h1>منصة VTIK المونديالية</h1>
             <p>شجع الفراعنة، توقع واربح آلاف الكوينز يومياً!</p>
             
+            <!-- زر الودجت الرسمي لتليجرام -->
             <script async src="https://telegram.org/js/telegram-widget.js?22" 
                     data-telegram-login="videotikEG_bot" 
                     data-size="large" 
@@ -317,9 +322,11 @@
         </div>
     </div>
 
+    <!-- التطبيق الرئيسي بعد نجاح تسجيل الدخول -->
     <div id="mainApp">
         <div class="app-content">
             
+            <!-- صفحة 1: المسابقات والتوقعات القائمة على الوقت -->
             <div id="page-tasks" class="app-page active">
                 <h2 class="section-title"><i class="fa-solid fa-soccer-ball"></i> مسابقة مونديال 2026</h2>
                 
@@ -329,7 +336,7 @@
                     <div id="quiz-selection">
                         <button class="category-btn" onclick="startQuiz('players')"><span>⚽ قسم اللاعبين والأساطير</span> <i class="fa-solid fa-chevron-left"></i></button>
                         <button class="category-btn" onclick="startQuiz('teams')"><span>🌍 قسم المنتخبات والأندية</span> <i class="fa-solid fa-chevron-left"></i></button>
-                        <button class="category-btn" onclick="startQuiz('stadiums')"><span>🏟️ قسم Mلاعب والتنظيم</span> <i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="category-btn" onclick="startQuiz('stadiums')"><span>🏟️ قسم الملاعب والتنظيم</span> <i class="fa-solid fa-chevron-left"></i></button>
                     </div>
 
                     <div id="quiz-container" style="display: none; text-align: center;">
@@ -342,6 +349,7 @@
                 <div id="matches-container"></div>
             </div>
 
+            <!-- صفحة 2: كوكب الحظ المتحرك -->
             <div id="page-wheel" class="app-page">
                 <h2 class="section-title"><i class="fa-solid fa-earth-africa"></i> كوكب الحظ المونديالي</h2>
                 <div class="wheel-container">
@@ -349,6 +357,7 @@
                 </div>
             </div>
 
+            <!-- صفحة 3: حساب الفرعون والتحويل -->
             <div id="page-profile" class="app-page">
                 <h2 class="section-title"><i class="fa-solid fa-wallet"></i> محفظتك الذهبية</h2>
                 <div class="wc-card" style="text-align: center;">
@@ -360,6 +369,7 @@
 
         </div>
 
+        <!-- شريط القائمة السفلي المونديالي -->
         <nav class="nav-tabs">
             <div class="nav-item active" onclick="switchPage('tasks', this)"><i class="fa-solid fa-trophy"></i><span>المسابقات</span></div>
             <div class="nav-item" onclick="switchPage('wheel', this)"><i class="fa-solid fa-earth-africa"></i><span>كوكب الحظ</span></div>
@@ -368,15 +378,21 @@
     </div>
 
     <script>
-        // --- 🔐 إعدادات قاعدة بيانات سوبابيز الخاصة بك المكشوفة برمجياً في ملفك القديم ---
-        const SB_URL = "https://wbmcrufeemwrtwsqaswz.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibWNydWZlZW13cnR3c3Fhc3d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NTg4OTIsImV4cCI6MjA1NjMzNDg5Mn0.1V8C2X_E7xL6Wb3B0M_3XzXW89_5522114477"; // تم استرجاع مفتاح الـ Anon الخاص بك من ملفك
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        // دالة آمنة للتأكد من تحميل مكتبة Supabase أولاً دون التسبب في إيقاف الكود
+        let supabase;
+        function initSupabase() {
+            const SB_URL = "https://wbmcrufeemwrtwsqaswz.supabase.co";
+            const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndibWNydWZlZW13cnR3c3Fhc3d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NTg4OTIsImV4cCI6MjA1NjMzNDg5Mn0.1V8C2X_E7xL6Wb3B0M_3XzXW89_5522114477";
+            
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            } else {
+                console.error("خطأ: لم يتم تحميل مكتبة Supabase بشكل صحيح.");
+            }
+        }
 
-        // إدارة حالة المستخدم الداخلية لتطابق نظام ملفك الأصلي
         let db = { loggedIn: false, telegram_id: null, username: '', coins: 0 };
 
-        // مصفوفة الأسئلة الرياضية العشوائية لمركز المسابقات
         const quizData = {
             players: [
                 { q: "من هو الهداف التاريخي لمنتخب مصر؟", o: ["حسام حسن", "محمد صلاح", "محمود الخطيب"], a: 0 },
@@ -392,33 +408,40 @@
             ]
         };
 
-        // مباريات قادمة مبرمجة زمنياً (مربوطة بالوقت الحالي الفعلي)
         const matches = [
             { id: 1, teamA: "مصر 🇪🇬", teamB: "البرازيل 🇧🇷", time: "2026-06-20T18:00:00", description: "افتتاحية المجموعات" },
-            { id: 2, teamA: "المغرب 🇲🇦", teamB: "إسبانيا 🇪🇸", time: "2026-06-15T21:00:00", description: "مباراة مغلقة كمثال لانقضاء الوقت" },
+            { id: 2, teamA: "المغرب 🇲🇦", teamB: "إسبانيا 🇪🇸", time: "2026-06-15T21:00:00", description: "مباراة منتهية الوقت لتجربة القفل التلقائي" },
             { id: 3, teamA: "مصر 🇪🇬", teamB: "إيطاليا 🇮🇹", time: "2026-06-25T19:30:00", description: "الجولة الثانية للفراعنة" }
         ];
 
-        // --- 🔐 دالة تسجيل الدخول الرسمية عبر التليجرام والمطابقة لملفك القديم ---
+        // --- دالة الاستجابة الفورية بعد موافقة التليجرام ---
         async function onTelegramAuth(user) {
+            if(!supabase) initSupabase(); // التأكد من تفعيل السوبابيز فوراً عند الدخول
+
             db.loggedIn = true;
             db.telegram_id = user.id.toString();
             db.username = user.first_name + (user.last_name ? ' ' + user.last_name : '');
             
+            // إخفاء شاشة الدخول وعرض التطبيق فورا
             document.getElementById('loginWall').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
 
-            // فحص وجود الحساب في سوبابيز أو إنشائه
-            let { data: profile } = await supabase.from('profiles').select('*').eq('telegram_id', db.telegram_id).single();
-            
-            if (!profile) {
-                const { data: newProfile } = await supabase.from('profiles').insert([
-                    { telegram_id: db.telegram_id, username: db.username, coins: 500 }
-                ]).select().single();
-                profile = newProfile;
+            try {
+                let { data: profile, error } = await supabase.from('profiles').select('*').eq('telegram_id', db.telegram_id).single();
+                
+                if (error || !profile) {
+                    const { data: newProfile } = await supabase.from('profiles').insert([
+                        { telegram_id: db.telegram_id, username: db.username, coins: 500 }
+                    ]).select().single();
+                    profile = newProfile;
+                }
+
+                db.coins = profile ? profile.coins : 500;
+            } catch(e) {
+                console.log("Supabase Error or Offline mode", e);
+                db.coins = 500; // قيمة افتراضية في حال وجود مشكلة اتصال بسوبابيز
             }
 
-            db.coins = profile.coins;
             updateUI();
             renderMatches();
         }
@@ -435,7 +458,6 @@
             element.classList.add('active');
         }
 
-        // --- منطق المسابقة العشوائية ---
         function startQuiz(category) {
             const list = quizData[category];
             const randomQuestion = list[Math.floor(Math.random() * list.length)];
@@ -461,7 +483,7 @@
         async function checkAnswer(userChoice, correctChoice) {
             if (userChoice === correctChoice) {
                 db.coins += 200;
-                await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.telegram_id);
+                if(supabase) await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.telegram_id);
                 updateUI();
                 alert("إجابة صحيحة! ربحت 200 كوينز مونديالية 🏆");
             } else {
@@ -471,7 +493,6 @@
             document.getElementById('quiz-selection').style.display = 'block';
         }
 
-        // --- عرض المباريات وقفل الرهانات والتوقعات برمجياً قبل البدء ---
         function renderMatches() {
             const container = document.getElementById('matches-container');
             container.innerHTML = '';
@@ -479,7 +500,7 @@
 
             matches.forEach(match => {
                 const matchTime = new Date(match.time);
-                const isExpired = now >= matchTime; // يقارن الوقت برمجياً
+                const isExpired = now >= matchTime;
 
                 const box = document.createElement('div');
                 box.className = 'match-box';
@@ -509,10 +530,10 @@
 
         async function submitPrediction(matchId, type) {
             alert(`تم حفظ توقعك بـ (${type}) بنجاح!`);
-            await supabase.from('transactions').insert([{ telegram_id: db.telegram_id, type: `توقع مباراة ${matchId}`, amount: 0 }]);
+            if(supabase) await supabase.from('transactions').insert([{ telegram_id: db.telegram_id, type: `توقع مباراة ${matchId}`, amount: 0 }]);
         }
 
-        // --- محرك الأنيميشن الأصلي الخاص بك (النجوم ودوران صورة كوكب الأرض texture.jpg) ---
+        // --- محرك الأنيميشن المتوافق مع ملفك القديم ---
         const canvas = document.getElementById('starCanvas');
         const ctx = canvas.getContext('2d');
         let stars = [], ry = 0, isSpinning = false;
@@ -560,7 +581,7 @@
                 const prize = Math.floor(Math.random() * 101) + 50; 
                 
                 db.coins += prize;
-                await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.telegram_id);
+                if(supabase) await supabase.from('profiles').update({ coins: db.coins }).eq('telegram_id', db.telegram_id);
                 updateUI();
                 
                 alert(`مبروك! فزت بـ ${prize} كوينز مونديالية! ⚽🔥`);
@@ -568,7 +589,7 @@
         }
 
         window.addEventListener('resize', init);
-        window.onload = () => { init(); draw(); };
+        window.onload = () => { initSupabase(); init(); draw(); };
     </script>
 </body>
 </html>
